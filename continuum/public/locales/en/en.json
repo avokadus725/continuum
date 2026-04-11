@@ -1,0 +1,168 @@
+{
+  "meta": {
+    "title": "Continuum",
+    "description": "A personalized learning platform for students of technical specialties"
+  },
+  "auth": {
+    "login": {
+      "brand": "Continuum",
+      "tagline": "A personalized learning platform",
+      "heading": "Sign in",
+      "description": "Use your university or personal Google account",
+      "googleButton": "Sign in with Google",
+      "loading": "Redirecting...",
+      "error": "Sign-in failed. Please try again.",
+      "terms": "By continuing, you agree to the platform's terms of use"
+    }
+  },
+  "nav": {
+    "dashboard": "Home",
+    "materials": "Materials",
+    "tasks": "Tasks",
+    "notes": "Notes",
+    "analytics": "Analytics",
+    "profile": "Profile",
+    "admin": "Admin",
+    "gamification": "Leaderboard",
+    "recommendations": "For you",
+    "logout": "Sign out"
+  },
+  "dashboard": {
+    "welcome": "Hello, {name}!",
+    "welcomeGeneric": "Hello!",
+    "subtitle": "Continue learning from where you left off",
+    "progress": "Your progress",
+    "recommended": "Recommended for you",
+    "recentTasks": "Recent tasks",
+    "xp": "{xp} XP",
+    "level": "Level {level}",
+    "tasksCompleted": "{count} tasks completed",
+    "allTasksDone": "🎉 All tasks completed!",
+    "recommendedMaterials": "Materials to study"
+  },
+  "materials": {
+    "title": "Materials",
+    "filter": "Filter by topic",
+    "allTopics": "All topics",
+    "types": {
+      "article": "Article",
+      "video": "Video",
+      "link": "Link",
+      "interactive": "Interactive"
+    },
+    "addToCollection": "Add to collection",
+    "noMaterials": "No materials yet"
+  },
+  "tasks": {
+    "title": "Tasks",
+    "difficulty": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "types": {
+      "single_choice": "Single choice",
+      "multiple_choice": "Multiple choice",
+      "text": "Text answer",
+      "code": "Code"
+    },
+    "submit": "Check answer",
+    "correct": "Correct! +{xp} XP",
+    "incorrect": "Incorrect. Try again.",
+    "alreadyCorrect": "You already answered correctly",
+    "noTasks": "No tasks yet",
+    "xpReward": "+{xp} XP",
+    "attempts": "Attempts: {count}"
+  },
+  "notes": {
+    "title": "My notes",
+    "create": "New note",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteConfirm": "Delete note?",
+    "deleteDescription": "This action cannot be undone.",
+    "placeholder": "Start writing...",
+    "titlePlaceholder": "Note title",
+    "linkedTo": "Linked to",
+    "noNotes": "No notes yet. Create your first one!"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "period": "Period",
+    "last7days": "7 days",
+    "last30days": "30 days",
+    "last90days": "90 days",
+    "tasksCompleted": "Tasks completed",
+    "correctRate": "Correct answers",
+    "totalXp": "Total XP",
+    "streak": "Day streak",
+    "weakTopics": "Topics to improve",
+    "noData": "Not enough data (at least 30 days of activity required)"
+  },
+  "gamification": {
+    "level": "Level",
+    "xp": "XP",
+    "achievements": "Achievements",
+    "leaderboard": "Leaderboard",
+    "newAchievement": "New achievement!",
+    "rank": "#{rank}",
+    "you": "(you)"
+  },
+  "profile": {
+    "title": "Profile",
+    "edit": "Edit profile",
+    "save": "Save",
+    "cancel": "Cancel",
+    "fullName": "Full name",
+    "bio": "About me",
+    "language": "Interface language",
+    "languages": {
+      "uk": "Ukrainian",
+      "en": "English"
+    }
+  },
+  "comments": {
+    "title": "Comments",
+    "placeholder": "Write a comment...",
+    "submit": "Send",
+    "delete": "Delete",
+    "deleteConfirm": "Delete comment?",
+    "noComments": "No comments yet",
+    "reply": "Reply"
+  },
+  "reactions": {
+    "like": "👍",
+    "helpful": "💡",
+    "fire": "🔥"
+  },
+  "admin": {
+    "title": "Admin panel",
+    "users": "Users",
+    "materials": "Materials",
+    "tasks": "Tasks",
+    "attempts": "Attempts",
+    "name": "Name",
+    "role": "Role",
+    "level": "Level",
+    "xp": "XP",
+    "date": "Date",
+    "difficulty": "Difficulty",
+    "status": "Status",
+    "you": "(you)"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "back": "Back",
+    "next": "Next",
+    "search": "Search",
+    "noResults": "Nothing found",
+    "confirm": "Confirm"
+  }
+}

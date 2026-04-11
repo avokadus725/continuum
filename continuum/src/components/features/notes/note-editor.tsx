@@ -1,0 +1,120 @@
+'use client'
+
+import { useTranslations } from 'next-intl'
+import { useRef, useState, useTransition } from 'react'
+import { createNote, updateNote } from '@/app/actions/notes'
+
+interface NoteEditorProps {
+  /** If provided, editing mode; otherwise create mode */
+  note?: {
+    id: string
+    title: string
+    content: string | null
+  }
+  onClose: () => void
+}
+
+export function NoteEditor({ note, onClose }: NoteEditorProps) {
+  const t = useTranslations('notes')
+  const tCommon = useTranslations('common')
+  const formRef = useRef<HTMLFormElement>(null)
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit(formData: FormData) {
+    setError(null)
+    startTransition(async () => {
+      const res = note ? await updateNote(formData) : await createNote(formData)
+      if ('error' in res && res.error) {
+        setError(res.error)
+      } else {
+        onClose()
+      }
+    })
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.4)' }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div
+        className="w-full max-w-lg rounded-2xl border shadow-xl p-6 space-y-4"
+        style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
+            {note ? tCommon('edit') : t('create')}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-xl leading-none"
+            style={{ color: 'var(--muted-foreground)' }}
+          >
+            ×
+          </button>
+        </div>
+
+        <form ref={formRef} action={handleSubmit} className="space-y-3">
+          {note && <input type="hidden" name="id" value={note.id} />}
+
+          <input
+            name="title"
+            required
+            defaultValue={note?.title ?? ''}
+            placeholder={t('titlePlaceholder')}
+            className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2"
+            style={{
+              background: 'var(--background)',
+              borderColor: 'var(--border)',
+              color: 'var(--foreground)',
+            }}
+          />
+
+          <textarea
+            name="content"
+            rows={8}
+            defaultValue={note?.content ?? ''}
+            placeholder={t('placeholder')}
+            className="w-full rounded-xl border px-3 py-2 text-sm resize-none outline-none focus:ring-2"
+            style={{
+              background: 'var(--background)',
+              borderColor: 'var(--border)',
+              color: 'var(--foreground)',
+            }}
+          />
+
+          {error && (
+            <p className="text-sm" style={{ color: 'var(--destructive)' }}>
+              {error}
+            </p>
+          )}
+
+          <div className="flex gap-2 justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl text-sm font-medium border transition-colors"
+              style={{
+                borderColor: 'var(--border)',
+                color: 'var(--muted-foreground)',
+                background: 'transparent',
+              }}
+            >
+              {tCommon('cancel')}
+            </button>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="px-4 py-2 rounded-xl text-sm font-semibold transition-opacity disabled:opacity-50"
+              style={{ background: 'var(--primary)', color: 'var(--primary-foreground)' }}
+            >
+              {isPending ? '...' : tCommon('save')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}

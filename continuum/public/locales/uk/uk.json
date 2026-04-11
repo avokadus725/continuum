@@ -1,0 +1,168 @@
+{
+  "meta": {
+    "title": "Continuum",
+    "description": "Персоналізована платформа для навчання студентів технічних спеціальностей"
+  },
+  "auth": {
+    "login": {
+      "brand": "Continuum",
+      "tagline": "Персоналізована платформа для навчання",
+      "heading": "Увійти в систему",
+      "description": "Використовуй свій університетський або особистий Google-акаунт",
+      "googleButton": "Увійти через Google",
+      "loading": "Перенаправлення...",
+      "error": "Помилка входу. Спробуйте ще раз.",
+      "terms": "Продовжуючи, ти погоджуєшся з умовами використання платформи"
+    }
+  },
+  "nav": {
+    "dashboard": "Головна",
+    "materials": "Матеріали",
+    "tasks": "Завдання",
+    "notes": "Нотатки",
+    "analytics": "Аналітика",
+    "profile": "Профіль",
+    "admin": "Адмін",
+    "gamification": "Рейтинг",
+    "recommendations": "Для тебе",
+    "logout": "Вийти"
+  },
+  "dashboard": {
+    "welcome": "Привіт, {name}!",
+    "welcomeGeneric": "Привіт!",
+    "subtitle": "Продовжуй навчання з того місця, де зупинився",
+    "progress": "Твій прогрес",
+    "recommended": "Рекомендовано для тебе",
+    "recentTasks": "Нещодавні завдання",
+    "xp": "{xp} XP",
+    "level": "Рівень {level}",
+    "tasksCompleted": "{count} завдань виконано",
+    "allTasksDone": "🎉 Всі завдання виконано!",
+    "recommendedMaterials": "Матеріали для вивчення"
+  },
+  "materials": {
+    "title": "Матеріали",
+    "filter": "Фільтр за темою",
+    "allTopics": "Всі теми",
+    "types": {
+      "article": "Стаття",
+      "video": "Відео",
+      "link": "Посилання",
+      "interactive": "Інтерактивне"
+    },
+    "addToCollection": "Додати до підбірки",
+    "noMaterials": "Матеріалів поки немає"
+  },
+  "tasks": {
+    "title": "Завдання",
+    "difficulty": {
+      "beginner": "Початковий",
+      "intermediate": "Середній",
+      "advanced": "Складний"
+    },
+    "types": {
+      "single_choice": "Одна відповідь",
+      "multiple_choice": "Декілька відповідей",
+      "text": "Текстова відповідь",
+      "code": "Код"
+    },
+    "submit": "Перевірити",
+    "correct": "Правильно! +{xp} XP",
+    "incorrect": "Неправильно. Спробуй ще раз.",
+    "alreadyCorrect": "Ти вже відповів правильно",
+    "noTasks": "Завдань поки немає",
+    "xpReward": "+{xp} XP",
+    "attempts": "Спроб: {count}"
+  },
+  "notes": {
+    "title": "Мої нотатки",
+    "create": "Нова нотатка",
+    "edit": "Редагувати",
+    "delete": "Видалити",
+    "deleteConfirm": "Видалити нотатку?",
+    "deleteDescription": "Цю дію не можна скасувати.",
+    "placeholder": "Починай писати...",
+    "titlePlaceholder": "Назва нотатки",
+    "linkedTo": "Прив'язано до",
+    "noNotes": "Нотаток поки немає. Створи першу!"
+  },
+  "analytics": {
+    "title": "Аналітика",
+    "period": "Період",
+    "last7days": "7 днів",
+    "last30days": "30 днів",
+    "last90days": "90 днів",
+    "tasksCompleted": "Виконано завдань",
+    "correctRate": "Правильних відповідей",
+    "totalXp": "Загальний XP",
+    "streak": "Серія днів",
+    "weakTopics": "Теми для покращення",
+    "noData": "Недостатньо даних (потрібно мінімум 30 днів активності)"
+  },
+  "gamification": {
+    "level": "Рівень",
+    "xp": "XP",
+    "achievements": "Досягнення",
+    "leaderboard": "Таблиця лідерів",
+    "newAchievement": "Нове досягнення!",
+    "rank": "#{rank}",
+    "you": "(ти)"
+  },
+  "profile": {
+    "title": "Профіль",
+    "edit": "Редагувати профіль",
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "fullName": "Ім'я",
+    "bio": "Про себе",
+    "language": "Мова інтерфейсу",
+    "languages": {
+      "uk": "Українська",
+      "en": "English"
+    }
+  },
+  "comments": {
+    "title": "Коментарі",
+    "placeholder": "Напиши коментар...",
+    "submit": "Надіслати",
+    "delete": "Видалити",
+    "deleteConfirm": "Видалити коментар?",
+    "noComments": "Коментарів поки немає",
+    "reply": "Відповісти"
+  },
+  "reactions": {
+    "like": "👍",
+    "helpful": "💡",
+    "fire": "🔥"
+  },
+  "admin": {
+    "title": "Адмін панель",
+    "users": "Користувачі",
+    "materials": "Матеріали",
+    "tasks": "Завдання",
+    "attempts": "Спроби",
+    "name": "Ім'я",
+    "role": "Роль",
+    "level": "Рівень",
+    "xp": "XP",
+    "date": "Дата",
+    "difficulty": "Складність",
+    "status": "Статус",
+    "you": "(ти)"
+  },
+  "common": {
+    "loading": "Завантаження...",
+    "error": "Щось пішло не так",
+    "retry": "Спробувати знову",
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "delete": "Видалити",
+    "edit": "Редагувати",
+    "create": "Створити",
+    "back": "Назад",
+    "next": "Далі",
+    "search": "Пошук",
+    "noResults": "Нічого не знайдено",
+    "confirm": "Підтвердити"
+  }
+}

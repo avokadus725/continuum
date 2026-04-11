@@ -1,0 +1,212 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─── Theme mapping to shadcn tokens ────────────────────── */
+@theme inline {
+  --color-background:               var(--background);
+  --color-foreground:               var(--foreground);
+  --font-sans:                      var(--font-sans);
+  --font-mono:                      var(--font-geist-mono);
+
+  --color-primary:                  var(--primary);
+  --color-primary-foreground:       var(--primary-foreground);
+  --color-secondary:                var(--secondary);
+  --color-secondary-foreground:     var(--secondary-foreground);
+  --color-muted:                    var(--muted);
+  --color-muted-foreground:         var(--muted-foreground);
+  --color-accent:                   var(--accent);
+  --color-accent-foreground:        var(--accent-foreground);
+  --color-destructive:              var(--destructive);
+  --color-border:                   var(--border);
+  --color-input:                    var(--input);
+  --color-ring:                     var(--ring);
+  --color-card:                     var(--card);
+  --color-card-foreground:          var(--card-foreground);
+  --color-popover:                  var(--popover);
+  --color-popover-foreground:       var(--popover-foreground);
+
+  /* Continuum custom tokens */
+  --color-success:                  var(--success);
+  --color-success-foreground:       var(--success-foreground);
+  --color-warning:                  var(--warning);
+  --color-warning-foreground:       var(--warning-foreground);
+
+  --radius-sm:  calc(var(--radius) * 0.6);
+  --radius-md:  calc(var(--radius) * 0.8);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+}
+
+/* ─── Light mode ─────────────────────────────────────────── */
+:root {
+  /* Layout */
+  --background:           #F5F5F5;
+  --foreground:           #333333;
+  --radius:               0.625rem;
+
+  /* Cards & popovers */
+  --card:                 #FFFFFF;
+  --card-foreground:      #333333;
+  --popover:              #FFFFFF;
+  --popover-foreground:   #333333;
+
+  /* Primary = насичений синій (концентрація) */
+  --primary:              #005CAB;
+  --primary-foreground:   #FFFFFF;
+
+  /* Secondary = приглушений синій */
+  --secondary:            #E8F0F9;
+  --secondary-foreground: #005CAB;
+
+  /* Muted */
+  --muted:                #EBEBEB;
+  --muted-foreground:     #777777;
+
+  /* Accent */
+  --accent:               #E8F0F9;
+  --accent-foreground:    #005CAB;
+
+  /* Semantic */
+  --destructive:          #E31B23;
+  --success:              #009E73;
+  --success-foreground:   #FFFFFF;
+  --warning:              #FFC325;
+  --warning-foreground:   #333333;
+
+  /* Borders & inputs */
+  --border:               #DEDEDE;
+  --input:                #DEDEDE;
+  --ring:                 #005CAB;
+
+  /* Charts (blues scale) */
+  --chart-1: #005CAB;
+  --chart-2: #0070CC;
+  --chart-3: #009E73;
+  --chart-4: #FFC325;
+  --chart-5: #E31B23;
+
+  /* Sidebar */
+  --sidebar:                    #FFFFFF;
+  --sidebar-foreground:         #333333;
+  --sidebar-primary:            #005CAB;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent:             #E8F0F9;
+  --sidebar-accent-foreground:  #005CAB;
+  --sidebar-border:             #DEDEDE;
+  --sidebar-ring:               #005CAB;
+}
+
+/* ─── Dark mode ──────────────────────────────────────────── */
+.dark {
+  --background:           #121212;
+  --foreground:           #F0F0F0;
+
+  --card:                 #1E1E1E;
+  --card-foreground:      #F0F0F0;
+  --popover:              #1E1E1E;
+  --popover-foreground:   #F0F0F0;
+
+  --primary:              #4D99E0;
+  --primary-foreground:   #121212;
+
+  --secondary:            #1A2A3A;
+  --secondary-foreground: #4D99E0;
+
+  --muted:                #2A2A2A;
+  --muted-foreground:     #999999;
+
+  --accent:               #1A2A3A;
+  --accent-foreground:    #4D99E0;
+
+  --destructive:          #FF4D55;
+  --success:              #00C48C;
+  --success-foreground:   #121212;
+  --warning:              #FFD060;
+  --warning-foreground:   #121212;
+
+  --border:               rgba(255,255,255,0.1);
+  --input:                rgba(255,255,255,0.12);
+  --ring:                 #4D99E0;
+
+  --chart-1: #4D99E0;
+  --chart-2: #0070CC;
+  --chart-3: #00C48C;
+  --chart-4: #FFD060;
+  --chart-5: #FF4D55;
+
+  --sidebar:                    #1A1A1A;
+  --sidebar-foreground:         #F0F0F0;
+  --sidebar-primary:            #4D99E0;
+  --sidebar-primary-foreground: #121212;
+  --sidebar-accent:             #1A2A3A;
+  --sidebar-accent-foreground:  #4D99E0;
+  --sidebar-border:             rgba(255,255,255,0.1);
+  --sidebar-ring:               #4D99E0;
+}
+
+/* ─── Pomodoro modes ─────────────────────────────────────── */
+
+/* РОБОТА: холодний синій — концентрація */
+.pomodoro-work {
+  --pomodoro-accent:  #005CAB;
+  --pomodoro-bg:      rgba(0, 92, 171, 0.06);
+  --pomodoro-border:  rgba(0, 92, 171, 0.35);
+}
+
+/* ВІДПОЧИНОК: м'який зелений — відновлення */
+.pomodoro-break {
+  --pomodoro-accent:  #009E73;
+  --pomodoro-bg:      rgba(0, 158, 115, 0.08);
+  --pomodoro-border:  rgba(0, 158, 115, 0.35);
+}
+
+/* ГЛИБОКИЙ ПОТІК: мінімальний, темно-сірий */
+.pomodoro-flow {
+  --pomodoro-accent:  #555555;
+  --pomodoro-bg:      rgba(0,0,0,0.0);
+  --pomodoro-border:  transparent;
+  filter: saturate(0.4);
+}
+
+/* ─── Typography ─────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    /* reading line length: 50-75 chars */
+    --content-max-width: 70ch;
+    line-height: 1.55;
+    text-align: left;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', var(--font-sans), sans-serif;
+    font-size: 16px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);   /* Geist */
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--foreground);
+  }
+
+  code, pre, kbd, samp {
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 0.9em;
+  }
+
+  /* Max content width for readability */
+  .prose {
+    max-width: var(--content-max-width);
+  }
+}
