@@ -4,17 +4,11 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { CommentsSection } from '@/components/features/comments/comments-section'
 import { ReactionsBar } from '@/components/features/reactions/reactions-bar'
+import { AddToCollectionButton } from '@/components/features/collections/add-to-collection-button'
 import type { Metadata } from 'next'
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params
-  const supabase = await createClient()
-  const { data } = await supabase.from('materials').select('title').eq('id', id).single()
-  return { title: data?.title ?? 'Material' }
-}
-
 interface Props {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }
 
 const typeIcons: Record<string, string> = {
@@ -27,34 +21,75 @@ const typeIcons: Record<string, string> = {
 type ReactionType = 'like' | 'helpful' | 'fire'
 const REACTION_TYPES: ReactionType[] = ['like', 'helpful', 'fire']
 
+async function getMaterial(supabase: Awaited<ReturnType<typeof createClient>>, slug: string) {
+  // Try slug first, fall back to UUID id (for old links)
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug)
+
+  if (isUuid) {
+    const { data } = await supabase
+      .from('materials')
+      .select('*, topics(title, icon, slug)')
+      .eq('id', slug)
+      .eq('is_published', true)
+      .single()
+    return data
+  }
+
+  const { data } = await supabase
+    .from('materials')
+    .select('*, topics(title, icon, slug)')
+    .eq('slug', slug)
+    .eq('is_published', true)
+    .single()
+  return data
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params
+  const supabase = await createClient()
+  const material = await getMaterial(supabase, slug)
+  return { title: material?.title ?? 'Material' }
+}
+
 export default async function MaterialDetailPage({ params }: Props) {
-  const { id } = await params
+  const { slug } = await params
   const supabase = await createClient()
   const t = await getTranslations('materials')
   const tCommon = await getTranslations('common')
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [materialRes, commentsRes, reactionsRes] = await Promise.all([
-    supabase
-      .from('materials')
-      .select('*, topics(title, icon, slug)')
-      .eq('id', id)
-      .eq('is_published', true)
-      .single(),
+  const material = await getMaterial(supabase, slug)
+  if (!material) notFound()
+
+  const materialId = material.id
+
+  // Fetch user's collections
+  const collectionsData = user ? await (async () => {
+    const { data: cols } = await supabase
+      .from('collections')
+      .select('id, title, collection_materials(material_id)')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+    return (cols ?? []).map(c => ({
+      id: c.id,
+      title: c.title,
+      hasMaterial: (c.collection_materials as { material_id: string }[]).some(cm => cm.material_id === materialId),
+    }))
+  })() : []
+
+  const [commentsRes, reactionsRes] = await Promise.all([
     supabase
       .from('comments')
       .select('id, content, created_at, user_id, parent_id, profiles(full_name, avatar_url)')
-      .eq('material_id', id)
+      .eq('material_id', materialId)
       .order('created_at', { ascending: true }),
     supabase
       .from('reactions')
       .select('type, user_id')
-      .eq('material_id', id),
+      .eq('material_id', materialId),
   ])
 
-  if (!materialRes.data) notFound()
-  const material = materialRes.data
   const topic = material.topics as { title: string; icon: string | null; slug: string } | null
 
   const comments = (commentsRes.data ?? []).map((c) => ({
@@ -112,7 +147,7 @@ export default async function MaterialDetailPage({ params }: Props) {
           className="rounded-2xl border p-6"
           style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)', lineHeight: '1.7' }}
         >
-          {material.content.split('\n').map((paragraph, i) => (
+          {material.content.split('\n').map((paragraph: string, i: number) => (
             <p key={i} className="mb-4 last:mb-0 text-sm">
               {paragraph}
             </p>
@@ -141,9 +176,12 @@ export default async function MaterialDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Reactions */}
+      {/* Actions row: reactions + add to collection */}
       {user && (
-        <ReactionsBar reactions={reactionCounts} materialId={id} />
+        <div className="flex items-center gap-3 flex-wrap">
+          <ReactionsBar reactions={reactionCounts} materialId={materialId} />
+          <AddToCollectionButton materialId={materialId} collections={collectionsData} />
+        </div>
       )}
 
       {/* Comments */}
@@ -154,7 +192,7 @@ export default async function MaterialDetailPage({ params }: Props) {
         >
           <CommentsSection
             comments={comments}
-            materialId={id}
+            materialId={materialId}
             currentUserId={user.id}
           />
         </div>

@@ -1,8 +1,10 @@
-import { Badge } from '@/components/ui/badge'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
+import { AddToCollectionButton } from '@/components/features/collections/add-to-collection-button'
 
 type MaterialType = 'article' | 'video' | 'link' | 'interactive'
+
+interface CollectionOption { id: string; title: string; hasMaterial: boolean }
 
 interface MaterialCardProps {
   id: string
@@ -11,6 +13,8 @@ interface MaterialCardProps {
   url: string | null
   type: MaterialType
   topic: { title: string; icon: string | null } | null
+  /** Pass user's collections to show the "Add to collection" button */
+  collections?: CollectionOption[]
 }
 
 const typeColors: Record<MaterialType, string> = {
@@ -27,25 +31,20 @@ const typeIcons: Record<MaterialType, string> = {
   interactive: '⚡',
 }
 
-export async function MaterialCard({ id, title, content, url, type, topic }: MaterialCardProps) {
+export async function MaterialCard({ id, title, content, url, type, topic, collections }: MaterialCardProps) {
   const t = await getTranslations('materials.types')
 
   const excerpt = content ? content.slice(0, 120) + (content.length > 120 ? '…' : '') : null
 
   return (
-    <Link href={`/materials/${id}`} className="block group">
-      <div
-        className="h-full rounded-2xl border p-5 flex flex-col gap-3 transition-all duration-200 group-hover:shadow-md group-hover:-translate-y-0.5"
-        style={{
-          background: 'var(--card)',
-          borderColor: 'var(--border)',
-        }}
-      >
+    <div
+      className="h-full rounded-2xl border flex flex-col transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+      style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+    >
+      <Link href={`/materials/${id}`} className="block p-5 flex-1 group">
         {/* Top row: type badge + topic */}
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${typeColors[type]}`}
-          >
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${typeColors[type]}`}>
             <span>{typeIcons[type]}</span>
             {t(type)}
           </span>
@@ -57,24 +56,32 @@ export async function MaterialCard({ id, title, content, url, type, topic }: Mat
         </div>
 
         {/* Title */}
-        <h3 className="font-semibold text-base leading-snug" style={{ color: 'var(--foreground)' }}>
+        <h3 className="font-semibold text-base leading-snug mb-2 group-hover:underline"
+          style={{ color: 'var(--foreground)' }}>
           {title}
         </h3>
 
         {/* Excerpt */}
         {excerpt && (
-          <p className="text-sm leading-relaxed flex-1" style={{ color: 'var(--muted-foreground)' }}>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
             {excerpt}
           </p>
         )}
 
         {/* External link indicator */}
         {url && !content && (
-          <p className="text-xs mt-auto" style={{ color: 'var(--primary)' }}>
+          <p className="text-xs mt-2" style={{ color: 'var(--primary)' }}>
             {url.replace(/^https?:\/\//, '').split('/')[0]} ↗
           </p>
         )}
-      </div>
-    </Link>
+      </Link>
+
+      {/* Collection button — only when collections are provided (logged-in context) */}
+      {collections !== undefined && (
+        <div className="px-4 pb-4 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+          <AddToCollectionButton materialId={id} collections={collections} compact />
+        </div>
+      )}
+    </div>
   )
 }

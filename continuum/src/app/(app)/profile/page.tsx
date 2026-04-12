@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getTranslations } from 'next-intl/server'
 import { redirect } from 'next/navigation'
 import { ProfileEditForm } from '@/components/features/profile/profile-edit-form'
+import { AvatarUpload } from '@/components/features/profile/avatar-upload'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import type { Metadata } from 'next'
 
@@ -67,20 +68,7 @@ export default async function ProfilePage() {
         style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
       >
         <div className="flex items-start gap-4">
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={displayName ?? ''}
-              className="w-16 h-16 rounded-full object-cover shrink-0"
-            />
-          ) : (
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shrink-0"
-              style={{ background: 'var(--primary)', color: 'var(--primary-foreground)' }}
-            >
-              {(displayName?.[0] ?? user.email?.[0] ?? '?').toUpperCase()}
-            </div>
-          )}
+          <AvatarUpload currentUrl={avatarUrl} displayName={displayName} />
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-lg truncate" style={{ color: 'var(--foreground)' }}>
               {displayName ?? user.email}

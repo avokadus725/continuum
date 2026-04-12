@@ -89,7 +89,6 @@ export async function submitTaskAnswer(formData: FormData) {
   }
 
   revalidatePath(`/tasks/${taskId}`)
-  revalidatePath('/dashboard')
 
   return { isCorrect, xpEarned: isCorrect ? task.xp_reward : 0 }
 }

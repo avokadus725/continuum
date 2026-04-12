@@ -1,7 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { toggleReaction } from '@/app/actions/reactions'
 
 type ReactionType = 'like' | 'helpful' | 'fire'
@@ -21,7 +21,19 @@ export function ReactionsBar({ reactions, materialId }: ReactionsBarProps) {
   const t = useTranslations('reactions')
   const [isPending, startTransition] = useTransition()
 
+  // Optimistic local state — updates instantly, no server re-render needed
+  const [local, setLocal] = useState<ReactionCount[]>(reactions)
+
   function handle(type: ReactionType) {
+    // Update optimistically
+    setLocal(prev =>
+      prev.map(r =>
+        r.type === type
+          ? { ...r, count: r.reacted ? r.count - 1 : r.count + 1, reacted: !r.reacted }
+          : r
+      )
+    )
+    // Sync with server in background
     startTransition(async () => {
       const fd = new FormData()
       fd.set('type', type)
@@ -32,7 +44,7 @@ export function ReactionsBar({ reactions, materialId }: ReactionsBarProps) {
 
   return (
     <div className="flex gap-2 flex-wrap">
-      {reactions.map(({ type, count, reacted }) => (
+      {local.map(({ type, count, reacted }) => (
         <button
           key={type}
           onClick={() => handle(type)}

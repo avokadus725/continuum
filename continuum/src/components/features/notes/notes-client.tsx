@@ -2,8 +2,11 @@
 
 import { useTranslations } from 'next-intl'
 import { useState, useTransition } from 'react'
+import { BookMarked } from 'lucide-react'
 import { NoteEditor } from './note-editor'
 import { deleteNote } from '@/app/actions/notes'
+
+interface Collection { id: string; title: string }
 
 interface Note {
   id: string
@@ -11,6 +14,8 @@ interface Note {
   content: string | null
   created_at: string
   updated_at: string
+  collectionId?: string | null
+  collectionTitle?: string | null
   material?: { title: string } | null
   task?: { title: string } | null
   topic?: { title: string; icon: string | null } | null
@@ -18,13 +23,14 @@ interface Note {
 
 interface NotesClientProps {
   notes: Note[]
+  collections: Collection[]
 }
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export function NotesClient({ notes: initialNotes }: NotesClientProps) {
+export function NotesClient({ notes: initialNotes, collections }: NotesClientProps) {
   const t = useTranslations('notes')
   const tCommon = useTranslations('common')
 
@@ -109,13 +115,27 @@ export function NotesClient({ notes: initialNotes }: NotesClientProps) {
                   </p>
                 )}
 
-                <div className="flex items-center justify-between mt-auto pt-1">
-                  {linkedTo && (
-                    <span className="text-xs" style={{ color: 'var(--primary)' }}>
-                      {t('linkedTo')}: {linkedTo}
-                    </span>
-                  )}
-                  <span className="text-xs ml-auto" style={{ color: 'var(--muted-foreground)' }}>
+                <div className="flex items-center justify-between mt-auto pt-1 gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {note.collectionTitle && (
+                      <span
+                        className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full truncate"
+                        style={{
+                          background: 'color-mix(in srgb, var(--primary) 12%, transparent)',
+                          color: 'var(--primary)',
+                        }}
+                      >
+                        <BookMarked className="w-3 h-3 shrink-0" />
+                        {note.collectionTitle}
+                      </span>
+                    )}
+                    {linkedTo && (
+                      <span className="text-xs truncate" style={{ color: 'var(--primary)' }}>
+                        {t('linkedTo')}: {linkedTo}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs shrink-0" style={{ color: 'var(--muted-foreground)' }}>
                     {formatDate(note.updated_at)}
                   </span>
                 </div>
@@ -133,10 +153,13 @@ export function NotesClient({ notes: initialNotes }: NotesClientProps) {
       )}
 
       {/* Modals */}
-      {showCreate && <NoteEditor onClose={() => setShowCreate(false)} />}
+      {showCreate && (
+        <NoteEditor collections={collections} onClose={() => setShowCreate(false)} />
+      )}
       {editNote && (
         <NoteEditor
           note={editNote}
+          collections={collections}
           onClose={() => setEditNote(null)}
         />
       )}

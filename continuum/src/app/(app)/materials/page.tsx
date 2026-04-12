@@ -17,6 +17,17 @@ export default async function MaterialsPage({ searchParams }: Props) {
   const { topic: topicSlug } = await searchParams
   const supabase = await createClient()
   const t = await getTranslations('materials')
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Fetch user's collections + which material IDs each one contains
+  const collectionsRaw = user ? await (async () => {
+    const { data } = await supabase
+      .from('collections')
+      .select('id, title, collection_materials(material_id)')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+    return data ?? []
+  })() : []
 
   // Fetch topics for filter
   const { data: topics } = await supabase
@@ -83,17 +94,25 @@ export default async function MaterialsPage({ searchParams }: Props) {
       {/* Materials grid */}
       {materials && materials.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {materials.map((material) => (
-            <MaterialCard
-              key={material.id}
-              id={material.id}
-              title={material.title}
-              content={material.content}
-              url={material.url}
-              type={material.type as 'article' | 'video' | 'link' | 'interactive'}
-              topic={material.topics as { title: string; icon: string | null } | null}
-            />
-          ))}
+          {materials.map((material) => {
+            const colsForMaterial = collectionsRaw.map(c => ({
+              id: c.id,
+              title: c.title,
+              hasMaterial: (c.collection_materials as { material_id: string }[]).some(cm => cm.material_id === material.id),
+            }))
+            return (
+              <MaterialCard
+                key={material.id}
+                id={material.id}
+                title={material.title}
+                content={material.content}
+                url={material.url}
+                type={material.type as 'article' | 'video' | 'link' | 'interactive'}
+                topic={material.topics as { title: string; icon: string | null } | null}
+                collections={user ? colsForMaterial : undefined}
+              />
+            )
+          })}
         </div>
       ) : (
         <div

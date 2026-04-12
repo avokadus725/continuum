@@ -25,7 +25,11 @@
     "admin": "Адмін",
     "gamification": "Рейтинг",
     "recommendations": "Для тебе",
-    "logout": "Вийти"
+    "collections": "Підбірки",
+    "community": "Спільнота",
+    "focus": "Фокус",
+    "logout": "Вийти",
+    "learningGroup": "Навчання"
   },
   "dashboard": {
     "welcome": "Привіт, {name}!",
@@ -51,10 +55,17 @@
       "interactive": "Інтерактивне"
     },
     "addToCollection": "Додати до підбірки",
-    "noMaterials": "Матеріалів поки немає"
+    "noMaterials": "Матеріалів поки немає",
+    "readMore": "Детальніше →"
+  },
+  "notifications": {
+    "title": "Сповіщення",
+    "markAllRead": "Прочитати всі",
+    "empty": "Сповіщень немає"
   },
   "tasks": {
     "title": "Завдання",
+    "done": "Виконано",
     "difficulty": {
       "beginner": "Початковий",
       "intermediate": "Середній",
@@ -74,8 +85,31 @@
     "xpReward": "+{xp} XP",
     "attempts": "Спроб: {count}"
   },
+  "posts": {
+    "placeholder": "Що у тебе нового?",
+    "publish": "Опублікувати",
+    "attachLink": "Додати посилання",
+    "deleteConfirm": "Видалити пост?",
+    "empty": "Постів ще немає. Будь першим!",
+    "viewAllInCommunity": "Перейти до Спільноти →",
+    "recentPosts": "Останні пости"
+  },
+  "collections": {
+    "title": "Підбірки",
+    "create": "Нова підбірка",
+    "titlePlaceholder": "Назва підбірки",
+    "deleteConfirm": "Видалити підбірку разом з усіма матеріалами?",
+    "deleteCollection": "Видалити",
+    "noCollections": "Підбірок ще немає. Створи першу!",
+    "addToCollection": "В підбірку",
+    "removeMaterial": "Видалити з підбірки",
+    "materialsSection": "Матеріали",
+    "emptyMaterials": "Підбірка порожня",
+    "materials": "матеріали"
+  },
   "notes": {
     "title": "Мої нотатки",
+    "noCollection": "Без підбірки",
     "create": "Нова нотатка",
     "edit": "Редагувати",
     "delete": "Видалити",
@@ -121,6 +155,49 @@
       "en": "English"
     }
   },
+  "focus": {
+    "title": "Кімната концентрації",
+    "work": "ФОКУС",
+    "break": "ПЕРЕРВА",
+    "ready": "ГОТОВО",
+    "start": "Почати",
+    "pause": "Пауза",
+    "resume": "Продовжити",
+    "stop": "Завершити",
+    "skip": "Пропустити",
+    "pomodoro": "Помодоро",
+    "custom": "Свій",
+    "mode": "Режим",
+    "workDuration": "Час роботи",
+    "breakDuration": "Час перерви",
+    "focusTime": "Фокус",
+    "breakTime": "Перерви",
+    "settings": "Налаштування",
+    "apply": "Застосувати",
+    "cancel": "Скасувати",
+    "sessionSaved": "Сесію збережено ✓",
+    "notification": {
+      "breakTitle": "Час відпочити! 🌿",
+      "breakBody": "Зроби перерву",
+      "workTitle": "Перерва закінчилась 💪",
+      "workBody": "Повертаємось до роботи"
+    },
+    "sounds": {
+      "none": "Без звуку",
+      "rain": "Дощ",
+      "forest": "Ліс",
+      "cafe": "Кафе",
+      "fireplace": "Камін",
+      "whitenoise": "Білий шум"
+    },
+    "backgrounds": {
+      "forest": "Ліс",
+      "mountain": "Гори",
+      "rain": "Дощ",
+      "library": "Бібліотека",
+      "space": "Космос"
+    }
+  },
   "comments": {
     "title": "Коментарі",
     "placeholder": "Напиши коментар...",
@@ -141,14 +218,32 @@
     "materials": "Матеріали",
     "tasks": "Завдання",
     "attempts": "Спроби",
-    "name": "Ім'я",
+    "name": "Назва",
     "role": "Роль",
     "level": "Рівень",
     "xp": "XP",
     "date": "Дата",
     "difficulty": "Складність",
+    "taskType": "Тип",
+    "materialType": "Тип",
     "status": "Статус",
-    "you": "(ти)"
+    "active": "Активний",
+    "inactive": "Неактивний",
+    "activate": "Активувати",
+    "deactivate": "Деактивувати",
+    "you": "(ти)",
+    "createTask": "Створити завдання",
+    "editTask": "Редагувати завдання",
+    "createMaterial": "Створити матеріал",
+    "editMaterial": "Редагувати матеріал",
+    "description": "Опис",
+    "topic": "Тема",
+    "content": "Контент",
+    "published": "Опубліковано",
+    "options": "Варіанти відповідей",
+    "option": "Варіант",
+    "addOption": "Додати варіант",
+    "deleteConfirm": "Видалити?"
   },
   "common": {
     "loading": "Завантаження...",

@@ -25,7 +25,11 @@
     "admin": "Admin",
     "gamification": "Leaderboard",
     "recommendations": "For you",
-    "logout": "Sign out"
+    "collections": "Collections",
+    "community": "Community",
+    "focus": "Focus",
+    "logout": "Sign out",
+    "learningGroup": "Learning"
   },
   "dashboard": {
     "welcome": "Hello, {name}!",
@@ -51,10 +55,17 @@
       "interactive": "Interactive"
     },
     "addToCollection": "Add to collection",
-    "noMaterials": "No materials yet"
+    "noMaterials": "No materials yet",
+    "readMore": "Read more →"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "empty": "No notifications"
   },
   "tasks": {
     "title": "Tasks",
+    "done": "Done",
     "difficulty": {
       "beginner": "Beginner",
       "intermediate": "Intermediate",
@@ -74,8 +85,31 @@
     "xpReward": "+{xp} XP",
     "attempts": "Attempts: {count}"
   },
+  "posts": {
+    "placeholder": "What's on your mind?",
+    "publish": "Publish",
+    "attachLink": "Attach link",
+    "deleteConfirm": "Delete this post?",
+    "empty": "No posts yet. Be the first!",
+    "viewAllInCommunity": "See all in Community →",
+    "recentPosts": "Recent posts"
+  },
+  "collections": {
+    "title": "Collections",
+    "create": "New collection",
+    "titlePlaceholder": "Collection name",
+    "deleteConfirm": "Delete this collection?",
+    "deleteCollection": "Delete",
+    "noCollections": "No collections yet. Create your first!",
+    "addToCollection": "Add to collection",
+    "removeMaterial": "Remove from collection",
+    "materialsSection": "Materials",
+    "emptyMaterials": "This collection is empty",
+    "materials": "materials"
+  },
   "notes": {
     "title": "My notes",
+    "noCollection": "No collection",
     "create": "New note",
     "edit": "Edit",
     "delete": "Delete",
@@ -121,6 +155,49 @@
       "en": "English"
     }
   },
+  "focus": {
+    "title": "Focus Room",
+    "work": "FOCUS",
+    "break": "BREAK",
+    "ready": "READY",
+    "start": "Start",
+    "pause": "Pause",
+    "resume": "Resume",
+    "stop": "Stop",
+    "skip": "Skip",
+    "pomodoro": "Pomodoro",
+    "custom": "Custom",
+    "mode": "Mode",
+    "workDuration": "Work duration",
+    "breakDuration": "Break duration",
+    "focusTime": "Focus",
+    "breakTime": "Breaks",
+    "settings": "Settings",
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "sessionSaved": "Session saved ✓",
+    "notification": {
+      "breakTitle": "Time for a break! 🌿",
+      "breakBody": "Take a short rest",
+      "workTitle": "Break over! 💪",
+      "workBody": "Back to work"
+    },
+    "sounds": {
+      "none": "No sound",
+      "rain": "Rain",
+      "forest": "Forest",
+      "cafe": "Café",
+      "fireplace": "Fireplace",
+      "whitenoise": "White noise"
+    },
+    "backgrounds": {
+      "forest": "Forest",
+      "mountain": "Mountains",
+      "rain": "Rain",
+      "library": "Library",
+      "space": "Space"
+    }
+  },
   "comments": {
     "title": "Comments",
     "placeholder": "Write a comment...",
@@ -147,8 +224,26 @@
     "xp": "XP",
     "date": "Date",
     "difficulty": "Difficulty",
+    "taskType": "Type",
+    "materialType": "Type",
     "status": "Status",
-    "you": "(you)"
+    "active": "Active",
+    "inactive": "Inactive",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "you": "(you)",
+    "createTask": "Create task",
+    "editTask": "Edit task",
+    "createMaterial": "Create material",
+    "editMaterial": "Edit material",
+    "description": "Description",
+    "topic": "Topic",
+    "content": "Content",
+    "published": "Published",
+    "options": "Answer options",
+    "option": "Option",
+    "addOption": "Add option",
+    "deleteConfirm": "Delete?"
   },
   "common": {
     "loading": "Loading...",

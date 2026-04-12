@@ -14,31 +14,43 @@ export default async function NotesPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: notes } = await supabase
-    .from('notes')
-    .select(`
-      id, title, content, created_at, updated_at,
-      materials(title),
-      tasks(title),
-      topics(title, icon)
-    `)
-    .eq('user_id', user.id)
-    .order('updated_at', { ascending: false })
+  const [notesRes, collectionsRes] = await Promise.all([
+    (supabase.from('notes') as any)
+      .select(`
+        id, title, content, created_at, updated_at, collection_id,
+        materials(title),
+        tasks(title),
+        topics(title, icon),
+        collections(id, title)
+      `)
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false }),
 
-  const shaped = (notes ?? []).map((n) => ({
-    id: n.id,
-    title: n.title,
-    content: n.content,
-    created_at: n.created_at,
-    updated_at: n.updated_at,
+    supabase
+      .from('collections')
+      .select('id, title')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false }),
+  ])
+
+  const notes = ((notesRes.data ?? []) as any[]).map((n) => ({
+    id: n.id as string,
+    title: n.title as string,
+    content: n.content as string | null,
+    created_at: n.created_at as string,
+    updated_at: n.updated_at as string,
+    collectionId: (n.collection_id as string | null) ?? null,
+    collectionTitle: (n.collections as { title: string } | null)?.title ?? null,
     material: n.materials as { title: string } | null,
     task: n.tasks as { title: string } | null,
     topic: n.topics as { title: string; icon: string | null } | null,
   }))
 
+  const collections = (collectionsRes.data ?? []) as { id: string; title: string }[]
+
   return (
     <div className="space-y-6">
-      <NotesClient notes={shaped} />
+      <NotesClient notes={notes} collections={collections} />
     </div>
   )
 }

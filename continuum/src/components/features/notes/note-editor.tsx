@@ -4,19 +4,23 @@ import { useTranslations } from 'next-intl'
 import { useRef, useState, useTransition } from 'react'
 import { createNote, updateNote } from '@/app/actions/notes'
 
+interface Collection { id: string; title: string }
+
 interface NoteEditorProps {
-  /** If provided, editing mode; otherwise create mode */
   note?: {
     id: string
     title: string
     content: string | null
+    collectionId?: string | null
   }
+  collections?: Collection[]
   onClose: () => void
 }
 
-export function NoteEditor({ note, onClose }: NoteEditorProps) {
+export function NoteEditor({ note, collections = [], onClose }: NoteEditorProps) {
   const t = useTranslations('notes')
   const tCommon = useTranslations('common')
+  const tCol = useTranslations('collections')
   const formRef = useRef<HTMLFormElement>(null)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -47,11 +51,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
             {note ? tCommon('edit') : t('create')}
           </h2>
-          <button
-            onClick={onClose}
-            className="text-xl leading-none"
-            style={{ color: 'var(--muted-foreground)' }}
-          >
+          <button onClick={onClose} className="text-xl leading-none" style={{ color: 'var(--muted-foreground)' }}>
             ×
           </button>
         </div>
@@ -65,30 +65,40 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
             defaultValue={note?.title ?? ''}
             placeholder={t('titlePlaceholder')}
             className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2"
-            style={{
-              background: 'var(--background)',
-              borderColor: 'var(--border)',
-              color: 'var(--foreground)',
-            }}
+            style={{ background: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
           />
 
           <textarea
             name="content"
-            rows={8}
+            rows={7}
             defaultValue={note?.content ?? ''}
             placeholder={t('placeholder')}
             className="w-full rounded-xl border px-3 py-2 text-sm resize-none outline-none focus:ring-2"
-            style={{
-              background: 'var(--background)',
-              borderColor: 'var(--border)',
-              color: 'var(--foreground)',
-            }}
+            style={{ background: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
           />
 
+          {/* Collection selector */}
+          {collections.length > 0 && (
+            <div>
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted-foreground)' }}>
+                {tCol('title')}
+              </label>
+              <select
+                name="collection_id"
+                defaultValue={note?.collectionId ?? ''}
+                className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+                style={{ background: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
+              >
+                <option value="">— {t('noCollection')} —</option>
+                {collections.map(c => (
+                  <option key={c.id} value={c.id}>{c.title}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {error && (
-            <p className="text-sm" style={{ color: 'var(--destructive)' }}>
-              {error}
-            </p>
+            <p className="text-sm" style={{ color: 'var(--destructive)' }}>{error}</p>
           )}
 
           <div className="flex gap-2 justify-end">
@@ -96,11 +106,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
               type="button"
               onClick={onClose}
               className="px-4 py-2 rounded-xl text-sm font-medium border transition-colors"
-              style={{
-                borderColor: 'var(--border)',
-                color: 'var(--muted-foreground)',
-                background: 'transparent',
-              }}
+              style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)', background: 'transparent' }}
             >
               {tCommon('cancel')}
             </button>
