@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useRef, useState, useTransition } from 'react'
 import { createMaterial, updateMaterial } from '@/app/actions/admin'
+import { toast } from 'sonner'
 
 interface Topic { id: string; title: string; icon: string | null }
 
@@ -29,7 +30,12 @@ export function MaterialFormModal({ topics, material, onClose }: MaterialFormMod
     setError(null)
     startTransition(async () => {
       const res = material ? await updateMaterial(formData) : await createMaterial(formData)
-      if ('error' in res && res.error) { setError(res.error) } else { onClose() }
+      if ('error' in res && res.error) {
+        setError(res.error)
+      } else {
+        toast.success(material ? tCommon('toastUpdated') : tCommon('toastCreated'))
+        onClose()
+      }
     })
   }
 

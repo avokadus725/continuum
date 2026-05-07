@@ -58,12 +58,13 @@ export async function createTask(formData: FormData) {
   const xpReward    = parseInt(formData.get('xp_reward') as string) || 10
   const topicId     = (formData.get('topic_id') as string | null) || null
   const isPublished = formData.get('is_published') === 'true'
+  const explanation = (formData.get('explanation') as string | null)?.trim() || null
 
   if (!title || !description) return { error: 'Title and description required' }
 
   const { data: task, error } = await supabase
     .from('tasks')
-    .insert([{ title, description, difficulty, type, xp_reward: xpReward, topic_id: topicId, is_published: isPublished, created_by: user!.id }])
+    .insert([{ title, description, difficulty, type, xp_reward: xpReward, topic_id: topicId, is_published: isPublished, explanation, created_by: user!.id }])
     .select('id')
     .single()
 
@@ -97,10 +98,11 @@ export async function updateTask(formData: FormData) {
   const xpReward    = parseInt(formData.get('xp_reward') as string) || 10
   const topicId     = (formData.get('topic_id') as string | null) || null
   const isPublished = formData.get('is_published') === 'true'
+  const explanation = (formData.get('explanation') as string | null)?.trim() || null
 
   const { error } = await supabase
     .from('tasks')
-    .update({ title, description, difficulty, type, xp_reward: xpReward, topic_id: topicId, is_published: isPublished, updated_at: new Date().toISOString() })
+    .update({ title, description, difficulty, type, xp_reward: xpReward, topic_id: topicId, is_published: isPublished, explanation, updated_at: new Date().toISOString() })
     .eq('id', id)
 
   if (error) return { error: error.message }
@@ -235,5 +237,21 @@ export async function deleteMaterial(formData: FormData) {
 
   revalidatePath('/admin')
   revalidatePath('/materials')
+  return { success: true }
+}
+
+// ─── Comments ─────────────────────────────────────────────────
+
+export async function adminDeleteComment(formData: FormData) {
+  const supabase = await assertAdmin()
+  if (!supabase) return { error: 'Forbidden' }
+
+  const id = formData.get('id') as string
+  // Delete replies first
+  await supabase.from('comments').delete().eq('parent_id', id)
+  const { error } = await supabase.from('comments').delete().eq('id', id)
+  if (error) return { error: error.message }
+
+  revalidatePath('/admin')
   return { success: true }
 }

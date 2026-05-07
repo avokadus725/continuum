@@ -3,8 +3,9 @@
 import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { saveFocusSession } from '@/app/actions/focus'
+import { toast } from 'sonner'
 import {
-  BACKGROUND_PRESETS, SOUND_PRESETS,
+  BACKGROUND_PRESETS, SOUND_PRESETS, SOUND_TO_BG,
   DEFAULT_WORK_MINUTES, DEFAULT_BREAK_MINUTES,
 } from '@/lib/focus-presets'
 
@@ -66,7 +67,6 @@ export function FocusRoom() {
   const [volume, setVolume] = useState(0.5)
   const [showBgPicker, setShowBgPicker] = useState(false)
   const [showSoundPicker, setShowSoundPicker] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
   const containerRef = useRef<HTMLDivElement>(null)
@@ -74,6 +74,14 @@ export function FocusRoom() {
 
   const bg = BACKGROUND_PRESETS.find(b => b.id === bgId) ?? BACKGROUND_PRESETS[0]
   const sound = SOUND_PRESETS.find(s => s.id === soundId) ?? SOUND_PRESETS[0]
+
+  /** Select a sound and auto-switch the background to the matching image.
+   *  The user can still change the background manually afterwards. */
+  function handleSoundChange(id: string) {
+    setSoundId(id)
+    const matchedBg = SOUND_TO_BG[id]
+    if (matchedBg) setBgId(matchedBg)
+  }
 
   // ── Audio ────────────────────────────────────────────────────
 
@@ -114,9 +122,8 @@ export function FocusRoom() {
   }
 
   function showNotification(title: string, body: string) {
-    // In-app toast
-    setToast(`${title} ${body}`)
-    setTimeout(() => setToast(null), 4000)
+    // In-app toast via sonner
+    toast.info(`${title} — ${body}`, { duration: 4000 })
 
     // Browser notification
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
@@ -203,8 +210,7 @@ export function FocusRoom() {
         status,
       })
       setIsSaving(false)
-      setToast(t('sessionSaved'))
-      setTimeout(() => setToast(null), 3000)
+      toast.success(t('sessionSaved'))
     }
 
     sessionStartRef.current = null
@@ -262,11 +268,11 @@ export function FocusRoom() {
       </div>
 
       {/* Top bar */}
-      <div className="relative z-10 flex items-center justify-between px-6 py-4">
-        <span className="text-white/70 text-sm font-medium tracking-widest uppercase">
+      <div className="relative z-10 flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
+        <span className="hidden sm:block text-white/70 text-sm font-medium tracking-widest uppercase">
           {t('title')}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           {phase !== 'idle' && (
             <button
               onClick={() => handleStop('interrupted')}
@@ -275,12 +281,16 @@ export function FocusRoom() {
               {t('stop')}
             </button>
           )}
-          <button onClick={() => setShowSettings(true)}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium text-white/70 border border-white/20 hover:bg-white/10 transition-colors">
-            ⚙ {t('settings')}
+          {/* Settings: icon only on mobile, icon + label on desktop */}
+          <button
+            onClick={() => setShowSettings(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-white/70 border border-white/20 hover:bg-white/10 transition-colors"
+          >
+            <span>⚙</span>
+            <span className="hidden sm:inline">{t('settings')}</span>
           </button>
           <button onClick={toggleFullscreen}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-white/70 border border-white/20 hover:bg-white/10 transition-colors">
+            className="hidden sm:flex w-8 h-8 items-center justify-center rounded-lg text-white/70 border border-white/20 hover:bg-white/10 transition-colors">
             ⛶
           </button>
         </div>
@@ -297,13 +307,11 @@ export function FocusRoom() {
             : t('ready')}
         </div>
 
-        {/* SVG arc timer */}
+        {/* SVG arc timer — smaller on mobile */}
         <div className="relative">
-          <svg width="280" height="280" className="-rotate-90">
-            {/* Track */}
+          <svg width="240" height="240" viewBox="0 0 280 280" className="-rotate-90 w-48 h-48 sm:w-64 sm:h-64 md:w-72 md:h-72">
             <circle cx="140" cy="140" r={radius} fill="none"
               stroke="rgba(255,255,255,0.1)" strokeWidth="4" />
-            {/* Progress */}
             <circle cx="140" cy="140" r={radius} fill="none"
               stroke={phaseColor} strokeWidth="4" strokeLinecap="round"
               strokeDasharray={circumference}
@@ -312,7 +320,7 @@ export function FocusRoom() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-6xl font-bold text-white tabular-nums tracking-tight">
+            <span className="text-5xl sm:text-6xl font-bold text-white tabular-nums tracking-tight">
               {formatSeconds(secondsLeft)}
             </span>
             {pomodorosCompleted > 0 && (
@@ -347,7 +355,7 @@ export function FocusRoom() {
         </div>
 
         {/* Session stats */}
-        {(focusSeconds > 0 || breakSeconds > 0) && (
+        {/* {(focusSeconds > 0 || breakSeconds > 0) && (
           <div className="flex gap-6 text-center">
             <div>
               <p className="text-white/40 text-xs uppercase tracking-wide">{t('focusTime')}</p>
@@ -360,11 +368,11 @@ export function FocusRoom() {
               </div>
             )}
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Bottom bar — sound + background pickers */}
-      <div className="relative z-10 flex items-center justify-center gap-4 px-6 py-5">
+      <div className="relative z-10 flex items-center justify-center gap-3 px-4 py-4 md:gap-4 md:px-6 md:py-5">
 
         {/* Sound picker */}
         <div className="relative">
@@ -379,7 +387,7 @@ export function FocusRoom() {
               style={{ background: 'rgba(20,20,20,0.9)', borderColor: 'rgba(255,255,255,0.1)' }}>
               <div className="space-y-1">
                 {SOUND_PRESETS.map(s => (
-                  <button key={s.id} onClick={() => { setSoundId(s.id); setShowSoundPicker(false) }}
+                  <button key={s.id} onClick={() => { handleSoundChange(s.id); setShowSoundPicker(false) }}
                     className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm text-left transition-colors"
                     style={{
                       background: soundId === s.id ? 'rgba(255,255,255,0.15)' : 'transparent',
@@ -510,14 +518,6 @@ export function FocusRoom() {
         </div>
       )}
 
-      {/* Toast notification */}
-      {toast && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40
-          px-5 py-3 rounded-xl text-sm font-medium text-white shadow-xl"
-          style={{ background: 'rgba(20,20,20,0.95)', border: '1px solid rgba(255,255,255,0.15)' }}>
-          {isSaving ? '💾 ' : ''}{toast}
-        </div>
-      )}
     </div>
   )
 }

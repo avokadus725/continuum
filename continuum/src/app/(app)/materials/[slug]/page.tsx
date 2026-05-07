@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { CommentsSection } from '@/components/features/comments/comments-section'
 import { ReactionsBar } from '@/components/features/reactions/reactions-bar'
 import { AddToCollectionButton } from '@/components/features/collections/add-to-collection-button'
+import { QuickNoteButton } from '@/components/features/notes/quick-note-button'
 import type { Metadata } from 'next'
 
 interface Props {
@@ -176,11 +177,12 @@ export default async function MaterialDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Actions row: reactions + add to collection */}
+      {/* Actions row: reactions + add to collection + quick note */}
       {user && (
         <div className="flex items-center gap-3 flex-wrap">
           <ReactionsBar reactions={reactionCounts} materialId={materialId} />
           <AddToCollectionButton materialId={materialId} collections={collectionsData} />
+          <QuickNoteButton materialId={materialId} materialTitle={material.title} />
         </div>
       )}
 

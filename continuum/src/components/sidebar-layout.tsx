@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl'
 import {
   Home, BookOpen, CheckSquare, FileText,
   Sparkles, BarChart2, Trophy, Timer, BookMarked, Users2,
-  ChevronLeft, ChevronRight, ChevronDown, Menu, X, LogOut,
+  ChevronLeft, ChevronRight, ChevronDown, Menu, X, LogOut, ShieldCheck,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { LanguageSwitcher } from '@/components/language-switcher'
@@ -45,12 +45,13 @@ interface SidebarLayoutProps {
   }
   profileAvatarUrl?: string | null
   profileName?: string | null
+  isAdmin?: boolean
   logoutLabel: string
   profileLabel: string
 }
 
 export function SidebarLayout({
-  children, navItems, user, profileAvatarUrl, profileName, logoutLabel, profileLabel,
+  children, navItems, user, profileAvatarUrl, profileName, isAdmin = false, logoutLabel, profileLabel,
 }: SidebarLayoutProps) {
   const pathname = usePathname()
   const t = useTranslations('nav')
@@ -174,9 +175,27 @@ export function SidebarLayout({
       <div className="px-2 py-3 border-t space-y-1" style={{ borderColor: 'var(--border)' }}>
         <div className={`flex items-center gap-1 mb-1 ${!show ? 'flex-col' : 'px-1'}`}>
           <ThemeToggle />
-          <LanguageSwitcher />
+          <LanguageSwitcher slim={!show} />
           <NotificationBell userId={user.id} slim={!show} />
         </div>
+
+        {isAdmin && (
+          <Link
+            href="/admin"
+            onClick={() => mobile && setMobileOpen(false)}
+            title={!show ? t('admin') : undefined}
+            className={[
+              'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors',
+              'hover:bg-black/5 dark:hover:bg-white/5',
+              !show ? 'justify-center' : '',
+              pathname === '/admin' ? 'text-amber-600 dark:text-amber-400' : '',
+            ].join(' ')}
+            style={pathname !== '/admin' ? { color: 'var(--muted-foreground)' } : undefined}
+          >
+            <ShieldCheck className="w-4 h-4 shrink-0" />
+            {show && <span>{t('admin')}</span>}
+          </Link>
+        )}
 
         <Link
           href="/profile"

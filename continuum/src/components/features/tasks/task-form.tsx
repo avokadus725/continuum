@@ -17,9 +17,10 @@ interface TaskFormProps {
   taskType: TaskType
   options: Option[]
   alreadyCorrect: boolean
+  explanation?: string | null
 }
 
-export function TaskForm({ taskId, taskType, options, alreadyCorrect }: TaskFormProps) {
+export function TaskForm({ taskId, taskType, options, alreadyCorrect, explanation }: TaskFormProps) {
   const t = useTranslations('tasks')
   const formRef = useRef<HTMLFormElement>(null)
   const [isPending, startTransition] = useTransition()
@@ -128,6 +129,23 @@ export function TaskForm({ taskId, taskType, options, alreadyCorrect }: TaskForm
           {result.isCorrect
             ? t('correct', { xp: result.xpEarned })
             : t('incorrect')}
+        </div>
+      )}
+
+      {/* Explanation — shown after any attempt */}
+      {result && explanation && (
+        <div
+          className="rounded-xl px-4 py-3 text-sm leading-relaxed"
+          style={{
+            background: 'color-mix(in srgb, var(--primary) 8%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--primary) 25%, transparent)',
+            color: 'var(--foreground)',
+          }}
+        >
+          <p className="text-xs font-semibold mb-1" style={{ color: 'var(--primary)' }}>
+            💡 {t('explanation')}
+          </p>
+          <p className="whitespace-pre-wrap">{explanation}</p>
         </div>
       )}
 

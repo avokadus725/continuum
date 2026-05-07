@@ -83,7 +83,8 @@
     "alreadyCorrect": "Ти вже відповів правильно",
     "noTasks": "Завдань поки немає",
     "xpReward": "+{xp} XP",
-    "attempts": "Спроб: {count}"
+    "attempts": "Спроб: {count}",
+    "explanation": "Пояснення"
   },
   "posts": {
     "placeholder": "Що у тебе нового?",
@@ -92,7 +93,9 @@
     "deleteConfirm": "Видалити пост?",
     "empty": "Постів ще немає. Будь першим!",
     "viewAllInCommunity": "Перейти до Спільноти →",
-    "recentPosts": "Останні пости"
+    "recentPosts": "Останні пости",
+    "toastPublished": "Пост опубліковано",
+    "toastDeleted": "Пост видалено"
   },
   "collections": {
     "title": "Підбірки",
@@ -188,14 +191,18 @@
       "forest": "Ліс",
       "cafe": "Кафе",
       "fireplace": "Камін",
+      "ocean": "Океан",
+      "underwater": "Під водою",
       "whitenoise": "Білий шум"
     },
     "backgrounds": {
       "forest": "Ліс",
-      "mountain": "Гори",
       "rain": "Дощ",
-      "library": "Бібліотека",
-      "space": "Космос"
+      "ocean": "Океан",
+      "cafe": "Кафе",
+      "fireplace": "Камін",
+      "underwater": "Під водою",
+      "whitenoise": "Абстракція"
     }
   },
   "comments": {
@@ -243,7 +250,12 @@
     "options": "Варіанти відповідей",
     "option": "Варіант",
     "addOption": "Додати варіант",
-    "deleteConfirm": "Видалити?"
+    "deleteConfirm": "Видалити?",
+    "comments": "Коментарі",
+    "commentContent": "Текст",
+    "linkedTo": "Прив'язано до",
+    "explanation": "Пояснення",
+    "explanationPlaceholder": "Поясни правильну відповідь..."
   },
   "common": {
     "loading": "Завантаження...",
@@ -258,6 +270,10 @@
     "next": "Далі",
     "search": "Пошук",
     "noResults": "Нічого не знайдено",
-    "confirm": "Підтвердити"
+    "confirm": "Підтвердити",
+    "toastCreated": "Успішно створено",
+    "toastUpdated": "Успішно оновлено",
+    "toastDeleted": "Успішно видалено",
+    "toastSaved": "Збережено"
   }
 }

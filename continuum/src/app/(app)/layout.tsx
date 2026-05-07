@@ -10,10 +10,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const t = await getTranslations('nav')
 
-  // Fetch avatar from profiles table (keeps in sync after avatar upload)
+  // Fetch profile (avatar, name, role) so sidebar stays in sync
   const { data: profile } = await supabase
     .from('profiles')
-    .select('avatar_url, full_name')
+    .select('avatar_url, full_name, role')
     .eq('id', user.id)
     .single()
 
@@ -36,6 +36,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       user={user}
       profileAvatarUrl={profile?.avatar_url ?? null}
       profileName={profile?.full_name ?? null}
+      isAdmin={profile?.role === 'admin'}
       logoutLabel={t('logout')}
       profileLabel={t('profile')}
     >

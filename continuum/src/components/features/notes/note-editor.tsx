@@ -15,9 +15,13 @@ interface NoteEditorProps {
   }
   collections?: Collection[]
   onClose: () => void
+  materialId?: string
+  materialTitle?: string
+  taskId?: string
+  taskTitle?: string
 }
 
-export function NoteEditor({ note, collections = [], onClose }: NoteEditorProps) {
+export function NoteEditor({ note, collections = [], onClose, materialId, materialTitle, taskId, taskTitle }: NoteEditorProps) {
   const t = useTranslations('notes')
   const tCommon = useTranslations('common')
   const tCol = useTranslations('collections')
@@ -58,6 +62,17 @@ export function NoteEditor({ note, collections = [], onClose }: NoteEditorProps)
 
         <form ref={formRef} action={handleSubmit} className="space-y-3">
           {note && <input type="hidden" name="id" value={note.id} />}
+          {materialId && <input type="hidden" name="material_id" value={materialId} />}
+          {taskId && <input type="hidden" name="task_id" value={taskId} />}
+
+          {/* Linked context badge */}
+          {(materialTitle || taskTitle) && (
+            <div className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg"
+              style={{ background: 'color-mix(in srgb, var(--primary) 10%, transparent)', color: 'var(--primary)' }}>
+              <span>📎</span>
+              <span>{t('linkedTo')}: <strong>{materialTitle ?? taskTitle}</strong></span>
+            </div>
+          )}
 
           <input
             name="title"

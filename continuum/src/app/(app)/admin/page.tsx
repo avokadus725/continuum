@@ -22,14 +22,14 @@ export default async function AdminPage() {
 
   if (profile?.role !== 'admin') redirect('/dashboard')
 
-  const [usersRes, tasksRes, materialsRes, topicsRes, progressRes] = await Promise.all([
+  const [usersRes, tasksRes, materialsRes, topicsRes, progressRes, commentsRes] = await Promise.all([
     supabase
       .from('profiles')
       .select('id, full_name, role, xp, level, created_at, is_active')
       .order('created_at', { ascending: false }),
     supabase
       .from('tasks')
-      .select('id, title, difficulty, type, xp_reward, is_published, topic_id, description, task_options(text, is_correct)')
+      .select('id, title, difficulty, type, xp_reward, is_published, topic_id, description, explanation, task_options(text, is_correct)')
       .order('created_at', { ascending: false }),
     supabase
       .from('materials')
@@ -42,6 +42,11 @@ export default async function AdminPage() {
     supabase
       .from('student_progress')
       .select('id', { count: 'exact', head: true }),
+    supabase
+      .from('comments')
+      .select('id, content, created_at, profiles(full_name), materials(title), tasks(title)')
+      .order('created_at', { ascending: false })
+      .limit(200),
   ])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,9 +60,28 @@ export default async function AdminPage() {
     is_active: u.is_active !== false,
   }))
 
-  const tasks = (tasksRes.data ?? []).map(t => ({
-    ...t,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tasks = (tasksRes.data ?? []).map((t: any) => ({
+    id: t.id as string,
+    title: t.title as string,
+    difficulty: t.difficulty as string,
+    type: t.type as string,
+    xp_reward: t.xp_reward as number,
+    is_published: t.is_published as boolean,
+    topic_id: t.topic_id as string | null,
+    description: t.description as string,
+    explanation: (t.explanation as string | null) ?? null,
     options: (t.task_options as { text: string; is_correct: boolean }[]) ?? [],
+  }))
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const comments = (commentsRes.data ?? []).map((c: any) => ({
+    id: c.id as string,
+    content: c.content as string,
+    created_at: c.created_at as string,
+    user_name: (c.profiles as { full_name: string | null } | null)?.full_name ?? null,
+    material_title: (c.materials as { title: string } | null)?.title ?? null,
+    task_title: (c.tasks as { title: string } | null)?.title ?? null,
   }))
 
   return (
@@ -77,6 +101,7 @@ export default async function AdminPage() {
         }))}
         topics={topicsRes.data ?? []}
         totalAttempts={progressRes.count ?? 0}
+        comments={comments}
       />
     </div>
   )

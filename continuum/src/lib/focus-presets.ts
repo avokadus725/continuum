@@ -5,8 +5,8 @@ export interface BackgroundPreset {
   id: string
   labelKey: string   // ключ для i18n
   type: BgType
-  src: string        // URL або /backgrounds/...
-  thumbnail: string  // URL прев'ю
+  src: string        // local path under /public
+  thumbnail: string  // same or smaller version
 }
 
 export interface SoundPreset {
@@ -18,48 +18,72 @@ export interface SoundPreset {
   isPremium?: boolean // для майбутнього преміуму
 }
 
+// All backgrounds now served from /public/backgrounds/
 export const BACKGROUND_PRESETS: BackgroundPreset[] = [
   {
     id: 'forest',
     labelKey: 'forest',
     type: 'image',
-    src: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1920&q=80&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=400&q=60&fit=crop',
-  },
-  {
-    id: 'mountain',
-    labelKey: 'mountain',
-    type: 'image',
-    src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=60&fit=crop',
+    src: '/backgrounds/forest.jpg',
+    thumbnail: '/backgrounds/forest.jpg',
   },
   {
     id: 'rain',
     labelKey: 'rain',
     type: 'image',
-    src: 'https://images.unsplash.com/photo-1477601263568-180e2c6d046e?w=1920&q=80&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1477601263568-180e2c6d046e?w=400&q=60&fit=crop',
+    src: '/backgrounds/rain.jpg',
+    thumbnail: '/backgrounds/rain.jpg',
   },
   {
-    id: 'library',
-    labelKey: 'library',
+    id: 'ocean',
+    labelKey: 'ocean',
     type: 'image',
-    src: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1920&q=80&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&q=60&fit=crop',
+    src: '/backgrounds/ocean.jpg',
+    thumbnail: '/backgrounds/ocean.jpg',
   },
   {
-    id: 'space',
-    labelKey: 'space',
+    id: 'cafe',
+    labelKey: 'cafe',
     type: 'image',
-    src: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1920&q=80&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400&q=60&fit=crop',
+    src: '/backgrounds/cafe.jpg',
+    thumbnail: '/backgrounds/cafe.jpg',
+  },
+  {
+    id: 'fireplace',
+    labelKey: 'fireplace',
+    type: 'image',
+    src: '/backgrounds/fireplace.jpg',
+    thumbnail: '/backgrounds/fireplace.jpg',
+  },
+  {
+    id: 'underwater',
+    labelKey: 'underwater',
+    type: 'image',
+    src: '/backgrounds/underwater.jpg',
+    thumbnail: '/backgrounds/underwater.jpg',
+  },
+  {
+    id: 'whitenoise',
+    labelKey: 'whitenoise',
+    type: 'image',
+    src: '/backgrounds/whitenoise.jpg',
+    thumbnail: '/backgrounds/whitenoise.jpg',
   },
 ]
 
-// Файли звуків: додай у /public/sounds/
-// Безкоштовні джерела: https://pixabay.com/sound-effects/ або https://freesound.org
-// Рекомендовані пошукові запити: "rain ambience", "coffee shop ambience",
-// "forest birds", "fireplace crackling", "white noise"
+// Maps sound ID → matching background ID.
+// 'none' keeps the current background (no auto-switch).
+export const SOUND_TO_BG: Record<string, string> = {
+  rain:       'rain',
+  forest:     'forest',
+  cafe:       'cafe',
+  fireplace:  'fireplace',
+  ocean:      'ocean',
+  underwater: 'underwater',
+  whitenoise: 'whitenoise',
+}
+
+// Файли звуків
 export const SOUND_PRESETS: SoundPreset[] = [
   {
     id: 'none',
@@ -95,6 +119,20 @@ export const SOUND_PRESETS: SoundPreset[] = [
     icon: '🔥',
     type: 'file',
     src: '/sounds/fireplace.mp3',
+  },
+  {
+    id: 'ocean',
+    labelKey: 'ocean',
+    icon: '🌊',
+    type: 'file',
+    src: '/sounds/ocean.mp3',
+  },
+  {
+    id: 'underwater',
+    labelKey: 'underwater',
+    icon: '💧',
+    type: 'file',
+    src: '/sounds/underwater.mp3',
   },
   {
     id: 'whitenoise',

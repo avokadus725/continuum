@@ -12,9 +12,11 @@ const locales = [
 
 interface LanguageSwitcherProps {
   variant?: 'compact' | 'full'
+  /** When true, renders a single square icon button (fits collapsed sidebar) */
+  slim?: boolean
 }
 
-export function LanguageSwitcher({ variant = 'compact' }: LanguageSwitcherProps) {
+export function LanguageSwitcher({ variant = 'compact', slim = false }: LanguageSwitcherProps) {
   const t = useTranslations('profile.languages')
   const currentLocale = useLocale()
   const [isPending, startTransition] = useTransition()
@@ -26,6 +28,27 @@ export function LanguageSwitcher({ variant = 'compact' }: LanguageSwitcherProps)
       await setLocale(code)
       router.refresh()
     })
+  }
+
+  // Slim mode: single button that cycles to the next locale
+  if (slim) {
+    const current = locales.find(l => l.code === currentLocale) ?? locales[0]
+    const next    = locales.find(l => l.code !== currentLocale) ?? locales[1]
+    return (
+      <button
+        onClick={() => handleSwitch(next.code)}
+        disabled={isPending}
+        title={t(next.code as 'uk' | 'en')}
+        className="w-8 h-8 flex items-center justify-center rounded-xl border text-base transition-all"
+        style={{
+          background: 'var(--muted)',
+          borderColor: 'var(--border)',
+          opacity: isPending ? 0.6 : 1,
+        }}
+      >
+        {current.flag}
+      </button>
+    )
   }
 
   return (

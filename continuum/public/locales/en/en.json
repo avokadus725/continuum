@@ -83,7 +83,8 @@
     "alreadyCorrect": "You already answered correctly",
     "noTasks": "No tasks yet",
     "xpReward": "+{xp} XP",
-    "attempts": "Attempts: {count}"
+    "attempts": "Attempts: {count}",
+    "explanation": "Explanation"
   },
   "posts": {
     "placeholder": "What's on your mind?",
@@ -92,7 +93,9 @@
     "deleteConfirm": "Delete this post?",
     "empty": "No posts yet. Be the first!",
     "viewAllInCommunity": "See all in Community →",
-    "recentPosts": "Recent posts"
+    "recentPosts": "Recent posts",
+    "toastPublished": "Post published",
+    "toastDeleted": "Post deleted"
   },
   "collections": {
     "title": "Collections",
@@ -188,14 +191,18 @@
       "forest": "Forest",
       "cafe": "Café",
       "fireplace": "Fireplace",
+      "ocean": "Ocean",
+      "underwater": "Underwater",
       "whitenoise": "White noise"
     },
     "backgrounds": {
       "forest": "Forest",
-      "mountain": "Mountains",
       "rain": "Rain",
-      "library": "Library",
-      "space": "Space"
+      "ocean": "Ocean",
+      "cafe": "Café",
+      "fireplace": "Fireplace",
+      "underwater": "Underwater",
+      "whitenoise": "Abstract"
     }
   },
   "comments": {
@@ -243,7 +250,12 @@
     "options": "Answer options",
     "option": "Option",
     "addOption": "Add option",
-    "deleteConfirm": "Delete?"
+    "deleteConfirm": "Delete?",
+    "comments": "Comments",
+    "commentContent": "Text",
+    "linkedTo": "Linked to",
+    "explanation": "Explanation",
+    "explanationPlaceholder": "Explain the correct answer..."
   },
   "common": {
     "loading": "Loading...",
@@ -258,6 +270,10 @@
     "next": "Next",
     "search": "Search",
     "noResults": "Nothing found",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "toastCreated": "Successfully created",
+    "toastUpdated": "Successfully updated",
+    "toastDeleted": "Successfully deleted",
+    "toastSaved": "Saved"
   }
 }

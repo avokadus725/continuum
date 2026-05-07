@@ -11,6 +11,9 @@ import {
   togglePostReaction,
   createPostComment,
 } from '@/app/actions/posts'
+import { AutoLink } from '@/components/auto-link'
+import { ConfirmDialog } from '@/components/confirm-dialog'
+import { toast } from 'sonner'
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -91,6 +94,7 @@ export function CreatePostForm({
       setText('')
       setUrl('')
       setShowUrl(false)
+      toast.success(t('toastPublished'))
     })
   }
 
@@ -147,6 +151,7 @@ export function CreatePostForm({
 export function PostItem({ post, currentUserId }: { post: Post; currentUserId: string }) {
   const t = useTranslations('posts')
   const tComments = useTranslations('comments')
+  const tCommon = useTranslations('common')
   const locale = useLocale()
 
   const likeReaction = post.reactions.find(r => r.type === 'like') ?? { type: 'like', count: 0, reacted: false }
@@ -157,6 +162,7 @@ export function PostItem({ post, currentUserId }: { post: Post; currentUserId: s
   const [comments, setComments] = useState<PostComment[]>(post.comments)
   const [isPending, startTransition] = useTransition()
   const [deletingPost, setDeletingPost] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   const topComments = comments.filter(c => !c.parent_id)
   const repliesMap = new Map<string, PostComment[]>()
@@ -186,12 +192,16 @@ export function PostItem({ post, currentUserId }: { post: Post; currentUserId: s
   }
 
   function handleDeletePost() {
-    if (!confirm(t('deleteConfirm'))) return
+    setShowConfirm(true)
+  }
+
+  function doDeletePost() {
     setDeletingPost(true)
     startTransition(async () => {
       const fd = new FormData()
       fd.set('id', post.id)
       await deletePost(fd)
+      toast.success(t('toastDeleted'))
     })
   }
 
@@ -256,7 +266,7 @@ export function PostItem({ post, currentUserId }: { post: Post; currentUserId: s
 
         {/* Content */}
         <p className="mt-3 text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--foreground)' }}>
-          {post.content}
+          <AutoLink text={post.content} />
         </p>
 
         {/* Attached URL */}
@@ -328,7 +338,7 @@ export function PostItem({ post, currentUserId }: { post: Post; currentUserId: s
                       </span>
                     </div>
                     <p className="text-sm mt-0.5 whitespace-pre-wrap" style={{ color: 'var(--foreground)' }}>
-                      {c.content}
+                      <AutoLink text={c.content} />
                     </p>
                     <button
                       onClick={() => setReplyTo({ id: c.id, name: c.profiles?.full_name ?? '—' })}
@@ -353,7 +363,7 @@ export function PostItem({ post, currentUserId }: { post: Post; currentUserId: s
                         </span>
                       </div>
                       <p className="text-sm mt-0.5 whitespace-pre-wrap" style={{ color: 'var(--foreground)' }}>
-                        {r.content}
+                        <AutoLink text={r.content} />
                       </p>
                     </div>
                   </div>
@@ -394,6 +404,16 @@ export function PostItem({ post, currentUserId }: { post: Post; currentUserId: s
           </div>
         )}
       </div>
+
+      {showConfirm && (
+        <ConfirmDialog
+          message={t('deleteConfirm')}
+          confirmLabel={tCommon('delete')}
+          cancelLabel={tCommon('cancel')}
+          onConfirm={doDeletePost}
+          onCancel={() => setShowConfirm(false)}
+        />
+      )}
     </article>
   )
 }

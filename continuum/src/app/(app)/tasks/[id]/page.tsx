@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { TaskForm } from '@/components/features/tasks/task-form'
 import { CommentsSection } from '@/components/features/comments/comments-section'
+import { QuickNoteButton } from '@/components/features/notes/quick-note-button'
 import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -142,7 +143,15 @@ export default async function TaskDetailPage({ params }: Props) {
         taskType={task.type as 'single_choice' | 'multiple_choice' | 'text' | 'code'}
         options={options}
         alreadyCorrect={alreadyCorrect}
+        explanation={(task as { explanation?: string | null }).explanation ?? null}
       />
+
+      {/* Quick note */}
+      {user && (
+        <div className="flex justify-end">
+          <QuickNoteButton taskId={id} taskTitle={task.title} />
+        </div>
+      )}
 
       {/* Comments */}
       {user && (

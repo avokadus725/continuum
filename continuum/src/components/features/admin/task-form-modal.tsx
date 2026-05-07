@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useRef, useState, useTransition } from 'react'
 import { createTask, updateTask } from '@/app/actions/admin'
+import { toast } from 'sonner'
 
 interface Topic { id: string; title: string; icon: string | null }
 interface Option { text: string; is_correct: boolean }
@@ -13,6 +14,7 @@ interface TaskFormModalProps {
     id: string; title: string; description: string
     difficulty: string; type: string; xp_reward: number
     topic_id: string | null; is_published: boolean
+    explanation?: string | null
     options: Option[]
   }
   onClose: () => void
@@ -59,7 +61,12 @@ export function TaskFormModal({ topics, task, onClose }: TaskFormModalProps) {
     if (needsOptions) formData.set('options', JSON.stringify(options.filter(o => o.text.trim())))
     startTransition(async () => {
       const res = task ? await updateTask(formData) : await createTask(formData)
-      if ('error' in res && res.error) { setError(res.error) } else { onClose() }
+      if ('error' in res && res.error) {
+        setError(res.error)
+      } else {
+        toast.success(task ? tCommon('toastUpdated') : tCommon('toastCreated'))
+        onClose()
+      }
     })
   }
 
@@ -142,6 +149,15 @@ export function TaskFormModal({ topics, task, onClose }: TaskFormModalProps) {
                 <span style={{ color: 'var(--foreground)' }}>{tAdmin('published')}</span>
               </label>
             </div>
+          </div>
+
+          {/* Explanation */}
+          <div>
+            <label className="text-xs font-medium block mb-1" style={{ color: 'var(--muted-foreground)' }}>{tAdmin('explanation')}</label>
+            <textarea name="explanation" rows={3} defaultValue={task?.explanation ?? ''}
+              placeholder={tAdmin('explanationPlaceholder')}
+              className="w-full rounded-xl border px-3 py-2 text-sm resize-none outline-none"
+              style={{ background: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
           </div>
 
           {/* Options */}

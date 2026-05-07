@@ -2,9 +2,11 @@
 
 import { useTranslations } from 'next-intl'
 import { useState, useTransition } from 'react'
-import { toggleUserStatus, deleteTask, deleteMaterial } from '@/app/actions/admin'
+import { toggleUserStatus, deleteTask, deleteMaterial, adminDeleteComment } from '@/app/actions/admin'
 import { TaskFormModal } from './task-form-modal'
 import { MaterialFormModal } from './material-form-modal'
+import { ConfirmDialog } from '@/components/confirm-dialog'
+import { toast } from 'sonner'
 
 interface Topic { id: string; title: string; icon: string | null }
 
@@ -16,8 +18,14 @@ interface User {
 interface Task {
   id: string; title: string; difficulty: string; type: string
   xp_reward: number; is_published: boolean; topic_id: string | null
-  description: string
+  description: string; explanation?: string | null
   options: { text: string; is_correct: boolean }[]
+}
+
+interface Comment {
+  id: string; content: string; created_at: string
+  user_name: string | null
+  material_title: string | null; task_title: string | null
 }
 
 interface Material {
@@ -32,11 +40,12 @@ interface AdminClientProps {
   materials: Material[]
   topics: Topic[]
   totalAttempts: number
+  comments: Comment[]
 }
 
-type Tab = 'users' | 'tasks' | 'materials'
+type Tab = 'users' | 'tasks' | 'materials' | 'comments'
 
-export function AdminClient({ currentUserId, users, tasks, materials, topics, totalAttempts }: AdminClientProps) {
+export function AdminClient({ currentUserId, users, tasks, materials, topics, totalAttempts, comments }: AdminClientProps) {
   const t = useTranslations('admin')
   const tCommon = useTranslations('common')
   const [tab, setTab] = useState<Tab>('users')
@@ -46,6 +55,7 @@ export function AdminClient({ currentUserId, users, tasks, materials, topics, to
   // Modals
   const [taskModal, setTaskModal] = useState<{ open: boolean; task?: Task }>({ open: false })
   const [matModal, setMatModal] = useState<{ open: boolean; material?: Material }>({ open: false })
+  const [confirmDialog, setConfirmDialog] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   function handleToggleUser(userId: string, isActive: boolean) {
     setPendingId(userId)
@@ -55,28 +65,55 @@ export function AdminClient({ currentUserId, users, tasks, materials, topics, to
       fd.set('is_active', String(isActive))
       await toggleUserStatus(fd)
       setPendingId(null)
+      toast.success(tCommon('toastSaved'))
     })
   }
 
   function handleDeleteTask(id: string) {
-    if (!confirm(t('deleteConfirm'))) return
-    setPendingId(id)
-    startTransition(async () => {
-      const fd = new FormData()
-      fd.set('id', id)
-      await deleteTask(fd)
-      setPendingId(null)
+    setConfirmDialog({
+      message: t('deleteConfirm'),
+      onConfirm: () => {
+        setPendingId(id)
+        startTransition(async () => {
+          const fd = new FormData()
+          fd.set('id', id)
+          await deleteTask(fd)
+          setPendingId(null)
+          toast.success(tCommon('toastDeleted'))
+        })
+      },
     })
   }
 
   function handleDeleteMaterial(id: string) {
-    if (!confirm(t('deleteConfirm'))) return
-    setPendingId(id)
-    startTransition(async () => {
-      const fd = new FormData()
-      fd.set('id', id)
-      await deleteMaterial(fd)
-      setPendingId(null)
+    setConfirmDialog({
+      message: t('deleteConfirm'),
+      onConfirm: () => {
+        setPendingId(id)
+        startTransition(async () => {
+          const fd = new FormData()
+          fd.set('id', id)
+          await deleteMaterial(fd)
+          setPendingId(null)
+          toast.success(tCommon('toastDeleted'))
+        })
+      },
+    })
+  }
+
+  function handleDeleteComment(id: string) {
+    setConfirmDialog({
+      message: t('deleteConfirm'),
+      onConfirm: () => {
+        setPendingId(id)
+        startTransition(async () => {
+          const fd = new FormData()
+          fd.set('id', id)
+          await adminDeleteComment(fd)
+          setPendingId(null)
+          toast.success(tCommon('toastDeleted'))
+        })
+      },
     })
   }
 
@@ -91,6 +128,7 @@ export function AdminClient({ currentUserId, users, tasks, materials, topics, to
     { key: 'users',     label: t('users') },
     { key: 'tasks',     label: t('tasks') },
     { key: 'materials', label: t('materials') },
+    { key: 'comments',  label: t('comments') },
   ]
 
   return (
@@ -290,12 +328,62 @@ export function AdminClient({ currentUserId, users, tasks, materials, topics, to
         </div>
       )}
 
+      {/* ── COMMENTS ── */}
+      {tab === 'comments' && (
+        <div className="rounded-2xl border overflow-x-auto" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+          <table className="w-full text-sm min-w-[560px]">
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
+                {[t('name'), t('commentContent'), t('linkedTo'), ''].map(h => (
+                  <th key={h} className="text-left px-4 py-2 text-xs font-semibold" style={{ color: 'var(--muted-foreground)' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {comments.length === 0 && (
+                <tr><td colSpan={4} className="px-4 py-6 text-center text-sm" style={{ color: 'var(--muted-foreground)' }}>—</td></tr>
+              )}
+              {comments.map(c => (
+                <tr key={c.id} className="border-b last:border-b-0" style={{ borderColor: 'var(--border)' }}>
+                  <td className="px-4 py-2.5 shrink-0" style={{ color: 'var(--foreground)' }}>
+                    {c.user_name ?? <span style={{ color: 'var(--muted-foreground)' }}>—</span>}
+                  </td>
+                  <td className="px-4 py-2.5 max-w-xs truncate" style={{ color: 'var(--foreground)' }}>{c.content}</td>
+                  <td className="px-4 py-2.5 text-xs" style={{ color: 'var(--muted-foreground)' }}>
+                    {c.material_title ?? c.task_title ?? '—'}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <button onClick={() => handleDeleteComment(c.id)}
+                      disabled={pendingId === c.id || isPending}
+                      className="text-xs px-2 py-1 rounded-lg border disabled:opacity-40"
+                      style={{ borderColor: 'var(--destructive)', color: 'var(--destructive)' }}>
+                      {tCommon('delete')}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {/* Modals */}
       {taskModal.open && (
         <TaskFormModal topics={topics} task={taskModal.task} onClose={() => setTaskModal({ open: false })} />
       )}
       {matModal.open && (
         <MaterialFormModal topics={topics} material={matModal.material} onClose={() => setMatModal({ open: false })} />
+      )}
+
+      {/* Confirm dialog */}
+      {confirmDialog && (
+        <ConfirmDialog
+          message={confirmDialog.message}
+          confirmLabel={tCommon('delete')}
+          cancelLabel={tCommon('cancel')}
+          onConfirm={confirmDialog.onConfirm}
+          onCancel={() => setConfirmDialog(null)}
+        />
       )}
     </>
   )
