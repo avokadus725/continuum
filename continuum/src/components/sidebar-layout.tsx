@@ -1,5 +1,12 @@
 'use client'
 
+/* Sidebar layout — v3 + full-bleed routes hide all chrome.
+   Replaces src/components/sidebar-layout.tsx.
+
+   What changed vs the dashboard-v3 version:
+   - On FULL_BLEED routes (/focus), we render *only* the children.
+     No sidebar, no topbar, no mobile drawer. The room owns the viewport. */
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
@@ -7,357 +14,191 @@ import { useTranslations } from 'next-intl'
 import {
   Home, BookOpen, CheckSquare, FileText,
   Sparkles, BarChart2, Trophy, Timer, BookMarked, Users2,
-  ChevronLeft, ChevronRight, ChevronDown, Menu, X, LogOut, ShieldCheck,
+  X, ShieldCheck,
 } from 'lucide-react'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { LanguageSwitcher } from '@/components/language-switcher'
-import { NotificationBell } from '@/components/features/notifications/notification-bell'
-import { signOut } from '@/app/actions/auth'
+import { Topbar } from '@/components/topbar'
 
-// Nav items that belong to the "Learning" group
-const LEARNING_HREFS = new Set(['/materials', '/tasks', '/notes', '/collections'])
+interface NavItem { href: string; labelKey: string; group: 'top' | 'learning' | 'community' | 'progress' }
 
-const NAV_ICONS: Record<string, React.ElementType> = {
-  '/dashboard':       Home,
-  '/materials':       BookOpen,
-  '/tasks':           CheckSquare,
-  '/notes':           FileText,
-  '/collections':     BookMarked,
-  '/community':       Users2,
-  '/recommendations': Sparkles,
-  '/analytics':       BarChart2,
-  '/gamification':    Trophy,
-  '/focus':           Timer,
+const NAV: { item: NavItem; Icon: React.ElementType }[] = [
+  { item: { href: '/dashboard',       labelKey: 'dashboard',       group: 'top'       }, Icon: Home },
+  { item: { href: '/materials',       labelKey: 'materials',       group: 'learning'  }, Icon: BookOpen },
+  { item: { href: '/tasks',           labelKey: 'tasks',           group: 'learning'  }, Icon: CheckSquare },
+  { item: { href: '/notes',           labelKey: 'notes',           group: 'learning'  }, Icon: FileText },
+  { item: { href: '/collections',     labelKey: 'collections',     group: 'learning'  }, Icon: BookMarked },
+  { item: { href: '/community',       labelKey: 'community',       group: 'community' }, Icon: Users2 },
+  { item: { href: '/recommendations', labelKey: 'recommendations', group: 'community' }, Icon: Sparkles },
+  { item: { href: '/gamification',    labelKey: 'gamification',    group: 'community' }, Icon: Trophy },
+  { item: { href: '/analytics',       labelKey: 'analytics',       group: 'progress'  }, Icon: BarChart2 },
+  { item: { href: '/focus',           labelKey: 'focus',           group: 'progress'  }, Icon: Timer },
+]
+
+const GROUP_LABEL: Record<NavItem['group'], string | null> = {
+  top: null,
+  learning: 'learningGroup',
+  community: 'communityGroup',
+  progress: 'progressGroup',
 }
 
-// Pages that should fill the full content area (no padding)
+/** Routes that fully own the viewport — no sidebar, no topbar. */
 const FULL_BLEED = new Set(['/focus'])
-
-interface NavItem { href: string; label: string }
 
 interface SidebarLayoutProps {
   children: React.ReactNode
-  navItems: NavItem[]
-  user: {
-    id: string
-    email?: string | null
-    user_metadata?: { avatar_url?: string; full_name?: string }
-  }
+  user: { id: string; email?: string | null; user_metadata?: { avatar_url?: string; full_name?: string } }
   profileAvatarUrl?: string | null
   profileName?: string | null
+  profileLevel?: number | null
   isAdmin?: boolean
-  logoutLabel: string
-  profileLabel: string
 }
 
 export function SidebarLayout({
-  children, navItems, user, profileAvatarUrl, profileName, isAdmin = false, logoutLabel, profileLabel,
+  children, user, profileAvatarUrl, profileName, profileLevel, isAdmin = false,
 }: SidebarLayoutProps) {
   const pathname = usePathname()
   const t = useTranslations('nav')
-  const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [learningOpen, setLearningOpen] = useState(true)
 
-  const isLearningActive = [...LEARNING_HREFS].some(
-    href => pathname === href || pathname.startsWith(href + '/')
-  )
+  useEffect(() => { setMounted(true) }, [])
 
-  useEffect(() => {
-    setMounted(true)
-    try {
-      const v = localStorage.getItem('sidebar-collapsed')
-      if (v !== null) setCollapsed(v === 'true')
-      // Auto-open learning group if on a learning page; else restore preference
-      const lo = localStorage.getItem('learning-group-open')
-      setLearningOpen(isLearningActive ? true : (lo !== null ? lo === 'true' : true))
-    } catch { /* ignore */ }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // Auto-expand learning group when navigating to a learning page
-  useEffect(() => {
-    if (isLearningActive) setLearningOpen(true)
-  }, [isLearningActive])
-
-  function toggleCollapse() {
-    const next = !collapsed
-    setCollapsed(next)
-    try { localStorage.setItem('sidebar-collapsed', String(next)) } catch { /* ignore */ }
-  }
-
-  function toggleLearningOpen() {
-    const next = !learningOpen
-    setLearningOpen(next)
-    try { localStorage.setItem('learning-group-open', String(next)) } catch { /* ignore */ }
-  }
-
-  // profiles table takes priority over auth metadata (keeps in sync after avatar upload)
   const avatarUrl = profileAvatarUrl ?? user.user_metadata?.avatar_url ?? null
   const displayName = profileName ?? user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? '?'
-  const slim = mounted && collapsed   // desktop collapsed state
   const isFullBleed = FULL_BLEED.has(pathname)
 
-  // ── Reusable sidebar internals ────────────────────────────────
-
-  function renderNavItem({ href, label }: NavItem, show: boolean, mobile: boolean) {
-    const Icon = NAV_ICONS[href] ?? Home
-    const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
+  // ── Full-bleed: render only children (focus room owns the viewport). ──
+  if (isFullBleed) {
     return (
-      <Link
-        key={href}
-        href={href}
-        onClick={() => mobile && setMobileOpen(false)}
-        title={!show ? label : undefined}
-        className={[
-          'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors',
-          !show ? 'justify-center' : '',
-        ].join(' ')}
-        style={{
-          background: active ? 'color-mix(in srgb, var(--primary) 12%, transparent)' : 'transparent',
-          color: active ? 'var(--primary)' : 'var(--muted-foreground)',
-        }}
-      >
-        <Icon className="w-4 h-4 shrink-0" />
-        {show && <span>{label}</span>}
-      </Link>
+      <main className="flex h-screen flex-col overflow-hidden" style={{ background: '#000000' }}>
+        {children}
+      </main>
     )
   }
-
-  function renderNav(mobile = false) {
-    const show = mobile || !slim
-
-    const topItems    = navItems.filter(i => i.href === '/dashboard')
-    const learningItems = navItems.filter(i => LEARNING_HREFS.has(i.href))
-    const otherItems  = navItems.filter(i => i.href !== '/dashboard' && !LEARNING_HREFS.has(i.href))
-
-    return (
-      <nav className="flex-1 px-2 py-2 overflow-y-auto">
-        {/* Top items (Home) */}
-        <div className="space-y-0.5 mb-1">
-          {topItems.map(item => renderNavItem(item, show, mobile))}
-        </div>
-
-        {/* Learning group */}
-        {show && learningItems.length > 0 && (
-          <button
-            onClick={toggleLearningOpen}
-            className="flex items-center w-full gap-2 px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-            style={{ color: 'var(--muted-foreground)' }}
-          >
-            {t('learningGroup')}
-            <ChevronDown
-              className="w-3.5 h-3.5 ml-auto transition-transform duration-200"
-              style={{ transform: learningOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}
-            />
-          </button>
-        )}
-        {!show && <div className="my-2 mx-3 border-t" style={{ borderColor: 'var(--border)' }} />}
-        {/* Items visible when: slim mode (icons only), or group is open */}
-        {(!show || learningOpen) && (
-          <div className="space-y-0.5">
-            {learningItems.map(item => renderNavItem(item, show, mobile))}
-          </div>
-        )}
-
-        {/* Other items */}
-        <div className="space-y-0.5 mt-1">
-          {otherItems.map(item => renderNavItem(item, show, mobile))}
-        </div>
-      </nav>
-    )
-  }
-
-  function renderFooter(mobile = false) {
-    const show = mobile || !slim
-    return (
-      <div className="px-2 py-3 border-t space-y-1" style={{ borderColor: 'var(--border)' }}>
-        <div className={`flex items-center gap-1 mb-1 ${!show ? 'flex-col' : 'px-1'}`}>
-          <ThemeToggle />
-          <LanguageSwitcher slim={!show} />
-          <NotificationBell userId={user.id} slim={!show} />
-        </div>
-
-        {isAdmin && (
-          <Link
-            href="/admin"
-            onClick={() => mobile && setMobileOpen(false)}
-            title={!show ? t('admin') : undefined}
-            className={[
-              'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors',
-              'hover:bg-black/5 dark:hover:bg-white/5',
-              !show ? 'justify-center' : '',
-              pathname === '/admin' ? 'text-amber-600 dark:text-amber-400' : '',
-            ].join(' ')}
-            style={pathname !== '/admin' ? { color: 'var(--muted-foreground)' } : undefined}
-          >
-            <ShieldCheck className="w-4 h-4 shrink-0" />
-            {show && <span>{t('admin')}</span>}
-          </Link>
-        )}
-
-        <Link
-          href="/profile"
-          onClick={() => mobile && setMobileOpen(false)}
-          title={!show ? profileLabel : undefined}
-          className={[
-            'flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-colors',
-            'hover:bg-black/5 dark:hover:bg-white/5',
-            !show ? 'justify-center' : '',
-          ].join(' ')}
-          style={{ color: 'var(--muted-foreground)' }}
-        >
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover shrink-0" />
-          ) : (
-            <div
-              className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-              style={{ background: 'var(--primary)', color: 'var(--primary-foreground)' }}
-            >
-              {(displayName[0] ?? '?').toUpperCase()}
-            </div>
-          )}
-          {show && <span className="truncate">{displayName}</span>}
-        </Link>
-
-        <form action={signOut}>
-          <button
-            type="submit"
-            title={!show ? logoutLabel : undefined}
-            className={[
-              'flex items-center gap-3 px-3 py-2 rounded-xl text-sm w-full transition-colors',
-              'hover:bg-black/5 dark:hover:bg-white/5',
-              !show ? 'justify-center' : '',
-            ].join(' ')}
-            style={{ color: 'var(--muted-foreground)' }}
-          >
-            <LogOut className="w-4 h-4 shrink-0" />
-            {show && <span>{logoutLabel}</span>}
-          </button>
-        </form>
-      </div>
-    )
-  }
-
-  // ─────────────────────────────────────────────────────────────
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--background)' }}>
-
-      {/* ── Desktop sidebar ──────────────────────────────────── */}
+      {/* ── Desktop sidebar ──────────────────── */}
       <aside
-        className="hidden md:flex flex-col border-r sticky top-0 h-screen shrink-0 relative transition-[width] duration-200"
-        style={{
-          background: 'var(--card)',
-          borderColor: 'var(--border)',
-          width: slim ? '4rem' : '14rem',
-        }}
+        className="sticky top-0 hidden h-screen w-[224px] shrink-0 flex-col border-r px-3.5 pb-4 pt-5 md:flex"
+        style={{ background: 'var(--background)', borderColor: 'var(--border)' }}
       >
-        {/* Logo */}
-        <div className={`flex items-center gap-2 px-4 py-4 ${slim ? 'justify-center' : ''}`}>
-          <Link href="/dashboard" className="flex items-center gap-2 min-w-0">
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
-              style={{ background: 'var(--primary)', color: 'var(--primary-foreground)' }}
-            >
-              C
-            </div>
-            {!slim && (
-              <span className="font-bold text-sm whitespace-nowrap" style={{ color: 'var(--foreground)' }}>
-                Continuum
-              </span>
-            )}
-          </Link>
-        </div>
-
-        {renderNav()}
-        {renderFooter()}
-
-        {/* Collapse toggle */}
-        <button
-          onClick={toggleCollapse}
-          className="absolute -right-3 top-16 w-6 h-6 rounded-full border flex items-center justify-center z-10"
-          style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
-        >
-          {slim ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
-        </button>
+        <Logo />
+        <Nav pathname={pathname} t={t} onItemClick={() => {}} />
+        {isAdmin && <AdminLink t={t} pathname={pathname} />}
       </aside>
 
-      {/* ── Mobile drawer ─────────────────────────────────────── */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-50 md:hidden"
-          style={{ background: 'rgba(0,0,0,0.5)' }}
-          onClick={() => setMobileOpen(false)}
-        >
+      {/* ── Mobile drawer ────────────────────── */}
+      {mounted && mobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setMobileOpen(false)}>
           <aside
-            className="absolute left-0 top-0 h-full w-64 flex flex-col"
+            className="absolute left-0 top-0 flex h-full w-64 flex-col px-3.5 pb-4 pt-5"
             style={{ background: 'var(--card)' }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center gap-2 px-4 py-4">
-              <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
-                style={{ background: 'var(--primary)', color: 'var(--primary-foreground)' }}
-              >
-                C
-              </div>
-              <span className="font-bold text-sm" style={{ color: 'var(--foreground)' }}>Continuum</span>
-              <button
-                onClick={() => setMobileOpen(false)}
-                className="ml-auto p-1 rounded-lg"
-                style={{ color: 'var(--muted-foreground)' }}
-              >
-                <X className="w-4 h-4" />
+            <div className="flex items-center justify-between">
+              <Logo />
+              <button onClick={() => setMobileOpen(false)} className="p-1" style={{ color: 'var(--muted-foreground)' }}>
+                <X className="h-4 w-4" />
               </button>
             </div>
-            {renderNav(true)}
-            {renderFooter(true)}
+            <Nav pathname={pathname} t={t} onItemClick={() => setMobileOpen(false)} />
+            {isAdmin && <AdminLink t={t} pathname={pathname} />}
           </aside>
         </div>
       )}
 
-      {/* ── Content column ────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0">
-
-        {/* Mobile top bar */}
-        <header
-          className="md:hidden sticky top-0 z-40 border-b flex items-center gap-3 px-4 h-14 shrink-0"
-          style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
-        >
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="p-2 rounded-lg"
-            style={{ color: 'var(--muted-foreground)' }}
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div
-              className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold"
-              style={{ background: 'var(--primary)', color: 'var(--primary-foreground)' }}
-            >
-              C
-            </div>
-            <span className="font-bold text-sm" style={{ color: 'var(--foreground)' }}>Continuum</span>
-          </Link>
-          <div className="ml-auto flex items-center gap-1">
-            <ThemeToggle />
-            <LanguageSwitcher />
-          </div>
-        </header>
-
-        {isFullBleed ? (
-          <main className="flex-1 flex flex-col min-h-0">
-            {children}
-          </main>
-        ) : (
-          <main className="flex-1 max-w-6xl mx-auto px-4 py-8 w-full">
-            {children}
-          </main>
-        )}
+      {/* ── Content column ───────────────────── */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Topbar
+          user={user}
+          avatarUrl={avatarUrl}
+          displayName={displayName}
+          level={profileLevel ?? undefined}
+          onMobileMenu={() => setMobileOpen(true)}
+        />
+        <main className="mx-auto w-full max-w-[1240px] flex-1 px-8 py-8">{children}</main>
       </div>
     </div>
+  )
+}
+
+/* ─────────── pieces ─────────── */
+
+function Logo() {
+  return (
+    <Link href="/dashboard" className="mb-6 flex items-center gap-2.5 px-2 no-underline">
+      <svg width="24" height="24" viewBox="0 0 44 44" aria-hidden>
+        <path d="M30 11 A12 12 0 1 0 30 33" stroke="var(--foreground)" strokeWidth="3" strokeLinecap="round" fill="none" />
+        <circle cx="32" cy="22" r="2.4" fill="var(--primary)" />
+      </svg>
+      <span className="text-[14.5px] font-bold tracking-[-0.2px]" style={{ color: 'var(--foreground)' }}>
+        Continuum
+      </span>
+    </Link>
+  )
+}
+
+function Nav({ pathname, t, onItemClick }: { pathname: string; t: ReturnType<typeof useTranslations>; onItemClick: () => void }) {
+  const groups: NavItem['group'][] = ['top', 'learning', 'community', 'progress']
+  return (
+    <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto">
+      {groups.map(g => {
+        const items = NAV.filter(n => n.item.group === g)
+        if (items.length === 0) return null
+        const labelKey = GROUP_LABEL[g]
+        return (
+          <div key={g} className={labelKey ? 'mt-[18px]' : ''}>
+            {labelKey && (
+              <div
+                className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-[1.2px]"
+                style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }}
+              >
+                {t(labelKey)}
+              </div>
+            )}
+            {items.map(({ item, Icon }) => {
+              const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onItemClick}
+                  className="flex items-center gap-[11px] rounded-lg px-2.5 py-1.5 text-[13.5px] no-underline transition-colors"
+                  style={{
+                    background: active ? 'color-mix(in srgb, var(--primary) 14%, transparent)' : 'transparent',
+                    color: active ? 'var(--primary)' : 'var(--foreground)',
+                    fontWeight: active ? 600 : 500,
+                  }}
+                >
+                  <Icon className="h-4 w-4 shrink-0" style={{
+                    color: active ? 'var(--primary)' : 'var(--muted-foreground)',
+                    opacity: active ? 1 : 0.85,
+                  }} />
+                  {t(item.labelKey)}
+                </Link>
+              )
+            })}
+          </div>
+        )
+      })}
+    </nav>
+  )
+}
+
+function AdminLink({ t, pathname }: { t: ReturnType<typeof useTranslations>; pathname: string }) {
+  const active = pathname === '/admin' || pathname.startsWith('/admin/')
+  return (
+    <Link
+      href="/admin"
+      className="mt-2.5 flex items-center gap-[11px] rounded-lg border-t px-2.5 py-2 pt-3.5 text-[13px] no-underline"
+      style={{
+        borderColor: 'var(--border)',
+        color: active ? 'var(--primary)' : 'var(--muted-foreground)',
+        fontWeight: 500,
+      }}
+    >
+      <ShieldCheck className="h-4 w-4" />
+      {t('admin')}
+    </Link>
   )
 }

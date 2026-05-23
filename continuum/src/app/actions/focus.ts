@@ -13,6 +13,8 @@ interface SaveSessionPayload {
   workDurationMin: number
   breakDurationMin: number
   status: 'completed' | 'interrupted'
+  intention?: string | null
+  mood?: number | null
 }
 
 export async function saveFocusSession(payload: SaveSessionPayload) {
@@ -32,6 +34,8 @@ export async function saveFocusSession(payload: SaveSessionPayload) {
     work_duration_min: payload.workDurationMin,
     break_duration_min: payload.breakDurationMin,
     status: payload.status,
+    intention: payload.intention ?? null,
+    mood: payload.mood ?? null,
   })
 
   if (error) return { error: error.message }

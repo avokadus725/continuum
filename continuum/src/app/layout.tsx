@@ -24,6 +24,10 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s — ${t('title')}`,
     },
     description: t('description'),
+    icons: {
+      icon: '/icon.svg',
+      shortcut: '/icon.svg',
+    },
   }
 }
 

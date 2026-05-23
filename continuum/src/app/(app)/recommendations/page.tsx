@@ -2,250 +2,493 @@ import { createClient } from '@/lib/supabase/server'
 import { getTranslations } from 'next-intl/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import {
+  buildTopicStats,
+  buildCompletedSet,
+  scoreTask,
+  topicUrgency,
+  type ProgressRow,
+} from '@/lib/recommendations'
+import { AlgoInfoButton, type AlgoStrings } from './_components/algo-modal'
 
+/* ─── Types ────────────────────────────────────────── */
 type Difficulty = 'beginner' | 'intermediate' | 'advanced'
-type TaskType  = 'single_choice' | 'multiple_choice' | 'text' | 'code'
 
-const DIFFICULTY_COLOR: Record<Difficulty, string> = {
+const DIFF_COLOR: Record<Difficulty, string> = {
   beginner:     'var(--success)',
   intermediate: 'var(--warning)',
   advanced:     'var(--destructive)',
 }
 
-const TYPE_ICON: Record<TaskType, string> = {
-  single_choice:   '🔘',
-  multiple_choice: '☑️',
-  text:            '✍️',
-  code:            '💻',
+type CompactTask = {
+  id: string; title: string
+  difficulty: Difficulty; type: string; xp_reward: number
+}
+type CompactMaterial = {
+  id: string; title: string; type: string
+  content: string | null; url: string | null
+}
+type WeakSection = {
+  topicId: string; title: string; icon: string | null
+  correct: number; total: number; urgency: number
+  tasks: CompactTask[]
+  materials: CompactMaterial[]
+}
+type ExploreSection = {
+  topicId: string; title: string; icon: string | null
+  tasks: CompactTask[]
 }
 
-const MAT_ICON: Record<string, string> = {
-  article:     '📄',
-  video:       '🎬',
-  link:        '🔗',
-  interactive: '🖥',
-}
-
+/* ─── Page ─────────────────────────────────────────── */
 export default async function RecommendationsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const t = await getTranslations('dashboard')
+  const [t, tTasks, tMaterials] = await Promise.all([
+    getTranslations('dashboard'),
+    getTranslations('tasks'),
+    getTranslations('materials'),
+  ])
 
-  // ── Completed tasks ─────────────────────────────────────────
-  const { data: completed } = await supabase
-    .from('student_progress')
-    .select('task_id')
-    .eq('user_id', user.id)
-    .eq('is_correct', true)
+  /* profile */
+  const { data: profile } = await supabase
+    .from('profiles').select('level, xp').eq('id', user.id).single()
+  const userLevel = profile?.level ?? 1
 
-  const completedIds = new Set(completed?.map(r => r.task_id) ?? [])
+  /* fetch all data in parallel */
+  const [{ data: progressRaw }, { data: allTasks }, { data: allMats }, { data: allTopics }] =
+    await Promise.all([
+      supabase
+        .from('student_progress')
+        .select('task_id, is_correct, completed_at, tasks(topic_id)')
+        .eq('user_id', user.id),
+      supabase
+        .from('tasks')
+        .select('id, title, difficulty, type, xp_reward, topic_id')
+        .eq('is_published', true),
+      supabase
+        .from('materials')
+        .select('id, title, content, url, type, topic_id')
+        .eq('is_published', true),
+      supabase
+        .from('topics')
+        .select('id, title, icon'),
+    ])
 
-  // ── Weak topics (where user got answers wrong) ───────────────
-  const { data: wrongAttempts } = await supabase
-    .from('student_progress')
-    .select('task_id, tasks(topic_id)')
-    .eq('user_id', user.id)
-    .eq('is_correct', false)
+  /* progress analysis */
+  const progressRows = (progressRaw ?? []) as ProgressRow[]
+  const completedIds = buildCompletedSet(progressRows)
+  const topicStats   = buildTopicStats(progressRows)
 
-  const weakTopicIds = new Set<string>()
-  for (const r of wrongAttempts ?? []) {
-    const topic = (r.tasks as { topic_id: string | null } | null)?.topic_id
-    if (topic) weakTopicIds.add(topic)
+  /* topic lookup */
+  const topicById = new Map(
+    (allTopics ?? []).map(tp => [tp.id as string, { title: tp.title as string, icon: tp.icon as string | null }])
+  )
+
+  /* tasks grouped by topic (uncompleted only) */
+  const tasksByTopic = new Map<string, CompactTask[]>()
+  for (const tk of allTasks ?? []) {
+    if (!tk.topic_id || completedIds.has(tk.id)) continue
+    const list = tasksByTopic.get(tk.topic_id) ?? []
+    list.push({
+      id: tk.id, title: tk.title,
+      difficulty: ((tk.difficulty ?? 'beginner') as Difficulty),
+      type: tk.type ?? 'single_choice',
+      xp_reward: tk.xp_reward,
+    })
+    tasksByTopic.set(tk.topic_id, list)
   }
 
-  // ── Recommended tasks ─────────────────────────────────────────
-  const { data: allTasks } = await supabase
-    .from('tasks')
-    .select('id, title, description, difficulty, type, xp_reward, topic_id, topics(title, icon)')
-    .eq('is_published', true)
-    .limit(12)
-
-  const uncompleted = (allTasks ?? []).filter(t => !completedIds.has(t.id))
-  const prioritized = [
-    ...uncompleted.filter(t => weakTopicIds.has(t.topic_id ?? '')),
-    ...uncompleted.filter(t => !weakTopicIds.has(t.topic_id ?? '')),
-  ].slice(0, 9)
-
-  // ── Recommended materials ─────────────────────────────────────
-  type MatRow = {
-    id: string; title: string; content: string | null; url: string | null
-    type: string; topic_id: string | null; topics: unknown
+  /* materials grouped by topic */
+  const matsByTopic = new Map<string, CompactMaterial[]>()
+  for (const m of allMats ?? []) {
+    if (!m.topic_id) continue
+    const list = matsByTopic.get(m.topic_id) ?? []
+    list.push({ id: m.id, title: m.title, content: m.content, url: m.url, type: m.type })
+    matsByTopic.set(m.topic_id, list)
   }
 
-  let materials: MatRow[] = []
-  if (weakTopicIds.size > 0) {
-    const { data } = await supabase
-      .from('materials')
-      .select('id, title, content, url, type, topic_id, topics(title, icon)')
-      .eq('is_published', true)
-      .in('topic_id', Array.from(weakTopicIds))
-      .limit(6)
-    materials = data ?? []
-  }
-  if (materials.length === 0) {
-    const { data } = await supabase
-      .from('materials')
-      .select('id, title, content, url, type, topic_id, topics(title, icon)')
-      .eq('is_published', true)
-      .order('created_at', { ascending: false })
-      .limit(6)
-    materials = data ?? []
+  /* ── Weak topic sections ──────────────────────────── */
+  const weakSections: WeakSection[] = [...topicStats.entries()]
+    .filter(([, s]) => s.wrongCount > 0)
+    .map(([topicId, stat]) => {
+      const info  = topicById.get(topicId)
+      const tasks = (tasksByTopic.get(topicId) ?? [])
+        .sort((a, b) => scoreTask({ ...b, topic_id: topicId }, topicStats, userLevel) - scoreTask({ ...a, topic_id: topicId }, topicStats, userLevel))
+        .slice(0, 3)
+      const materials = (matsByTopic.get(topicId) ?? []).slice(0, 2)
+      return {
+        topicId,
+        title:   info?.title ?? topicId,
+        icon:    info?.icon  ?? null,
+        correct: stat.totalCount - stat.wrongCount,
+        total:   stat.totalCount,
+        urgency: topicUrgency(stat),
+        tasks, materials,
+      }
+    })
+    .sort((a, b) => b.urgency - a.urgency)
+
+  /* ── Explore: topics with 0 attempts ─────────────── */
+  const exploreSections: ExploreSection[] = [...tasksByTopic.entries()]
+    .filter(([tid]) => !topicStats.has(tid))
+    .map(([topicId, tasks]) => {
+      const info = topicById.get(topicId)
+      return {
+        topicId,
+        title: info?.title ?? topicId,
+        icon:  info?.icon  ?? null,
+        tasks: tasks.slice(0, 2),
+      }
+    })
+    .filter(s => s.tasks.length > 0)
+    .slice(0, 4)
+
+  /* ── Algo modal strings ───────────────────────────── */
+  const algoStrings: AlgoStrings = {
+    ariaLabel: t('algoInfoLabel'),
+    title:     t('algoTitle'),
+    desc:      t('algoDesc'),
+    footnote:  t('algoFootnote', { badge: `«${t('recsWeakBadge')}»` }),
+    signals: [
+      { label: t('algoSignalWeakLabel'),    maxPts: 60, ptsLabel: t('algoMaxPts', { pts: 60 }), tone: 'var(--warning)',     desc: t('algoSignalWeakDesc') },
+      { label: t('algoSignalRecencyLabel'), maxPts: 20, ptsLabel: t('algoMaxPts', { pts: 20 }), tone: 'var(--primary)',     desc: t('algoSignalRecencyDesc') },
+      { label: t('algoSignalDiffLabel'),    maxPts: 25, ptsLabel: t('algoMaxPts', { pts: 25 }), tone: 'var(--success)',     desc: t('algoSignalDiffDesc') },
+      { label: t('algoSignalNoveltyLabel'), maxPts: 10, ptsLabel: t('algoMaxPts', { pts: 10 }), tone: 'color-mix(in srgb, var(--muted-foreground) 60%, transparent)', desc: t('algoSignalNoveltyDesc') },
+    ],
   }
 
-  const hasWeakTopics = weakTopicIds.size > 0
+  const diffLabel    = (d: string) => tTasks(`difficulty.${d as Difficulty}`)
+  const typeLabel    = (tp: string) => tTasks(`types.${tp as 'single_choice' | 'multiple_choice' | 'text' | 'code'}`)
+  const matTypeLabel = (mt: string) => tMaterials(`types.${mt as 'article' | 'video' | 'link' | 'interactive'}`)
+  const tierLabel    = userLevel <= 2 ? diffLabel('beginner') : userLevel <= 6 ? diffLabel('intermediate') : diffLabel('advanced')
 
+  /* ─── Render ─────────────────────────────────────── */
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="space-y-8">
 
-      {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--foreground)' }}>
-          {t('recommended')}
-        </h1>
-        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-          {hasWeakTopics
-            ? 'Підібрано на основі тем, де ти допускав помилки'
-            : 'Актуальні завдання та матеріали для вивчення'}
-        </p>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-[-0.3px]" style={{ color: 'var(--foreground)' }}>
+            {t('recommended')}
+          </h1>
+          <p className="mt-1 text-[13px]" style={{ color: 'var(--muted-foreground)' }}>
+            {weakSections.length > 0
+              ? t('recsPersonalizedCount', { count: weakSections.length })
+              : t('recsGeneric', { tier: tierLabel })}
+          </p>
+        </div>
+        <div className="mt-1 shrink-0">
+          <AlgoInfoButton strings={algoStrings} />
+        </div>
       </div>
 
-      {/* Recommended tasks */}
-      {prioritized.length > 0 ? (
-        <section>
-          <h2 className="text-xs font-semibold uppercase tracking-widest mb-4"
-            style={{ color: 'var(--muted-foreground)' }}>
-            {t('recentTasks')}
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {prioritized.map(task => {
-              const difficulty = task.difficulty as Difficulty
-              const type = task.type as TaskType
-              const topic = task.topics as { title: string; icon: string | null } | null
-              const isWeak = weakTopicIds.has(task.topic_id ?? '')
-              return (
-                <Link
-                  key={task.id}
-                  href={`/tasks/${task.id}`}
-                  className="group block rounded-2xl border p-4 transition-all hover:shadow-md hover:-translate-y-0.5"
-                  style={{ background: 'var(--card)', borderColor: isWeak ? 'var(--warning)' : 'var(--border)' }}
-                >
-                  {/* Top */}
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span
-                      className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                      style={{
-                        background: `color-mix(in srgb, ${DIFFICULTY_COLOR[difficulty]} 15%, transparent)`,
-                        color: DIFFICULTY_COLOR[difficulty],
-                      }}
-                    >
-                      {difficulty === 'beginner' ? 'Початковий' : difficulty === 'intermediate' ? 'Середній' : 'Просунутий'}
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      {isWeak && (
-                        <span className="text-xs" title="Слабка тема">🎯</span>
-                      )}
-                      <span className="text-xs font-bold" style={{ color: 'var(--primary)' }}>
-                        +{task.xp_reward} XP
+      {/* ── Weak topic sections ───────────────────────── */}
+      {weakSections.length > 0 ? (
+        <section className="space-y-4">
+          <SectionLabel label={t('recsWeakTopicsHeader')} count={weakSections.length} accent />
+
+          {weakSections.map(sec => {
+            const correctRate = Math.round((sec.correct / sec.total) * 100)
+            const borderColor = correctRate < 40 ? 'var(--destructive)' : 'var(--warning)'
+            const barColor    = correctRate < 40 ? 'var(--destructive)' : correctRate < 70 ? 'var(--warning)' : 'var(--success)'
+
+            return (
+              <div
+                key={sec.topicId}
+                className="overflow-hidden rounded-2xl border"
+                style={{
+                  background: 'var(--card)',
+                  borderColor: `color-mix(in srgb, ${borderColor} 30%, var(--border))`,
+                  borderLeftColor: borderColor,
+                  borderLeftWidth: 3,
+                }}
+              >
+                {/* ── Topic header ── */}
+                <div className="px-5 pt-5 pb-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      {sec.icon && <span className="shrink-0 text-xl">{sec.icon}</span>}
+                      <h2
+                        className="truncate text-[15px] font-bold tracking-[-0.2px]"
+                        style={{ color: 'var(--foreground)' }}
+                      >
+                        {sec.title}
+                      </h2>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span
+                        className="rounded-lg px-2 py-0.5 text-[12px] font-bold"
+                        style={{
+                          background: `color-mix(in srgb, ${barColor} 12%, transparent)`,
+                          color: barColor,
+                        }}
+                      >
+                        {correctRate}%
                       </span>
+                      <p className="mt-0.5 text-[11px] tabular-nums" style={{ color: 'var(--muted-foreground)' }}>
+                        {sec.correct}/{sec.total}
+                      </p>
                     </div>
                   </div>
-                  {/* Title */}
-                  <p className="font-semibold text-sm leading-snug mb-2 line-clamp-2"
-                    style={{ color: 'var(--foreground)' }}>
-                    {task.title}
-                  </p>
-                  {/* Footer */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
-                      {TYPE_ICON[type]} {type === 'single_choice' ? 'Одна відповідь'
-                        : type === 'multiple_choice' ? 'Декілька відповідей'
-                        : type === 'text' ? 'Текст' : 'Код'}
-                    </span>
-                    {topic && (
-                      <span className="text-xs truncate max-w-[8rem]" style={{ color: 'var(--muted-foreground)' }}>
-                        {topic.icon} {topic.title}
-                      </span>
-                    )}
+
+                  {/* Progress bar */}
+                  <div
+                    className="mt-3 h-[5px] overflow-hidden rounded-full"
+                    style={{ background: 'var(--muted)' }}
+                  >
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${correctRate}%`, background: barColor }}
+                    />
                   </div>
-                </Link>
-              )
-            })}
-          </div>
+
+                  {/* Insight */}
+                  <p
+                    className="mt-2.5 text-[12.5px] leading-relaxed"
+                    style={{ color: 'var(--muted-foreground)' }}
+                  >
+                    {t('recsWeakInsight', { wrong: sec.total - sec.correct, total: sec.total })}
+                  </p>
+                </div>
+
+                {/* ── Practice tasks ── */}
+                <div
+                  className="border-t px-5 py-4"
+                  style={{ borderColor: 'color-mix(in srgb, var(--border) 50%, transparent)' }}
+                >
+                  <p
+                    className="mb-3 text-[10.5px] font-semibold uppercase tracking-[0.08em]"
+                    style={{ color: 'var(--muted-foreground)' }}
+                  >
+                    {t('recsPractice')}
+                  </p>
+                  {sec.tasks.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {sec.tasks.map(task => {
+                        const dc = DIFF_COLOR[task.difficulty]
+                        return (
+                          <Link
+                            key={task.id}
+                            href={`/tasks/${task.id}`}
+                            className="flex flex-col justify-between rounded-xl border p-3 no-underline transition-all hover:-translate-y-0.5 hover:shadow-sm"
+                            style={{ background: 'var(--background)', borderColor: 'var(--border)' }}
+                          >
+                            <p
+                              className="text-[13px] font-semibold leading-snug line-clamp-2"
+                              style={{ color: 'var(--foreground)' }}
+                            >
+                              {task.title}
+                            </p>
+                            <div className="mt-2.5 flex items-center gap-2">
+                              <span
+                                className="rounded px-1.5 py-px text-[10px] font-semibold"
+                                style={{
+                                  background: `color-mix(in srgb, ${dc} 12%, transparent)`,
+                                  color: dc,
+                                }}
+                              >
+                                {diffLabel(task.difficulty)}
+                              </span>
+                              <span
+                                className="flex-1 text-[10.5px]"
+                                style={{ color: 'var(--muted-foreground)' }}
+                              >
+                                {typeLabel(task.type)}
+                              </span>
+                              <span
+                                className="text-[11px] font-bold tabular-nums"
+                                style={{ color: 'var(--primary)' }}
+                              >
+                                +{task.xp_reward} XP
+                              </span>
+                            </div>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-[12.5px]" style={{ color: 'var(--muted-foreground)' }}>
+                      {t('recsNoTasksHere')}
+                    </p>
+                  )}
+                </div>
+
+                {/* ── Study materials ── */}
+                {sec.materials.length > 0 && (
+                  <div
+                    className="border-t px-5 py-4"
+                    style={{ borderColor: 'color-mix(in srgb, var(--border) 50%, transparent)' }}
+                  >
+                    <p
+                      className="mb-3 text-[10.5px] font-semibold uppercase tracking-[0.08em]"
+                      style={{ color: 'var(--muted-foreground)' }}
+                    >
+                      {t('recsStudy')}
+                    </p>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {sec.materials.map(mat => {
+                        const excerpt = mat.content
+                          ? mat.content.slice(0, 80) + (mat.content.length > 80 ? '…' : '')
+                          : mat.url?.replace(/^https?:\/\//, '').split('/')[0]
+                        return (
+                          <Link
+                            key={mat.id}
+                            href={`/materials/${mat.id}`}
+                            className="flex flex-col rounded-xl border p-3 no-underline transition-all hover:-translate-y-0.5 hover:shadow-sm"
+                            style={{ background: 'var(--background)', borderColor: 'var(--border)' }}
+                          >
+                            <span
+                              className="mb-1.5 w-fit rounded px-1.5 py-px text-[10px] font-semibold"
+                              style={{
+                                background: 'color-mix(in srgb, var(--primary) 10%, transparent)',
+                                color: 'var(--primary)',
+                              }}
+                            >
+                              {matTypeLabel(mat.type)}
+                            </span>
+                            <p
+                              className="text-[13px] font-semibold leading-snug line-clamp-2"
+                              style={{ color: 'var(--foreground)' }}
+                            >
+                              {mat.title}
+                            </p>
+                            {excerpt && (
+                              <p
+                                className="mt-1.5 text-[11.5px] leading-relaxed line-clamp-2"
+                                style={{ color: 'var(--muted-foreground)' }}
+                              >
+                                {excerpt}
+                              </p>
+                            )}
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </section>
       ) : (
+        /* No weak topics */
         <div
-          className="rounded-2xl border p-10 text-center"
+          className="flex flex-col items-center rounded-2xl border py-10 text-center"
           style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
         >
-          <p className="text-3xl mb-2">🏆</p>
-          <p className="font-medium" style={{ color: 'var(--foreground)' }}>
-            {t('allTasksDone')}
+          <p className="text-3xl">✅</p>
+          <p className="mt-2 text-[15px] font-bold" style={{ color: 'var(--foreground)' }}>
+            {t('recsOnTrack')}
+          </p>
+          <p className="mt-1 text-[12.5px]" style={{ color: 'var(--muted-foreground)' }}>
+            {t('recsOnTrackSub')}
           </p>
         </div>
       )}
 
-      {/* Recommended materials */}
-      {materials.length > 0 && (
-        <section>
-          <h2 className="text-xs font-semibold uppercase tracking-widest mb-4"
-            style={{ color: 'var(--muted-foreground)' }}>
-            {t('recommendedMaterials')}
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {materials.map(m => {
-              const topic = m.topics as { title: string; icon: string | null } | null
-              const excerpt = m.content ? m.content.slice(0, 100) + (m.content.length > 100 ? '…' : '') : null
-              return (
-                <Link
-                  key={m.id}
-                  href={`/materials/${m.id}`}
-                  className="group block rounded-2xl border p-4 transition-all hover:shadow-md hover:-translate-y-0.5"
-                  style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm">{MAT_ICON[m.type] ?? '📄'}</span>
-                    {topic && (
-                      <span className="text-xs truncate" style={{ color: 'var(--muted-foreground)' }}>
-                        {topic.icon} {topic.title}
-                      </span>
-                    )}
-                  </div>
-                  <p className="font-semibold text-sm leading-snug mb-2 line-clamp-2"
-                    style={{ color: 'var(--foreground)' }}>
-                    {m.title}
-                  </p>
-                  {excerpt ? (
-                    <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--muted-foreground)' }}>
-                      {excerpt}
-                    </p>
-                  ) : m.url ? (
-                    <p className="text-xs" style={{ color: 'var(--primary)' }}>
-                      {m.url.replace(/^https?:\/\//, '').split('/')[0]} ↗
-                    </p>
-                  ) : null}
-                </Link>
-              )
-            })}
+      {/* ── Explore new topics ────────────────────────── */}
+      {exploreSections.length > 0 && (
+        <section className="space-y-4">
+          <SectionLabel
+            label={t('recsExploreHeader')}
+            subtitle={t('recsExploreSubtitle')}
+          />
+          <div className="space-y-3">
+            {exploreSections.map(sec => (
+              <div
+                key={sec.topicId}
+                className="rounded-2xl border p-4"
+                style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+              >
+                <div className="mb-3 flex items-center gap-2">
+                  {sec.icon && <span className="text-base">{sec.icon}</span>}
+                  <span className="text-[13px] font-semibold" style={{ color: 'var(--foreground)' }}>
+                    {sec.title}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {sec.tasks.map(task => {
+                    const dc = DIFF_COLOR[task.difficulty]
+                    return (
+                      <Link
+                        key={task.id}
+                        href={`/tasks/${task.id}`}
+                        className="flex items-center gap-3 rounded-xl border p-3 no-underline transition-all hover:-translate-y-0.5 hover:shadow-sm"
+                        style={{ background: 'var(--background)', borderColor: 'var(--border)' }}
+                      >
+                        <p
+                          className="flex-1 text-[13px] font-medium leading-snug line-clamp-2"
+                          style={{ color: 'var(--foreground)' }}
+                        >
+                          {task.title}
+                        </p>
+                        <div className="shrink-0 text-right">
+                          <span
+                            className="block rounded px-1.5 py-px text-[10px] font-semibold"
+                            style={{
+                              background: `color-mix(in srgb, ${dc} 12%, transparent)`,
+                              color: dc,
+                            }}
+                          >
+                            {diffLabel(task.difficulty)}
+                          </span>
+                          <span className="mt-1 block text-[11px] font-bold tabular-nums" style={{ color: 'var(--primary)' }}>
+                            +{task.xp_reward} XP
+                          </span>
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </section>
       )}
 
-      {/* Future algorithm placeholder */}
-      <div
-        className="rounded-2xl border border-dashed p-6 text-center"
-        style={{ borderColor: 'var(--border)' }}
-      >
-        <p className="text-2xl mb-2">🤖</p>
-        <p className="text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
-          Персоналізований алгоритм рекомендацій
-        </p>
-        <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
-          Буде враховувати успішність, темп навчання, слабкі теми та адаптивну складність
-        </p>
-      </div>
+    </div>
+  )
+}
 
+/* ─── Section label with optional count ─────────────── */
+function SectionLabel({
+  label, count, subtitle, accent,
+}: {
+  label: string; count?: number; subtitle?: string; accent?: boolean
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span
+        className="text-[11px] font-semibold uppercase tracking-[0.07em]"
+        style={{ color: accent ? 'var(--warning)' : 'var(--muted-foreground)' }}
+      >
+        {label}
+      </span>
+      {count !== undefined && (
+        <span
+          className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10.5px] font-bold tabular-nums"
+          style={{
+            background: accent
+              ? 'color-mix(in srgb, var(--warning) 12%, transparent)'
+              : 'var(--muted)',
+            color: accent ? 'var(--warning)' : 'var(--muted-foreground)',
+          }}
+        >
+          {count}
+        </span>
+      )}
+      {subtitle && (
+        <span className="text-[11px]" style={{ color: 'var(--muted-foreground)' }}>
+          · {subtitle}
+        </span>
+      )}
+      <div
+        className="flex-1 border-t"
+        style={{ borderColor: 'color-mix(in srgb, var(--border) 60%, transparent)' }}
+      />
     </div>
   )
 }

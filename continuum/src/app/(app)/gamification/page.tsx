@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, getLocale } from 'next-intl/server'
 import { redirect } from 'next/navigation'
 
 export default async function LeaderboardPage() {
@@ -7,90 +7,455 @@ export default async function LeaderboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const t = await getTranslations('gamification')
+  const [t, locale] = await Promise.all([
+    getTranslations('gamification'),
+    getLocale(),
+  ])
 
-  const { data: leaders } = await supabase
-    .from('profiles')
-    .select('id, full_name, avatar_url, xp, level')
-    .order('xp', { ascending: false })
-    .limit(20)
+  /* ── Date helpers ─────────────────────────────── */
+  const now = new Date()
+  const todayIndex = (now.getDay() + 6) % 7           // Mon=0 … Sun=6
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - todayIndex)
+  monday.setHours(0, 0, 0, 0)
+  const weekStart = monday.toISOString()
+
+  /* ── Queries ──────────────────────────────────── */
+  const [{ data: leaders }, focusRes, { data: weekProgress }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url, xp, level')
+      .order('xp', { ascending: false })
+      .limit(50),
+    (supabase as any)
+      .from('focus_sessions')
+      .select('started_at, focus_seconds')
+      .gte('started_at', weekStart),
+    supabase
+      .from('student_progress')
+      .select('is_correct, completed_at')
+      .eq('user_id', user.id)
+      .gte('completed_at', weekStart),
+  ])
+  const focusSessions = (focusRes.data ?? []) as Array<{ started_at: string; focus_seconds: number }>
+
+  /* ── Rankings ─────────────────────────────────── */
+  const ranked = (leaders ?? []).map((p, i) => ({ ...p, rank: i + 1 }))
+  const yourRow  = ranked.find(r => r.id === user.id)
+  const youRank  = yourRow?.rank ?? ranked.length + 1
+  const nextRow  = ranked.find(r => r.rank === youRank - 1)
+  const xpGap    = nextRow ? (nextRow.xp ?? 0) - (yourRow?.xp ?? 0) : null
+
+  /* ── XP progress ──────────────────────────────── */
+  const XP_PER_LEVEL = 100
+  const yourXp    = yourRow?.xp    ?? 0
+  const yourLevel = yourRow?.level ?? 1
+  const xpInLevel = yourXp % XP_PER_LEVEL
+  const xpPct     = Math.round((xpInLevel / XP_PER_LEVEL) * 100)
+
+  /* ── Weekly focus per day ─────────────────────── */
+  const perDay: number[] = [0, 0, 0, 0, 0, 0, 0]
+  for (const s of focusSessions) {
+    const idx = (new Date(s.started_at).getDay() + 6) % 7
+    perDay[idx] += Math.round(s.focus_seconds / 60)
+  }
+  const totalMin  = perDay.reduce((a, b) => a + b, 0)
+  const maxMin    = Math.max(...perDay, 1)
+  const focusHrs  = Math.floor(totalMin / 60)
+  const focusMins = totalMin % 60
+
+  /* ── Weekly task stats ────────────────────────── */
+  const wTasks = weekProgress ?? []
+  const wCount   = wTasks.length
+  const wCorrect = wTasks.filter(r => r.is_correct).length
+  const wRate    = wCount > 0 ? Math.round((wCorrect / wCount) * 100) : null
+
+  /* ── Weekday labels ───────────────────────────── */
+  const DAYS = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(2024, 0, 1 + i) // Jan 1 2024 = Monday
+    return new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(d)
+  })
+
+  /* ── Podium split ─────────────────────────────── */
+  const top3 = ranked.slice(0, 3)
+  const rest  = ranked.slice(3)
+
+  const youLabel = t('you')
 
   return (
-    <div className="space-y-6 max-w-xl">
-      <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+    <div className="space-y-6">
+
+      {/* ── Header ──────────────────────────────── */}
+      <h1
+        className="text-2xl font-bold tracking-[-0.3px]"
+        style={{ color: 'var(--foreground)' }}
+      >
         {t('leaderboard')}
       </h1>
 
-      <div
-        className="rounded-2xl border overflow-hidden"
-        style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
-      >
-        {(leaders ?? []).map((p, i) => {
-          const isMe = p.id === user.id
-          const rankEmoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null
-          const displayName = p.full_name ?? '—'
+      {/* ── Two-column ──────────────────────────── */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_264px]">
 
-          return (
+        {/* LEFT — podium + list */}
+        <div className="space-y-4">
+
+          {/* Podium */}
+          {top3.length > 0 && (
             <div
-              key={p.id}
-              className="flex items-center gap-4 px-5 py-3 border-b last:border-b-0 transition-colors"
-              style={{
-                borderColor: 'var(--border)',
-                background: isMe ? 'color-mix(in srgb, var(--primary) 8%, transparent)' : 'transparent',
-              }}
+              className="rounded-2xl border p-5"
+              style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
             >
-              {/* Rank */}
-              <span
-                className="text-sm font-bold w-7 text-center shrink-0"
-                style={{ color: rankEmoji ? 'var(--foreground)' : 'var(--muted-foreground)' }}
+              <p
+                className="mb-5 text-[11px] font-semibold uppercase tracking-[0.07em]"
+                style={{ color: 'var(--muted-foreground)' }}
               >
-                {rankEmoji ?? `#${i + 1}`}
-              </span>
+                {t('topPlayers')}
+              </p>
 
-              {/* Avatar */}
-              {p.avatar_url ? (
-                <img
-                  src={p.avatar_url}
-                  alt={displayName}
-                  className="w-8 h-8 rounded-full object-cover shrink-0"
+              <div className="flex items-end justify-center gap-3">
+                {/* 2nd */}
+                {top3[1] && (
+                  <PodiumCol
+                    row={top3[1]}
+                    isMe={top3[1].id === user.id}
+                    youLabel={youLabel}
+                    baseH={52}
+                    medal="🥈"
+                  />
+                )}
+                {/* 1st */}
+                <PodiumCol
+                  row={top3[0]}
+                  isMe={top3[0].id === user.id}
+                  youLabel={youLabel}
+                  baseH={72}
+                  medal="🥇"
+                  first
                 />
-              ) : (
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                  style={{ background: 'var(--muted)', color: 'var(--muted-foreground)' }}
-                >
-                  {(p.full_name?.[0] ?? '?').toUpperCase()}
-                </div>
-              )}
-
-              {/* Name */}
-              <span
-                className="flex-1 text-sm font-medium truncate"
-                style={{ color: isMe ? 'var(--primary)' : 'var(--foreground)' }}
-              >
-                {displayName}
-                {isMe && ` ${t('you')}`}
-              </span>
-
-              {/* Level + XP */}
-              <div className="text-right shrink-0">
-                <p className="text-xs font-semibold" style={{ color: 'var(--primary)' }}>
-                  {p.xp} XP
-                </p>
-                <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
-                  {t('level')} {p.level}
-                </p>
+                {/* 3rd */}
+                {top3[2] && (
+                  <PodiumCol
+                    row={top3[2]}
+                    isMe={top3[2].id === user.id}
+                    youLabel={youLabel}
+                    baseH={36}
+                    medal="🥉"
+                  />
+                )}
               </div>
             </div>
-          )
-        })}
+          )}
 
-        {(!leaders || leaders.length === 0) && (
-          <p className="text-sm text-center py-10" style={{ color: 'var(--muted-foreground)' }}>
-            —
-          </p>
-        )}
+          {/* Rest of list */}
+          {rest.length > 0 && (
+            <div
+              className="rounded-2xl border overflow-hidden"
+              style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+            >
+              {rest.map(p => {
+                const isMe = p.id === user.id
+                return (
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-3 border-b px-4 py-3 last:border-b-0"
+                    style={{
+                      borderColor: 'var(--border)',
+                      background: isMe ? 'color-mix(in srgb, var(--primary) 6%, transparent)' : 'transparent',
+                    }}
+                  >
+                    <span
+                      className="w-7 shrink-0 text-center text-[12px] font-bold tabular-nums"
+                      style={{ color: 'var(--muted-foreground)' }}
+                    >
+                      {p.rank}
+                    </span>
+                    <AvatarCircle url={p.avatar_url} name={p.full_name} size={32} highlight={isMe} />
+                    <span
+                      className="flex-1 truncate text-[13px] font-medium"
+                      style={{ color: isMe ? 'var(--primary)' : 'var(--foreground)' }}
+                    >
+                      {p.full_name ?? '—'}
+                      {isMe && (
+                        <span className="ml-2 text-[11px]" style={{ color: 'var(--muted-foreground)' }}>
+                          {youLabel}
+                        </span>
+                      )}
+                    </span>
+                    <div className="shrink-0 text-right">
+                      <p
+                        className="text-[13px] font-bold tabular-nums"
+                        style={{ color: isMe ? 'var(--primary)' : 'var(--foreground)' }}
+                      >
+                        {p.xp}
+                        <span className="ml-0.5 text-[10px] font-normal" style={{ color: 'var(--muted-foreground)' }}>
+                          XP
+                        </span>
+                      </p>
+                      <p className="text-[11px]" style={{ color: 'var(--muted-foreground)' }}>
+                        {t('level')} {p.level}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {ranked.length === 0 && (
+            <p className="py-12 text-center text-[13px]" style={{ color: 'var(--muted-foreground)' }}>
+              —
+            </p>
+          )}
+        </div>
+
+        {/* RIGHT sidebar ─────────────────────────── */}
+        <div className="flex flex-col gap-4">
+
+          {/* Your position */}
+          <div
+            className="rounded-2xl border p-4"
+            style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+          >
+            <p
+              className="mb-3 text-[11px] font-semibold uppercase tracking-[0.07em]"
+              style={{ color: 'var(--muted-foreground)' }}
+            >
+              {t('yourStats')}
+            </p>
+            <div
+              className="rounded-xl p-3"
+              style={{ background: 'color-mix(in srgb, var(--primary) 8%, transparent)' }}
+            >
+              <div className="flex items-baseline justify-between">
+                <span className="text-[11.5px] font-semibold" style={{ color: 'var(--muted-foreground)' }}>
+                  {t('level')} {yourLevel}
+                </span>
+                <span className="text-[15px] font-bold tabular-nums" style={{ color: 'var(--primary)' }}>
+                  {yourXp} XP
+                </span>
+              </div>
+              <div
+                className="mt-2 h-1.5 overflow-hidden rounded-full"
+                style={{ background: 'var(--muted)' }}
+              >
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${xpPct}%`, background: 'var(--primary)' }}
+                />
+              </div>
+              <div
+                className="mt-2 flex items-center justify-between text-[11px]"
+                style={{ color: 'var(--muted-foreground)' }}
+              >
+                <span>{t('rank', { rank: youRank })}</span>
+                {xpGap != null && xpGap > 0 && (
+                  <span>{t('xpGapToRank', { xp: xpGap, rank: youRank - 1 })}</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Weekly focus chart */}
+          <div
+            className="rounded-2xl border p-4"
+            style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+          >
+            <div className="mb-1 flex items-center justify-between">
+              <p
+                className="text-[11px] font-semibold uppercase tracking-[0.07em]"
+                style={{ color: 'var(--muted-foreground)' }}
+              >
+                {t('weeklyFocus')}
+              </p>
+              <span
+                className="text-[11.5px] tabular-nums"
+                style={{ color: totalMin > 0 ? 'var(--foreground)' : 'var(--muted-foreground)' }}
+              >
+                {focusHrs > 0 ? `${focusHrs}h ` : ''}{focusMins}m
+              </span>
+            </div>
+
+            <div className="mt-3 flex h-[72px] items-end gap-1">
+              {perDay.map((min, i) => (
+                <div key={i} className="flex flex-1 flex-col items-center gap-1">
+                  <div
+                    className="w-full rounded-[3px]"
+                    style={{
+                      height: `${Math.max(3, Math.round((min / maxMin) * 100))}%`,
+                      background: i === todayIndex
+                        ? 'var(--primary)'
+                        : min > 0
+                          ? 'color-mix(in srgb, var(--primary) 35%, var(--muted))'
+                          : 'var(--muted)',
+                    }}
+                  />
+                  <span
+                    className="text-[9px]"
+                    style={{
+                      color: i === todayIndex
+                        ? 'var(--primary)'
+                        : 'color-mix(in srgb, var(--muted-foreground) 60%, transparent)',
+                    }}
+                  >
+                    {DAYS[i]}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* This week tasks */}
+          <div
+            className="rounded-2xl border p-4"
+            style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+          >
+            <p
+              className="mb-3 text-[11px] font-semibold uppercase tracking-[0.07em]"
+              style={{ color: 'var(--muted-foreground)' }}
+            >
+              {t('weeklyTasks')}
+            </p>
+            {wCount > 0 ? (
+              <div className="flex gap-3">
+                <div
+                  className="flex flex-1 flex-col items-center rounded-xl py-3"
+                  style={{ background: 'var(--muted)' }}
+                >
+                  <span className="text-[22px] font-bold tabular-nums" style={{ color: 'var(--foreground)' }}>
+                    {wCount}
+                  </span>
+                  <span className="mt-0.5 text-[11px]" style={{ color: 'var(--muted-foreground)' }}>
+                    {t('tasksLabel')}
+                  </span>
+                </div>
+                {wRate !== null && (
+                  <div
+                    className="flex flex-1 flex-col items-center rounded-xl py-3"
+                    style={{
+                      background: wRate >= 70
+                        ? 'color-mix(in srgb, var(--success) 12%, var(--muted))'
+                        : wRate >= 40
+                          ? 'color-mix(in srgb, var(--warning) 12%, var(--muted))'
+                          : 'color-mix(in srgb, var(--destructive) 12%, var(--muted))',
+                    }}
+                  >
+                    <span
+                      className="text-[22px] font-bold tabular-nums"
+                      style={{
+                        color: wRate >= 70 ? 'var(--success)' : wRate >= 40 ? 'var(--warning)' : 'var(--destructive)',
+                      }}
+                    >
+                      {wRate}%
+                    </span>
+                    <span className="mt-0.5 text-[11px]" style={{ color: 'var(--muted-foreground)' }}>
+                      {t('correctLabel')}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-[12px] text-center py-2" style={{ color: 'var(--muted-foreground)' }}>
+                {t('noActivity')}
+              </p>
+            )}
+          </div>
+
+        </div>
       </div>
+    </div>
+  )
+}
+
+/* ─── Podium column ───────────────────────────────── */
+function PodiumCol({
+  row, isMe, youLabel, baseH, medal, first = false,
+}: {
+  row: { full_name: string | null; avatar_url: string | null; xp: number; level: number; rank: number }
+  isMe: boolean; youLabel: string; baseH: number; medal: string; first?: boolean
+}) {
+  const name = row.full_name ?? '—'
+  return (
+    <div className={`flex flex-col items-center ${first ? 'flex-[1.15]' : 'flex-1'}`}>
+      {/* medal */}
+      <span className={`${first ? 'text-2xl' : 'text-xl'} mb-1.5`}>{medal}</span>
+
+      {/* avatar */}
+      <AvatarCircle
+        url={row.avatar_url}
+        name={row.full_name}
+        size={first ? 56 : 44}
+        highlight={isMe}
+      />
+
+      {/* name */}
+      <p
+        className={`mt-2 max-w-[88px] truncate text-center ${first ? 'text-[13px] font-semibold' : 'text-[12px] font-medium'}`}
+        style={{ color: isMe ? 'var(--primary)' : 'var(--foreground)' }}
+      >
+        {name}
+      </p>
+      {isMe && (
+        <span className="text-[10px]" style={{ color: 'var(--muted-foreground)' }}>
+          {youLabel}
+        </span>
+      )}
+
+      {/* XP */}
+      <p
+        className={`${first ? 'text-[13px]' : 'text-[11.5px]'} font-bold tabular-nums`}
+        style={{ color: 'var(--primary)' }}
+      >
+        {row.xp} <span className="text-[10px] font-normal" style={{ color: 'var(--muted-foreground)' }}>XP</span>
+      </p>
+
+      {/* podium base */}
+      <div
+        className="mt-3 w-full rounded-t-xl"
+        style={{
+          height: `${baseH}px`,
+          background: first
+            ? 'color-mix(in srgb, var(--primary) 22%, var(--muted))'
+            : 'color-mix(in srgb, var(--muted-foreground) 14%, var(--muted))',
+        }}
+      />
+    </div>
+  )
+}
+
+/* ─── Avatar circle ───────────────────────────────── */
+function AvatarCircle({
+  url, name, size, highlight = false,
+}: {
+  url: string | null; name: string | null; size: number; highlight?: boolean
+}) {
+  const initial = (name ?? '?')[0].toUpperCase()
+  const s = `${size}px`
+
+  if (url) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={url}
+        alt={name ?? ''}
+        style={{
+          width: s, height: s, borderRadius: '50%', objectFit: 'cover', flexShrink: 0,
+          border: `2px solid ${highlight ? 'var(--primary)' : 'var(--border)'}`,
+        }}
+      />
+    )
+  }
+  return (
+    <div
+      style={{
+        width: s, height: s, borderRadius: '50%', flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: `${Math.round(size * 0.38)}px`, fontWeight: 700,
+        background: highlight ? 'color-mix(in srgb, var(--primary) 15%, var(--muted))' : 'var(--muted)',
+        color: highlight ? 'var(--primary)' : 'var(--muted-foreground)',
+        border: `2px solid ${highlight ? 'var(--primary)' : 'var(--border)'}`,
+      }}
+    >
+      {initial}
     </div>
   )
 }

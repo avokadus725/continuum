@@ -1,240 +1,286 @@
 import { createClient } from '@/lib/supabase/server'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, getLocale } from 'next-intl/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { LearningFeed, type FeedItem } from '@/components/features/dashboard/learning-feed'
-import { CreatePostForm, PostFeed, type Post } from '@/components/features/posts/post-feed'
+import { buildTopicStats, scoreMaterial, type ProgressRow } from '@/lib/recommendations'
+
+import { Hero } from './_components/hero'
+import { FocusBand } from './_components/focus-band'
+import { TodayPanel, type TodayItem } from './_components/today-panel'
+import { NeedsYouPanel, type NeedsItem } from './_components/needs-you-panel'
+import { FreshPanel, type FreshItem } from './_components/fresh-panel'
+import { LeaderboardCard } from './_components/right-rail/leaderboard'
+import { WeeklyChartCard } from './_components/right-rail/weekly-chart'
+import { RecommendationsCard, type RecItem } from './_components/right-rail/recommendations'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const t = await getTranslations('dashboard')
-  const tPosts = await getTranslations('posts')
+  const [t, tMaterials, locale] = await Promise.all([
+    getTranslations('dashboard'),
+    getTranslations('materials'),
+    getLocale(),
+  ])
 
-  // Profile for welcome header
+  /* ── Profile ─────────────────────────────────────── */
   const { data: profile } = await supabase
     .from('profiles')
     .select('full_name, avatar_url, xp, level')
     .eq('id', user.id)
     .single()
 
-  const displayName =
-    profile?.full_name ??
-    user.user_metadata?.full_name ??
-    user.email?.split('@')[0] ?? null
+  const fullName = profile?.full_name ?? user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? ''
+  const firstName = fullName.split(' ')[0] || t('nameFallback')
 
-  // ── Recent community posts ────────────────────────────────────
-  const { data: postsRaw } = await (supabase as any).from('posts')
-    .select(`
-      id, content, url, url_title, created_at, user_id,
-      profiles(full_name, avatar_url),
-      comments(id, content, created_at, user_id, parent_id, post_id,
-        profiles(full_name, avatar_url)
-      )
-    `)
+  /* ── Today items ─────────────────────────────────── */
+  const { data: personalTodosRaw } = await (supabase as any)
+    .from('personal_tasks')
+    .select('id, title, done')
     .order('created_at', { ascending: false })
-    .limit(5)
+    .limit(30)
 
-  const postIds = (postsRaw ?? []).map((p: any) => p.id)
-  let postReactionsRaw: any[] = []
-  if (postIds.length > 0) {
-    const { data } = await (supabase as any).from('reactions')
-      .select('type, post_id, user_id')
-      .in('post_id', postIds)
-    postReactionsRaw = data ?? []
-  }
+  const personalTodos = (personalTodosRaw ?? []) as Array<{ id: string; title: string; done: boolean }>
 
-  const reactionsByPost = new Map<string, any[]>()
-  for (const r of postReactionsRaw) {
-    if (!r.post_id) continue
-    const arr = reactionsByPost.get(r.post_id) ?? []
-    arr.push(r)
-    reactionsByPost.set(r.post_id, arr)
-  }
+  const todayItems: TodayItem[] = personalTodos.map(todo => ({
+    id: todo.id,
+    kind: 'todo' as const,
+    title: todo.title,
+    meta: '',
+    done: todo.done,
+  }))
 
-  const recentPosts: Post[] = (postsRaw ?? []).map((p: any) => {
-    const postReacts = reactionsByPost.get(p.id) ?? []
-    return {
-      id: p.id,
-      content: p.content,
-      url: p.url,
-      url_title: p.url_title,
-      created_at: p.created_at,
-      user_id: p.user_id,
-      profiles: p.profiles,
-      reactions: [
-        {
-          type: 'like',
-          count: postReacts.filter((r: any) => r.type === 'like').length,
-          reacted: postReacts.some((r: any) => r.type === 'like' && r.user_id === user!.id),
-        },
-      ],
-      comments: (p.comments ?? []).filter((c: any) => c.post_id === p.id),
-    }
-  })
-
-  // ── Completed task IDs ────────────────────────────────────────
-  const { data: completedRows } = await supabase
-    .from('student_progress')
-    .select('task_id')
+  /* ── Needs-you items ──────────────────────────────── */
+  const { data: myPostsRaw } = await (supabase as any)
+    .from('posts')
+    .select('id, content')
     .eq('user_id', user.id)
-    .eq('is_correct', true)
-
-  const completedIds = completedRows?.map(r => r.task_id) ?? []
-
-  // ── Incomplete tasks with options ─────────────────────────────
-  let tasksQuery = supabase
-    .from('tasks')
-    .select('id, title, description, type, difficulty, xp_reward, task_options(id, text, is_correct)')
-    .eq('is_published', true)
-    .limit(8)
-
-  if (completedIds.length > 0) {
-    tasksQuery = tasksQuery.not('id', 'in', `(${completedIds.join(',')})`)
-  }
-
-  const { data: tasksRaw } = await tasksQuery
-
-  // ── Materials with comments ───────────────────────────────────
-  const { data: materialsRaw } = await supabase
-    .from('materials')
-    .select(`
-      id, title, type, url, content,
-      comments(
-        id, content, created_at, user_id, parent_id,
-        profiles(full_name, avatar_url)
-      )
-    `)
-    .eq('is_published', true)
     .order('created_at', { ascending: false })
-    .limit(8)
+    .limit(20)
 
-  // ── Reactions for materials ───────────────────────────────────
-  const materialIds = (materialsRaw ?? []).map(m => m.id)
-  let reactionsRaw: { type: string; material_id: string; user_id: string }[] = []
-  if (materialIds.length > 0) {
-    const { data } = await supabase
-      .from('reactions')
-      .select('type, material_id, user_id')
-      .in('material_id', materialIds)
-    reactionsRaw = (data ?? []) as typeof reactionsRaw
+  const myPosts = (myPostsRaw ?? []) as Array<{ id: string; content: string }>
+  const myPostIds = myPosts.map(p => p.id)
+  const postById = new Map(myPosts.map(p => [p.id, p.content]))
+
+  let needsItems: NeedsItem[] = []
+  if (myPostIds.length > 0) {
+    const { data: incomingComments } = await (supabase as any)
+      .from('comments')
+      .select(`
+        id, content, created_at, post_id, user_id,
+        profiles(full_name, avatar_url)
+      `)
+      .in('post_id', myPostIds)
+      .neq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(5)
+
+    needsItems = (incomingComments ?? []).map((c: {
+      id: string
+      content: string
+      created_at: string
+      post_id: string
+      profiles: { full_name?: string | null; avatar_url?: string | null } | null
+    }): NeedsItem => {
+      const subject = (postById.get(c.post_id) ?? '').split('\n')[0].slice(0, 80) || t('needsYourPost')
+      return {
+        id: c.id,
+        who: {
+          name: c.profiles?.full_name ?? t('needsSomeone'),
+          avatarUrl: c.profiles?.avatar_url,
+          role: null,
+        },
+        when: relativeTime(c.created_at, locale),
+        action: t('needsCommented'),
+        subject,
+        preview: c.content.length > 140 ? c.content.slice(0, 140) + '…' : c.content,
+        href: `/community#${c.post_id}`,
+        cta: t('needsReply'),
+      }
+    })
   }
 
-  const reactionsByMaterial = new Map<string, typeof reactionsRaw>()
-  for (const r of reactionsRaw) {
-    const arr = reactionsByMaterial.get(r.material_id) ?? []
-    arr.push(r)
-    reactionsByMaterial.set(r.material_id, arr)
-  }
+  /* ── Fresh items (delta from streams) ─────────────── */
+  const sinceISO = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { data: freshMaterials } = await supabase
+    .from('materials')
+    .select('id, title, type, content')
+    .eq('is_published', true)
+    .gt('created_at', sinceISO)
+    .order('created_at', { ascending: false })
+    .limit(3)
 
-  const REACTION_TYPES = ['like', 'helpful', 'fire'] as const
-  function buildReactions(materialId: string) {
-    const all = reactionsByMaterial.get(materialId) ?? []
-    return REACTION_TYPES.map(type => ({
-      type: type as 'like' | 'helpful' | 'fire',
-      count: all.filter(r => r.type === type).length,
-      reacted: all.some(r => r.type === type && r.user_id === user!.id),
+  const { data: freshPostsRaw } = await (supabase as any)
+    .from('posts')
+    .select('id, content, created_at, user_id, profiles(full_name)')
+    .neq('user_id', user.id)
+    .gt('created_at', sinceISO)
+    .order('created_at', { ascending: false })
+    .limit(3)
+
+  const freshPosts = (freshPostsRaw ?? []) as Array<{
+    id: string
+    content: string
+    created_at: string
+    profiles: { full_name?: string | null } | { full_name?: string | null }[] | null
+  }>
+
+  const freshItems: FreshItem[] = [
+    ...(freshMaterials ?? []).map((m): FreshItem => ({
+      id: `m-${m.id}`,
+      kind: 'material',
+      title: t('freshNewMaterial'),
+      desc: m.title,
+      when: t('freshJustNow'),
+      href: `/materials#${m.id}`,
+    })),
+    ...freshPosts.map((p): FreshItem => {
+      const author = Array.isArray(p.profiles) ? p.profiles[0] : p.profiles
+      return {
+        id: `p-${p.id}`,
+        kind: 'post',
+        title: `${author?.full_name ?? t('needsSomeone')} ${t('freshPostedInFeed')}`,
+        desc: p.content.split('\n')[0].slice(0, 100),
+        when: relativeTime(p.created_at, locale),
+        href: `/community#${p.id}`,
+      }
+    }),
+  ]
+
+  /* ── Leaderboard ──────────────────────────────────── */
+  const { data: leaderRows } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url, xp')
+    .order('xp', { ascending: false })
+    .limit(50)
+
+  const ranked = (leaderRows ?? []).map((r, i) => ({ ...r, rank: i + 1 }))
+  const yourRow = ranked.find(r => r.id === user.id)
+  const topThree = ranked.slice(0, 3).map(r => ({
+    rank: r.rank,
+    name: r.full_name ?? '—',
+    xp: r.xp ?? 0,
+    avatarUrl: r.avatar_url,
+  }))
+  const youRank = yourRow?.rank ?? ranked.length + 1
+  const nextRank = youRank > 1 ? youRank - 1 : null
+  const nextRow = ranked.find(r => r.rank === nextRank)
+  const xpGap = nextRow ? nextRow.xp - (yourRow?.xp ?? 0) : null
+
+  /* ── Weekly chart ─────────────────────────────────── */
+  // TODO: aggregate from `focus_sessions` group by day-of-week, last 7 days.
+  const perDay = [0, 0, 0, 0, 0, 0, 0]
+  const todayIndex = (new Date().getDay() + 6) % 7  // Mon=0…Sun=6
+
+  /* ── Recommendations (personalized) ──────────────── */
+  const [{ data: progressRaw }, { data: allMaterials }] = await Promise.all([
+    supabase
+      .from('student_progress')
+      .select('task_id, is_correct, completed_at, tasks(topic_id)')
+      .eq('user_id', user.id),
+    supabase
+      .from('materials')
+      .select('id, title, type, topic_id')
+      .eq('is_published', true)
+      .limit(30),
+  ])
+
+  const topicStats = buildTopicStats((progressRaw ?? []) as ProgressRow[])
+
+  const materialTypeKeys = ['video', 'article', 'link', 'interactive'] as const
+  type MaterialType = typeof materialTypeKeys[number]
+
+  const recs: RecItem[] = (allMaterials ?? [])
+    .map(m => ({ ...m, _score: scoreMaterial(m, topicStats) }))
+    .sort((a, b) => b._score - a._score)
+    .slice(0, 3)
+    .map(m => ({
+      id: m.id,
+      tag: materialTypeKeys.includes(m.type as MaterialType)
+        ? tMaterials(`types.${m.type as MaterialType}`)
+        : tMaterials('types.article'),
+      title: m.title,
+      meta: m.type === 'video' ? t('recActionWatch') : t('recActionRead'),
+      href: `/materials#${m.id}`,
     }))
-  }
 
-  // ── Build learning feed items ─────────────────────────────────
-  const taskItems: FeedItem[] = (tasksRaw ?? []).map(task => ({
-    kind: 'task' as const,
-    data: {
-      id: task.id,
-      title: task.title,
-      content: task.description,
-      type: task.type as 'single_choice' | 'multiple_choice' | 'text' | 'code',
-      difficulty: task.difficulty as 'beginner' | 'intermediate' | 'advanced',
-      xp_reward: task.xp_reward,
-      task_options: (task.task_options as { id: string; text: string; is_correct: boolean }[]).map(o => ({
-        id: o.id,
-        text: o.text,
-      })),
-    },
-  }))
+  /* ── Focus state ──────────────────────────────────── */
+  // TODO: read from `focus_sessions` — currently shows 'idle' default.
+  const focus = { state: 'idle' as const, workMin: 25, breakMin: 5 }
 
-  const materialItems: FeedItem[] = (materialsRaw ?? []).map(material => ({
-    kind: 'material' as const,
-    data: {
-      id: material.id,
-      title: material.title,
-      type: material.type as 'article' | 'video' | 'link' | 'interactive',
-      url: material.url,
-      content: material.content,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      comments: (material.comments as any[]) ?? [],
-      reactions: buildReactions(material.id),
-    },
-  }))
+  /* ── Encouragement ────────────────────────────────── */
+  const unfinished = todayItems.filter(i => !i.done).length
+  const encouragement = todayItems.length > 0
+    ? t('encouragementStreak', { count: unfinished })
+    : t('encouragementStart')
 
-  const allItems = [...taskItems, ...materialItems]
-  const avatarUrl = profile?.avatar_url ?? user.user_metadata?.avatar_url ?? null
-
+  /* ── Render ────────────────────────────────────────── */
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-
-      {/* Welcome header */}
-      <div className="flex items-center gap-3">
-        {avatarUrl ? (
-          <img src={avatarUrl} alt={displayName ?? ''} className="w-10 h-10 rounded-full object-cover shrink-0" />
-        ) : (
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shrink-0"
-            style={{ background: 'var(--primary)', color: 'var(--primary-foreground)' }}
-          >
-            {(displayName?.[0] ?? user.email?.[0] ?? '?').toUpperCase()}
-          </div>
-        )}
-        <div>
-          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>
-            {displayName ? t('welcome', { name: displayName }) : t('welcomeGeneric')}
-          </h1>
-          <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
-            {t('subtitle')}
-          </p>
-        </div>
-        {profile && (
-          <div className="ml-auto text-right shrink-0">
-            <p className="text-xs font-medium" style={{ color: 'var(--muted-foreground)' }}>
-              {t('level', { level: profile.level })}
-            </p>
-            <p className="text-sm font-bold" style={{ color: 'var(--primary)' }}>
-              {t('xp', { xp: profile.xp })}
-            </p>
-          </div>
-        )}
+    <div className="grid grid-cols-1 gap-7 lg:grid-cols-[1fr_304px]">
+      <div>
+        <Hero
+          firstName={firstName}
+          dateLabel={dateLabel(new Date(), locale)}
+          encouragement={encouragement}
+          streakDays={0 /* TODO: compute streak */}
+          todayDone={todayItems.filter(i => i.done).length}
+          todayTotal={todayItems.length}
+          focusMinutesToday={0 /* TODO */}
+        />
+        <FocusBand focus={focus} />
+        <TodayPanel items={todayItems} />
+        <NeedsYouPanel items={needsItems} />
+        <FreshPanel items={freshItems} />
       </div>
 
-      {/* Create post */}
-      <CreatePostForm
-        currentAvatarUrl={avatarUrl}
-        currentName={displayName}
-      />
-
-      {/* Recent posts from community */}
-      {recentPosts.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold" style={{ color: 'var(--muted-foreground)' }}>
-              {tPosts('recentPosts')}
-            </h2>
-            <Link
-              href="/community"
-              className="text-xs font-medium hover:underline"
-              style={{ color: 'var(--primary)' }}
-            >
-              {tPosts('viewAllInCommunity')}
-            </Link>
-          </div>
-          <PostFeed posts={recentPosts} currentUserId={user.id} />
-        </section>
-      )}
-
-      {/* Learning feed */}
-      <LearningFeed initialItems={allItems} currentUserId={user.id} />
+      <aside className="flex flex-col gap-3.5">
+        {profile && (
+          <LeaderboardCard
+            level={profile.level ?? 1}
+            xp={profile.xp ?? 0}
+            xpForNextLevel={xpForLevel((profile.level ?? 1) + 1)}
+            yourRank={youRank}
+            nextRank={nextRank}
+            xpGapToNextRank={xpGap}
+            topThree={topThree}
+            you={{
+              rank: youRank,
+              name: profile.full_name ?? firstName,
+              xp: profile.xp ?? 0,
+              avatarUrl: profile.avatar_url,
+            }}
+          />
+        )}
+        <WeeklyChartCard perDay={perDay} todayIndex={todayIndex} />
+        <RecommendationsCard items={recs} />
+      </aside>
     </div>
   )
+}
+
+/* ─────────── Helpers ─────────── */
+
+function xpForLevel(level: number): number {
+  return level * 100
+}
+
+function dateLabel(d: Date, locale: string): string {
+  const weekday = new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(d)
+  const rest    = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long' }).format(d)
+  const cap = weekday.charAt(0).toUpperCase() + weekday.slice(1)
+  return `${cap} · ${rest}`
+}
+
+function relativeTime(iso: string, locale: string): string {
+  const ms   = Date.now() - new Date(iso).getTime()
+  const secs = Math.floor(ms / 1000)
+  const rtf  = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+  if (secs < 60)  return rtf.format(0, 'seconds')
+  const mins = Math.floor(secs / 60)
+  if (mins < 60)  return rtf.format(-mins, 'minutes')
+  const hrs  = Math.floor(mins / 60)
+  if (hrs < 24)   return rtf.format(-hrs, 'hours')
+  const days = Math.floor(hrs / 24)
+  if (days < 7)   return rtf.format(-days, 'days')
+  return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }).format(new Date(iso))
 }

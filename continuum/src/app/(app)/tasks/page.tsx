@@ -13,21 +13,25 @@ interface Props {
   searchParams: Promise<{ topic?: string; difficulty?: string }>
 }
 
+const DIFF_ACTIVE: Record<string, string> = {
+  beginner:     'var(--success)',
+  intermediate: 'var(--warning)',
+  advanced:     'var(--destructive)',
+}
+
 export default async function TasksPage({ searchParams }: Props) {
   const { topic: topicSlug, difficulty } = await searchParams
   const supabase = await createClient()
-  const t = await getTranslations('tasks')
-  const tMaterials = await getTranslations('materials')
+  const t           = await getTranslations('tasks')
+  const tMaterials  = await getTranslations('materials')
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Fetch topics for filter
   const { data: topics } = await supabase
     .from('topics')
     .select('id, title, icon, slug')
     .order('title')
 
-  // Build tasks query
   let query = supabase
     .from('tasks')
     .select('id, title, description, difficulty, type, xp_reward, topic_id, topics(title, icon)')
@@ -47,7 +51,6 @@ export default async function TasksPage({ searchParams }: Props) {
 
   const { data: tasks } = await query
 
-  // Fetch completed task IDs for this user
   let completedTaskIds = new Set<string>()
   if (user) {
     const { data: completed } = await supabase
@@ -67,71 +70,77 @@ export default async function TasksPage({ searchParams }: Props) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
-          {t('title')}
-        </h1>
-      </div>
+      {/* ── Header ─────────────────────────────────── */}
+      <h1
+        className="text-2xl font-bold tracking-[-0.3px]"
+        style={{ color: 'var(--foreground)' }}
+      >
+        {t('title')}
+      </h1>
 
-      {/* Topic filter */}
-      <div className="flex flex-wrap gap-2">
-        <Link
-          href={filterLink({ topic: 'all', difficulty })}
-          className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors border"
-          style={{
-            background: !topicSlug || topicSlug === 'all' ? 'var(--primary)' : 'var(--card)',
-            color: !topicSlug || topicSlug === 'all' ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
-            borderColor: !topicSlug || topicSlug === 'all' ? 'var(--primary)' : 'var(--border)',
-          }}
-        >
-          {tMaterials('allTopics')}
-        </Link>
-        {topics?.map((topic) => {
-          const isActive = topicSlug === topic.slug
-          return (
-            <Link
+      {/* ── Filters ────────────────────────────────── */}
+      <div className="space-y-2">
+
+        {/* Topic pills */}
+        <div className="flex flex-wrap gap-1.5">
+          <PillLink
+            href={filterLink({ topic: 'all', difficulty })}
+            active={!topicSlug || topicSlug === 'all'}
+          >
+            {tMaterials('allTopics')}
+          </PillLink>
+          {topics?.map((topic) => (
+            <PillLink
               key={topic.id}
               href={filterLink({ topic: topic.slug, difficulty })}
-              className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors border"
-              style={{
-                background: isActive ? 'var(--primary)' : 'var(--card)',
-                color: isActive ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
-                borderColor: isActive ? 'var(--primary)' : 'var(--border)',
-              }}
+              active={topicSlug === topic.slug}
             >
               {topic.icon} {topic.title}
-            </Link>
-          )
-        })}
+            </PillLink>
+          ))}
+        </div>
+
+        {/* Difficulty pills */}
+        <div className="flex flex-wrap gap-1.5">
+          {(['beginner', 'intermediate', 'advanced'] as const).map((d) => {
+            const isActive   = difficulty === d
+            const activeColor = DIFF_ACTIVE[d]
+            return (
+              <Link
+                key={d}
+                href={filterLink({ topic: topicSlug, difficulty: isActive ? undefined : d })}
+                className="px-3 py-1 rounded-full text-xs font-medium transition-colors border"
+                style={{
+                  background:   isActive
+                    ? `color-mix(in srgb, ${activeColor} 15%, var(--card))`
+                    : 'var(--card)',
+                  color:        isActive ? activeColor : 'var(--muted-foreground)',
+                  borderColor:  isActive
+                    ? `color-mix(in srgb, ${activeColor} 40%, var(--border))`
+                    : 'var(--border)',
+                }}
+              >
+                {t(`difficulty.${d}`)}
+              </Link>
+            )
+          })}
+        </div>
       </div>
 
-      {/* Difficulty filter */}
-      <div className="flex flex-wrap gap-2">
-        {(['beginner', 'intermediate', 'advanced'] as const).map((d) => {
-          const isActive = difficulty === d
-          return (
-            <Link
-              key={d}
-              href={filterLink({ topic: topicSlug, difficulty: isActive ? undefined : d })}
-              className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors border"
-              style={{
-                background: isActive ? 'var(--foreground)' : 'var(--card)',
-                color: isActive ? 'var(--background)' : 'var(--muted-foreground)',
-                borderColor: isActive ? 'var(--foreground)' : 'var(--border)',
-              }}
-            >
-              {t(`difficulty.${d}`)}
-            </Link>
-          )
-        })}
-      </div>
+      {/* ── Task count ─────────────────────────────── */}
+      {tasks && tasks.length > 0 && (
+        <p className="text-[12px]" style={{ color: 'var(--muted-foreground)' }}>
+          {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
+          {completedTaskIds.size > 0 &&
+            ` · ${completedTaskIds.size} completed`}
+        </p>
+      )}
 
-      {/* Tasks grid */}
+      {/* ── Grid ───────────────────────────────────── */}
       {tasks && tasks.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {tasks.map((task) => (
             <TaskCard
               key={task.id}
@@ -156,5 +165,24 @@ export default async function TasksPage({ searchParams }: Props) {
       )}
 
     </div>
+  )
+}
+
+/* ── Shared pill link ─────────────────────────────────── */
+function PillLink({
+  href, active, children,
+}: { href: string; active: boolean; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="px-3 py-1 rounded-full text-xs font-medium transition-colors border"
+      style={{
+        background:  active ? 'var(--primary)' : 'var(--card)',
+        color:       active ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
+        borderColor: active ? 'var(--primary)' : 'var(--border)',
+      }}
+    >
+      {children}
+    </Link>
   )
 }

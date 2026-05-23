@@ -116,7 +116,7 @@ export function NotificationBell({ userId, slim }: { userId: string; slim?: bool
 
       {open && (
         <div
-          className="absolute bottom-full mb-2 left-0 z-50 w-80 rounded-2xl border shadow-xl overflow-hidden"
+          className="absolute top-full mt-2 right-0 z-50 w-80 rounded-2xl border shadow-xl overflow-hidden"
           style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
         >
           {/* Header */}

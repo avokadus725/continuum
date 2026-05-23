@@ -51,6 +51,11 @@ export async function submitTaskAnswer(formData: FormData) {
     isCorrect =
       correctIds.length === selectedIds.length &&
       correctIds.every((id) => selectedIds.includes(id))
+  } else if (taskType === 'text' || taskType === 'code') {
+    // No auto-grader: any non-empty submission is accepted as correct.
+    // The explanation field is shown afterwards so the student can self-assess.
+    const answer = (formData.get('answer') as string | null)?.trim() ?? ''
+    isCorrect = answer.length > 0
   }
 
   // Get current attempt count
