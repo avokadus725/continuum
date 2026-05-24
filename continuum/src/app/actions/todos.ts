@@ -8,7 +8,10 @@ export async function createTodo(title: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
-  await (supabase as any).from('todos').insert({ user_id: user.id, title })
+  await (supabase as any)
+    .from('personal_tasks')
+    .insert({ user_id: user.id, title })
+
   revalidatePath('/dashboard')
 }
 
@@ -18,7 +21,7 @@ export async function toggleTodo(id: string) {
   if (!user) return { error: 'Unauthorized' }
 
   const { data } = await (supabase as any)
-    .from('todos')
+    .from('personal_tasks')
     .select('done')
     .eq('id', id)
     .eq('user_id', user.id)
@@ -27,7 +30,7 @@ export async function toggleTodo(id: string) {
   if (!data) return { error: 'Not found' }
 
   await (supabase as any)
-    .from('todos')
+    .from('personal_tasks')
     .update({ done: !data.done })
     .eq('id', id)
     .eq('user_id', user.id)
@@ -41,7 +44,7 @@ export async function deleteTodo(id: string) {
   if (!user) return { error: 'Unauthorized' }
 
   await (supabase as any)
-    .from('todos')
+    .from('personal_tasks')
     .delete()
     .eq('id', id)
     .eq('user_id', user.id)

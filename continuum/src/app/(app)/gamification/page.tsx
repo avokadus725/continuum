@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getTranslations, getLocale } from 'next-intl/server'
 import { redirect } from 'next/navigation'
+import { UserAvatar } from '@/components/ui/user-avatar'
 
 export default async function LeaderboardPage() {
   const supabase = await createClient()
@@ -169,7 +170,7 @@ export default async function LeaderboardPage() {
                     >
                       {p.rank}
                     </span>
-                    <AvatarCircle url={p.avatar_url} name={p.full_name} size={32} highlight={isMe} />
+                    <UserAvatar url={p.avatar_url} name={p.full_name} size={32} highlight={isMe} />
                     <span
                       className="flex-1 truncate text-[13px] font-medium"
                       style={{ color: isMe ? 'var(--primary)' : 'var(--foreground)' }}
@@ -380,7 +381,7 @@ function PodiumCol({
       <span className={`${first ? 'text-2xl' : 'text-xl'} mb-1.5`}>{medal}</span>
 
       {/* avatar */}
-      <AvatarCircle
+      <UserAvatar
         url={row.avatar_url}
         name={row.full_name}
         size={first ? 56 : 44}
@@ -422,40 +423,3 @@ function PodiumCol({
   )
 }
 
-/* ─── Avatar circle ───────────────────────────────── */
-function AvatarCircle({
-  url, name, size, highlight = false,
-}: {
-  url: string | null; name: string | null; size: number; highlight?: boolean
-}) {
-  const initial = (name ?? '?')[0].toUpperCase()
-  const s = `${size}px`
-
-  if (url) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={url}
-        alt={name ?? ''}
-        style={{
-          width: s, height: s, borderRadius: '50%', objectFit: 'cover', flexShrink: 0,
-          border: `2px solid ${highlight ? 'var(--primary)' : 'var(--border)'}`,
-        }}
-      />
-    )
-  }
-  return (
-    <div
-      style={{
-        width: s, height: s, borderRadius: '50%', flexShrink: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: `${Math.round(size * 0.38)}px`, fontWeight: 700,
-        background: highlight ? 'color-mix(in srgb, var(--primary) 15%, var(--muted))' : 'var(--muted)',
-        color: highlight ? 'var(--primary)' : 'var(--muted-foreground)',
-        border: `2px solid ${highlight ? 'var(--primary)' : 'var(--border)'}`,
-      }}
-    >
-      {initial}
-    </div>
-  )
-}

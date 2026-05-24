@@ -19,13 +19,18 @@ const typeIcons: Record<string, string> = {
   interactive: '⚡',
 }
 
+const TYPE_ACCENT: Record<string, string> = {
+  article:     'var(--primary)',
+  video:       'var(--destructive)',
+  link:        'var(--warning)',
+  interactive: 'var(--success)',
+}
+
 type ReactionType = 'like' | 'helpful' | 'fire'
 const REACTION_TYPES: ReactionType[] = ['like', 'helpful', 'fire']
 
 async function getMaterial(supabase: Awaited<ReturnType<typeof createClient>>, slug: string) {
-  // Try slug first, fall back to UUID id (for old links)
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug)
-
   if (isUuid) {
     const { data } = await supabase
       .from('materials')
@@ -35,7 +40,6 @@ async function getMaterial(supabase: Awaited<ReturnType<typeof createClient>>, s
       .single()
     return data
   }
-
   const { data } = await supabase
     .from('materials')
     .select('*, topics(title, icon, slug)')
@@ -55,8 +59,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function MaterialDetailPage({ params }: Props) {
   const { slug } = await params
   const supabase = await createClient()
-  const t = await getTranslations('materials')
-  const tCommon = await getTranslations('common')
+  const t        = await getTranslations('materials')
+  const tCommon  = await getTranslations('common')
+  const tTopics  = await getTranslations('topics')
 
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -65,7 +70,6 @@ export default async function MaterialDetailPage({ params }: Props) {
 
   const materialId = material.id
 
-  // Fetch user's collections
   const collectionsData = user ? await (async () => {
     const { data: cols } = await supabase
       .from('collections')
@@ -91,7 +95,11 @@ export default async function MaterialDetailPage({ params }: Props) {
       .eq('material_id', materialId),
   ])
 
-  const topic = material.topics as { title: string; icon: string | null; slug: string } | null
+  const rawTopic = material.topics as { title: string; icon: string | null; slug: string } | null
+  const topicTitle = rawTopic
+    ? (() => { try { return tTopics(rawTopic.slug as Parameters<typeof tTopics>[0]) } catch { return rawTopic.title } })()
+    : null
+  const topic = rawTopic ? { ...rawTopic, title: topicTitle! } : null
 
   const comments = (commentsRes.data ?? []).map((c) => ({
     id: c.id,
@@ -109,97 +117,138 @@ export default async function MaterialDetailPage({ params }: Props) {
     reacted: !!user && allReactions.some((r) => r.type === type && r.user_id === user.id),
   }))
 
+  const accent = TYPE_ACCENT[material.type] ?? 'var(--primary)'
+
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-5xl space-y-5">
 
       {/* Back */}
       <Link
-        href={topic ? `/materials?topic=${topic.slug}` : '/materials'}
+        href={rawTopic ? `/materials?topic=${rawTopic.slug}` : '/materials'}
         className="inline-flex items-center gap-1.5 text-sm transition-colors"
         style={{ color: 'var(--muted-foreground)' }}
       >
         ← {tCommon('back')}
       </Link>
 
-      {/* Header */}
-      <div
-        className="rounded-2xl border p-6"
-        style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
-      >
-        <div className="flex items-center gap-2 mb-3">
-          {topic && (
-            <span className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-              {topic.icon} {topic.title}
-            </span>
-          )}
-          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--muted)', color: 'var(--muted-foreground)' }}>
-            {typeIcons[material.type]} {t(`types.${material.type}`)}
-          </span>
-        </div>
+      {/* Two-column layout on large screens */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-5 items-start">
 
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
-          {material.title}
-        </h1>
-      </div>
+        {/* ── Main column ────────────────────────── */}
+        <div className="space-y-5">
 
-      {/* Content */}
-      {material.content && (
-        <div
-          className="rounded-2xl border p-6"
-          style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)', lineHeight: '1.7' }}
-        >
-          {material.content.split('\n').map((paragraph: string, i: number) => (
-            <p key={i} className="mb-4 last:mb-0 text-sm">
-              {paragraph}
-            </p>
-          ))}
-        </div>
-      )}
-
-      {/* External link */}
-      {material.url && (
-        <div
-          className="rounded-2xl border p-6"
-          style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
-        >
-          <p className="text-sm mb-3" style={{ color: 'var(--muted-foreground)' }}>
-            {t('types.link')}:
-          </p>
-          <a
-            href={material.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 font-medium text-sm transition-colors"
-            style={{ color: 'var(--primary)' }}
+          {/* Header */}
+          <div
+            className="rounded-2xl p-6"
+            style={{
+              background:  'var(--card)',
+              border:      '1px solid var(--border)',
+              borderLeft:  `3px solid ${accent}`,
+            }}
           >
-            {material.url} ↗
-          </a>
-        </div>
-      )}
+            <h1 className="text-2xl font-bold leading-snug" style={{ color: 'var(--foreground)' }}>
+              {material.title}
+            </h1>
+          </div>
 
-      {/* Actions row: reactions + add to collection + quick note */}
-      {user && (
-        <div className="flex items-center gap-3 flex-wrap">
-          <ReactionsBar reactions={reactionCounts} materialId={materialId} />
-          <AddToCollectionButton itemId={materialId} itemType="material" collections={collectionsData} />
-          <QuickNoteButton materialId={materialId} materialTitle={material.title} />
-        </div>
-      )}
+          {/* Article content */}
+          {material.content && (
+            <div
+              className="rounded-2xl border p-6"
+              style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+            >
+              <div className="space-y-4">
+                {material.content.split('\n').filter(Boolean).map((paragraph: string, i: number) => (
+                  <p key={i} className="text-[14px] leading-[1.75]" style={{ color: 'var(--foreground)' }}>
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
 
-      {/* Comments */}
-      {user && (
-        <div
-          className="rounded-2xl border p-6"
-          style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
-        >
-          <CommentsSection
-            comments={comments}
-            materialId={materialId}
-            currentUserId={user.id}
-          />
-        </div>
-      )}
+          {/* External link */}
+          {material.url && (
+            <div
+              className="rounded-2xl border p-5 flex items-center gap-3"
+              style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+            >
+              <span className="text-xl">🔗</span>
+              <div className="min-w-0">
+                <p className="text-[11.5px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--muted-foreground)' }}>
+                  {t('types.link')}
+                </p>
+                <a
+                  href={material.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[14px] font-medium transition-colors truncate block"
+                  style={{ color: 'var(--primary)' }}
+                >
+                  {material.url} ↗
+                </a>
+              </div>
+            </div>
+          )}
 
+          {/* Comments */}
+          {user && (
+            <div
+              className="rounded-2xl border p-6"
+              style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+            >
+              <CommentsSection
+                comments={comments}
+                materialId={materialId}
+                currentUserId={user.id}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* ── Sidebar ────────────────────────────── */}
+        <aside className="space-y-4 lg:sticky lg:top-[76px]">
+
+          {/* Meta: topic + type */}
+          <div
+            className="rounded-2xl border p-4 space-y-3"
+            style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+          >
+            {topic && (
+              <div className="flex items-center gap-2" style={{ color: 'var(--muted-foreground)' }}>
+                <span className="text-lg leading-none">{topic.icon}</span>
+                <span className="text-[13px] font-medium">{topic.title}</span>
+              </div>
+            )}
+            <span
+              className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold px-2.5 py-1 rounded-full"
+              style={{
+                background: `color-mix(in srgb, ${accent} 12%, var(--muted))`,
+                color: accent,
+              }}
+            >
+              {typeIcons[material.type]} {t(`types.${material.type}`)}
+            </span>
+          </div>
+
+          {/* Actions: reactions + save + note */}
+          {user && (
+            <div
+              className="rounded-2xl border p-4 space-y-4"
+              style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+            >
+              <ReactionsBar reactions={reactionCounts} materialId={materialId} />
+              <div
+                className="border-t pt-3 space-y-2"
+                style={{ borderColor: 'color-mix(in srgb, var(--border) 60%, transparent)' }}
+              >
+                <AddToCollectionButton itemId={materialId} itemType="material" collections={collectionsData} />
+                <QuickNoteButton materialId={materialId} materialTitle={material.title} />
+              </div>
+            </div>
+          )}
+        </aside>
+      </div>
     </div>
   )
 }

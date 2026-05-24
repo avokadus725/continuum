@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { useRef, useState, useTransition } from 'react'
-import { X } from 'lucide-react'
+import { X, BookMarked } from 'lucide-react'
 import { createNote, updateNote } from '@/app/actions/notes'
 
 interface Collection { id: string; title: string }
@@ -36,13 +36,21 @@ export function NoteEditor({
 }: NoteEditorProps) {
   const t       = useTranslations('notes')
   const tCommon = useTranslations('common')
-  const tCol    = useTranslations('collections')
   const formRef = useRef<HTMLFormElement>(null)
-  const [isPending, startTransition] = useTransition()
-  const [error, setError]            = useState<string | null>(null)
+  const [isPending, startTransition]          = useTransition()
+  const [error, setError]                     = useState<string | null>(null)
+  const [selectedCollection, setSelectedCollection] = useState<string>(note?.collectionId ?? '')
+
+  /* Auto-grow the textarea as content grows */
+  function autoGrow(ta: HTMLTextAreaElement) {
+    ta.style.height = 'auto'
+    ta.style.height = `${ta.scrollHeight}px`
+  }
 
   async function handleSubmit(formData: FormData) {
     setError(null)
+    // Inject the controlled collection value — not from a native <select>
+    formData.set('collection_id', selectedCollection)
     startTransition(async () => {
       const res = note ? await updateNote(formData) : await createNote(formData)
       if ('error' in res && res.error) {
@@ -67,7 +75,7 @@ export function NoteEditor({
         <div style={{ height: '3px', background: 'var(--primary)' }} />
 
         <form ref={formRef} action={handleSubmit}>
-          {note      && <input type="hidden" name="id"          value={note.id} />}
+          {note       && <input type="hidden" name="id"          value={note.id} />}
           {materialId && <input type="hidden" name="material_id" value={materialId} />}
           {taskId     && <input type="hidden" name="task_id"     value={taskId} />}
 
@@ -86,20 +94,16 @@ export function NoteEditor({
             <input
               name="title"
               required
+              autoFocus
               defaultValue={note?.title ?? ''}
               placeholder={t('titlePlaceholder')}
-              className="flex-1 text-[17px] font-semibold bg-transparent outline-none
-                         placeholder:font-normal"
-              style={{
-                color: 'var(--foreground)',
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ['--tw-placeholder-color' as any]: 'var(--muted-foreground)',
-              }}
+              className="flex-1 text-[17px] font-semibold bg-transparent outline-none placeholder:font-normal"
+              style={{ color: 'var(--foreground)' }}
             />
             <button
               type="button"
               onClick={onClose}
-              className="p-1 rounded-lg transition-colors shrink-0"
+              className="p-1 rounded-lg transition-colors shrink-0 hover:bg-black/5 dark:hover:bg-white/5"
               style={{ color: 'var(--muted-foreground)' }}
             >
               <X size={17} />
@@ -121,7 +125,7 @@ export function NoteEditor({
             </div>
           )}
 
-          {/* ── Lined paper textarea ──────────────── */}
+          {/* ── Lined paper textarea (auto-grow) ─── */}
           <div
             style={{
               background: `repeating-linear-gradient(
@@ -135,56 +139,76 @@ export function NoteEditor({
           >
             <textarea
               name="content"
-              rows={10}
               defaultValue={note?.content ?? ''}
               placeholder={t('placeholder')}
+              onInput={e => autoGrow(e.currentTarget)}
               className="w-full px-6 pt-3 pb-4 bg-transparent outline-none resize-none text-[14px]"
               style={{
                 color: 'var(--foreground)',
                 lineHeight: `${LINE_H}px`,
+                minHeight: `${LINE_H * 5}px`,
               }}
             />
           </div>
 
+          {/* ── Collection picker (pill chips) ────── */}
+          {collections.length > 0 && (
+            <div
+              className="px-6 py-3 border-t"
+              style={{ borderColor: 'color-mix(in srgb, var(--border) 60%, transparent)' }}
+            >
+              <div className="flex items-center gap-2 flex-wrap">
+                <BookMarked size={12} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
+                {/* "No collection" chip */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedCollection('')}
+                  className="rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium transition-all"
+                  style={{
+                    background: !selectedCollection ? 'var(--muted)' : 'transparent',
+                    borderColor: !selectedCollection ? 'transparent' : 'var(--border)',
+                    color: !selectedCollection ? 'var(--foreground)' : 'var(--muted-foreground)',
+                  }}
+                >
+                  {t('noCollection')}
+                </button>
+                {collections.map(c => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setSelectedCollection(c.id)}
+                    className="rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium transition-all"
+                    style={{
+                      background: selectedCollection === c.id
+                        ? 'color-mix(in srgb, var(--primary) 12%, transparent)'
+                        : 'transparent',
+                      borderColor: selectedCollection === c.id ? 'var(--primary)' : 'var(--border)',
+                      color: selectedCollection === c.id ? 'var(--primary)' : 'var(--muted-foreground)',
+                    }}
+                  >
+                    {c.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* ── Footer ───────────────────────────── */}
           <div
-            className="flex items-center gap-3 px-6 py-4 border-t flex-wrap"
+            className="flex items-center gap-3 px-6 py-4 border-t"
             style={{ borderColor: 'var(--border)' }}
           >
-            {collections.length > 0 && (
-              <select
-                name="collection_id"
-                defaultValue={note?.collectionId ?? ''}
-                className="text-[12px] rounded-lg border px-2.5 py-1.5 outline-none flex-1 min-w-0 max-w-[200px]"
-                style={{
-                  background: 'var(--background)',
-                  borderColor: 'var(--border)',
-                  color: 'var(--foreground)',
-                }}
-              >
-                <option value="">— {t('noCollection')} —</option>
-                {collections.map(c => (
-                  <option key={c.id} value={c.id}>{tCol('title') ? c.title : c.title}</option>
-                ))}
-              </select>
-            )}
-
             {error && (
               <p className="text-[12px] flex-1" style={{ color: 'var(--destructive)' }}>
                 {error}
               </p>
             )}
-
             <div className="flex gap-2 ml-auto">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 rounded-xl text-[13px] border transition-colors"
-                style={{
-                  borderColor: 'var(--border)',
-                  color: 'var(--muted-foreground)',
-                  background: 'transparent',
-                }}
+                className="px-3 py-1.5 rounded-xl text-[13px] border transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)', background: 'transparent' }}
               >
                 {tCommon('cancel')}
               </button>

@@ -3,6 +3,7 @@
 
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
+import { UserAvatar } from '@/components/ui/user-avatar'
 
 interface LeaderRow {
   rank: number
@@ -103,7 +104,6 @@ export async function LeaderboardCard({
 }
 
 function LeaderItem({ row, you, youLabel }: { row: LeaderRow; you?: boolean; youLabel: string }) {
-  const initial = row.name.charAt(0).toUpperCase()
   return (
     <li className="flex items-center gap-2.5 px-1 py-1.5">
       <span
@@ -115,15 +115,7 @@ function LeaderItem({ row, you, youLabel }: { row: LeaderRow; you?: boolean; you
       >
         {row.rank}
       </span>
-      {row.avatarUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={row.avatarUrl} alt="" className="h-[22px] w-[22px] rounded-full object-cover" />
-      ) : (
-        <div
-          className="flex h-[22px] w-[22px] items-center justify-center rounded-full text-[10px] font-bold"
-          style={{ background: 'var(--muted)', color: 'var(--foreground)' }}
-        >{initial}</div>
-      )}
+      <UserAvatar name={row.name} url={row.avatarUrl} size={22} />
       <span
         className="text-[12.5px]"
         style={{

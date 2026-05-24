@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useRef, useState, useTransition } from 'react'
 import { createComment, deleteComment } from '@/app/actions/comments'
+import { UserAvatar } from '@/components/ui/user-avatar'
 
 interface Comment {
   id: string
@@ -18,20 +19,6 @@ interface CommentsSectionProps {
   materialId?: string
   taskId?: string
   currentUserId: string
-}
-
-function Avatar({ name, url }: { name: string | null; url: string | null }) {
-  if (url) {
-    return <img src={url} alt={name ?? ''} className="w-7 h-7 rounded-full object-cover shrink-0" />
-  }
-  return (
-    <div
-      className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-      style={{ background: 'var(--muted)', color: 'var(--muted-foreground)' }}
-    >
-      {(name?.[0] ?? '?').toUpperCase()}
-    </div>
-  )
 }
 
 function formatDate(iso: string) {
@@ -86,7 +73,7 @@ export function CommentsSection({ comments, materialId, taskId, currentUserId }:
     return (
       <div className={isReply ? 'ml-8' : ''}>
         <div className="flex gap-3">
-          <Avatar name={comment.profiles?.full_name ?? null} url={comment.profiles?.avatar_url ?? null} />
+          <UserAvatar name={comment.profiles?.full_name ?? null} url={comment.profiles?.avatar_url ?? null} size={28} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{name}</span>

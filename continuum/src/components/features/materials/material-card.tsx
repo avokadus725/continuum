@@ -17,11 +17,11 @@ interface MaterialCardProps {
   collections?: CollectionOption[]
 }
 
-const typeColors: Record<MaterialType, string> = {
-  article:     'bg-blue-100 text-blue-700',
-  video:       'bg-purple-100 text-purple-700',
-  link:        'bg-amber-100 text-amber-700',
-  interactive: 'bg-green-100 text-green-700',
+const TYPE_ACCENT: Record<MaterialType, string> = {
+  article:     'var(--primary)',
+  video:       'var(--destructive)',
+  link:        'var(--warning)',
+  interactive: 'var(--success)',
 }
 
 const typeIcons: Record<MaterialType, string> = {
@@ -34,54 +34,74 @@ const typeIcons: Record<MaterialType, string> = {
 export async function MaterialCard({ id, title, content, url, type, topic, collections }: MaterialCardProps) {
   const t = await getTranslations('materials.types')
 
-  const excerpt = content ? content.slice(0, 120) + (content.length > 120 ? '…' : '') : null
+  const excerpt = content ? content.slice(0, 140) + (content.length > 140 ? '…' : '') : null
+  const accent  = TYPE_ACCENT[type]
 
   return (
     <div
-      className="h-full rounded-2xl border flex flex-col transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
-      style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+      className="relative group h-full rounded-2xl border flex flex-col
+                 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+      style={{
+        background:  'var(--card)',
+        borderColor: 'var(--border)',
+        borderLeft:  `3px solid ${accent}`,
+      }}
     >
-      <Link href={`/materials/${id}`} className="block p-5 flex-1 group">
+      {/* ── Add-to-collection hover overlay ── */}
+      {collections !== undefined && (
+        <div className="absolute right-3 top-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+          <AddToCollectionButton itemId={id} itemType="material" collections={collections} compact />
+        </div>
+      )}
+
+      <Link href={`/materials/${id}`} className="block p-5 flex-1">
+
         {/* Top row: type badge + topic */}
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${typeColors[type]}`}>
-            <span>{typeIcons[type]}</span>
-            {t(type)}
+        <div className="flex items-center gap-2 mb-3">
+          <span
+            className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
+            style={{
+              background: `color-mix(in srgb, ${accent} 12%, var(--muted))`,
+              color: accent,
+            }}
+          >
+            {typeIcons[type]} {t(type)}
           </span>
           {topic && (
-            <span className="text-xs truncate" style={{ color: 'var(--muted-foreground)' }}>
+            <span
+              className="text-[11px] ml-auto truncate max-w-[120px]"
+              style={{ color: 'var(--muted-foreground)' }}
+            >
               {topic.icon} {topic.title}
             </span>
           )}
         </div>
 
         {/* Title */}
-        <h3 className="font-semibold text-base leading-snug mb-2 group-hover:underline"
-          style={{ color: 'var(--foreground)' }}>
+        <h3
+          className="font-semibold text-[15px] leading-snug mb-2"
+          style={{ color: 'var(--foreground)' }}
+        >
           {title}
         </h3>
 
         {/* Excerpt */}
         {excerpt && (
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
+          <p
+            className="text-[13px] leading-relaxed line-clamp-3 flex-1"
+            style={{ color: 'var(--muted-foreground)' }}
+          >
             {excerpt}
           </p>
         )}
 
-        {/* External link indicator */}
+        {/* External link domain */}
         {url && !content && (
-          <p className="text-xs mt-2" style={{ color: 'var(--primary)' }}>
+          <p className="text-[12px] mt-2" style={{ color: 'var(--primary)' }}>
             {url.replace(/^https?:\/\//, '').split('/')[0]} ↗
           </p>
         )}
       </Link>
-
-      {/* Collection button — only when collections are provided (logged-in context) */}
-      {collections !== undefined && (
-        <div className="px-4 pb-4 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
-          <AddToCollectionButton itemId={id} itemType="material" collections={collections} compact />
-        </div>
-      )}
     </div>
   )
 }

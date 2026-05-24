@@ -72,9 +72,9 @@ export function TodayPanel({ items }: Props) {
     if (!title) return
     const tempId = `tmp-${Date.now()}`
     const newItem: TodayItem = { id: tempId, kind: 'todo', title, meta: '', done: false }
+    setInputValue('')                             // clear immediately (sync)
     start(async () => {
       applyOptimistic({ op: 'add', item: newItem })
-      setInputValue('')
       await createTodo(title)
     })
   }

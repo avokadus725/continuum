@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import {
   ArrowLeft, MoreHorizontal, Pencil, Plus,
   FileText, Video, Link as LinkIcon, CheckSquare, Sticker, Search, X,
@@ -64,6 +65,7 @@ const DIFF_LABEL: Record<string, string> = {
 export function CollectionDetailClient({
   collection, materials, tasks, notes, pickerMaterials, pickerTasks,
 }: Props) {
+  const t      = useTranslations('collections')
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('all')
   const [search, setSearch] = useState('')
@@ -209,7 +211,7 @@ export function CollectionDetailClient({
             <Search className="h-3.5 w-3.5" style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }} />
             <input
               value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Пошук у підбірці…"
+              placeholder={t('detailSearchPlaceholder')}
               className="flex-1 bg-transparent text-[13px] outline-none"
               style={{ color: 'var(--foreground)' }}
             />

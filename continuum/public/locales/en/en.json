@@ -63,7 +63,8 @@
     "logout": "Sign out",
     "learningGroup": "Learning",
     "communityGroup": "Community",
-    "progressGroup": "Progress"
+    "progressGroup": "Progress",
+    "searchPlaceholder": "Search…"
   },
   "dashboard": {
     "welcome": "Hello, {name}!",
@@ -206,7 +207,12 @@
     "noTasks": "No tasks yet",
     "xpReward": "+{xp} XP",
     "attempts": "Attempts: {count}",
-    "explanation": "Explanation"
+    "explanation": "Explanation",
+    "tasksUnit": "tasks",
+    "completedUnit": "completed",
+    "textAnswerPlaceholder": "Type your answer here…",
+    "selectHint": "Select one answer",
+    "selectMultiHint": "Select all that apply"
   },
   "posts": {
     "placeholder": "What's on your mind?",
@@ -230,7 +236,43 @@
     "removeMaterial": "Remove from collection",
     "materialsSection": "Materials",
     "emptyMaterials": "This collection is empty",
-    "materials": "materials"
+    "materials": "materials",
+    "subtitle": "Personal collections of materials, tasks, and notes —",
+    "subtitleItalic": "your workspaces",
+    "searchPlaceholder": "Find a collection…",
+    "detailSearchPlaceholder": "Search in collection…",
+    "countOne": "collection",
+    "countMany": "collections",
+    "sortRecent": "Recent",
+    "noResults": "Nothing found for «{query}»",
+    "noDescription": "No description",
+    "emptySlot": "Empty",
+    "menuLabel": "Collection menu",
+    "openItem": "Open",
+    "deleteItem": "Delete",
+    "deleteDialogTitle": "Delete collection?",
+    "deleteDialogBody": "Materials and tasks will remain accessible separately. Only the collection itself will be deleted.",
+    "cancelAction": "Cancel",
+    "confirmDeleteAction": "Delete",
+    "newCardTitle": "Create a collection",
+    "newCardHint": "A workspace for a topic, exam, or project",
+    "materialOne": "material",
+    "materialMany": "materials",
+    "taskOne": "task",
+    "taskMany": "tasks",
+    "noteOne": "note",
+    "noteMany": "notes",
+    "emptyTitle": "No",
+    "emptyTitleItalic": "collections yet",
+    "emptySubtitle": "Create your first workspace. Here are some ideas to start with:",
+    "createFromScratch": "Create from scratch",
+    "createLabel": "+ Create",
+    "exampleTitle1": "Exam preparation",
+    "exampleHint1": "materials + tasks + notes",
+    "exampleTitle2": "Thesis / coursework",
+    "exampleHint2": "research notes + links",
+    "exampleTitle3": "English daily practice",
+    "exampleHint3": "reading practice"
   },
   "notes": {
     "title": "My notes",
@@ -243,7 +285,13 @@
     "placeholder": "Start writing...",
     "titlePlaceholder": "Note title",
     "linkedTo": "Linked to",
-    "noNotes": "No notes yet. Create your first one!"
+    "noNotes": "No notes yet. Create your first one!",
+    "search": "Search notes…",
+    "filterAll": "All",
+    "filterNone": "Uncategorized",
+    "emptyContent": "No content yet…",
+    "noResults": "No notes match your search",
+    "clearFilters": "Clear filters"
   },
   "analytics": {
     "title": "Analytics",
@@ -417,6 +465,94 @@
     "linkedTo": "Linked to",
     "explanation": "Explanation",
     "explanationPlaceholder": "Explain the correct answer..."
+  },
+  "community": {
+    "title": "Community",
+    "subtitle": "Where Continuum students share questions, resources, and notes —",
+    "subtitleItalic": "stay in the flow",
+    "posts": "posts",
+    "online": "online",
+    "today": "today",
+    "kinds": {
+      "discussion": "Discussion",
+      "question": "Question",
+      "share": "Share"
+    },
+    "filter": {
+      "all": "All",
+      "questions": "Questions",
+      "shared": "Shared",
+      "discussions": "Discussions",
+      "sort": "Sort",
+      "sortRecent": "Recent",
+      "sortTop": "Top",
+      "sortUnsolved": "Unanswered"
+    },
+    "compose": {
+      "placeholder": "Share a thought, ask a question, or drop a useful link…",
+      "create": "Create",
+      "questionTitle": "Specific question? E.g. «How to find the transfer function…»",
+      "questionBody": "Describe the context, what you've already tried, and where you're stuck",
+      "shareBody": "A few words — why it's worth reading",
+      "discussionBody": "What's new with you?",
+      "tags": "Tags:",
+      "shortcut": "⌘ + ↵ to publish",
+      "addLink": "Add link",
+      "addTag": "Add tag",
+      "tagPrompt": "Tag (without #):",
+      "removeLink": "Remove link",
+      "close": "Close",
+      "removeTag": "Remove tag",
+      "errorNoTitle": "A question needs a title"
+    },
+    "post": {
+      "kindQuestion": "Question",
+      "kindShare": "Shared",
+      "reply": "Reply",
+      "replyingTo": "↩ Replying to",
+      "cancelReply": "Cancel",
+      "solved": "Answered",
+      "unsolved": "Unanswered",
+      "markSolved": "Mark",
+      "save": "Save",
+      "saved": "Saved"
+    },
+    "timeGroups": {
+      "today": "Today",
+      "week": "This week",
+      "older": "Earlier"
+    },
+    "empty": "No posts yet. Be the first.",
+    "rail": {
+      "trending": "Trending tags",
+      "all": "All",
+      "newMembers": "New to Continuum",
+      "newMembersHint": "While DMs aren't live yet —",
+      "newMembersItalic": "be the first to welcome",
+      "newMembersPost": "them with a post 👋",
+      "dmSoon": "Direct messages",
+      "dmSoonBold": "coming soon",
+      "saved": "Saved"
+    },
+    "hashtag": {
+      "about": "About this tag",
+      "posts": "posts",
+      "members": "members",
+      "discussing": "discuss",
+      "follow": "Follow topic",
+      "unfollow": "Unfollow",
+      "activeMembers": "Active members",
+      "relatedTags": "Related tags",
+      "postSuffix": "post",
+      "postSuffixPlural": "posts"
+    }
+  },
+  "topics": {
+    "algorithms": "Algorithms & Data Structures",
+    "databases": "Databases",
+    "web": "Web Development",
+    "math": "Mathematics",
+    "software-engineering": "Software Engineering"
   },
   "common": {
     "loading": "Loading...",

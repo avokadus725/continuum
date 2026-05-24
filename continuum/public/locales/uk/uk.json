@@ -66,7 +66,8 @@
     "_comment": "Existing keys remain unchanged. Add these new ones for the flat sidebar group captions.",
     "learningGroup": "Навчання",
     "communityGroup": "Спільнота",
-    "progressGroup": "Прогрес"
+    "progressGroup": "Прогрес",
+    "searchPlaceholder": "Пошук…"
   },
   "dashboard": {
     "welcome": "Привіт, {name}!",
@@ -210,7 +211,12 @@
     "noTasks": "Завдань поки немає",
     "xpReward": "+{xp} XP",
     "attempts": "Спроб: {count}",
-    "explanation": "Пояснення"
+    "explanation": "Пояснення",
+    "tasksUnit": "завдань",
+    "completedUnit": "виконано",
+    "textAnswerPlaceholder": "Введи відповідь тут…",
+    "selectHint": "Обери одну відповідь",
+    "selectMultiHint": "Обери всі правильні відповіді"
   },
   "posts": {
     "placeholder": "Що у тебе нового?",
@@ -234,7 +240,43 @@
     "removeMaterial": "Видалити з підбірки",
     "materialsSection": "Матеріали",
     "emptyMaterials": "Підбірка порожня",
-    "materials": "матеріали"
+    "materials": "матеріали",
+    "subtitle": "Особисті колекції матеріалів, завдань і нотаток —",
+    "subtitleItalic": "твої робочі простори",
+    "searchPlaceholder": "Знайти підбірку…",
+    "detailSearchPlaceholder": "Пошук у підбірці…",
+    "countOne": "підбірка",
+    "countMany": "підбірок",
+    "sortRecent": "Нещодавні",
+    "noResults": "Нічого не знайдено за «{query}»",
+    "noDescription": "Без опису",
+    "emptySlot": "Поки порожньо",
+    "menuLabel": "Меню підбірки",
+    "openItem": "Відкрити",
+    "deleteItem": "Видалити",
+    "deleteDialogTitle": "Видалити підбірку?",
+    "deleteDialogBody": "Матеріали і завдання залишаться доступними окремо. Лише сама колекція буде видалена.",
+    "cancelAction": "Скасувати",
+    "confirmDeleteAction": "Видалити",
+    "newCardTitle": "Створити підбірку",
+    "newCardHint": "Робочий простір під тему, іспит або проєкт",
+    "materialOne": "матеріал",
+    "materialMany": "матеріалів",
+    "taskOne": "завдання",
+    "taskMany": "завдань",
+    "noteOne": "нотатка",
+    "noteMany": "нотаток",
+    "emptyTitle": "Ще немає",
+    "emptyTitleItalic": "жодної підбірки",
+    "emptySubtitle": "Створи перший робочий простір. Ось ідеї, з яких часто починають:",
+    "createFromScratch": "Створити з нуля",
+    "createLabel": "+ Створити",
+    "exampleTitle1": "Підготовка до іспиту",
+    "exampleHint1": "матеріали + завдання + конспекти",
+    "exampleTitle2": "Дипломна / курсова",
+    "exampleHint2": "research notes + посилання",
+    "exampleTitle3": "Англійська на щодень",
+    "exampleHint3": "reading practice"
   },
   "notes": {
     "title": "Мої нотатки",
@@ -247,7 +289,13 @@
     "placeholder": "Починай писати...",
     "titlePlaceholder": "Назва нотатки",
     "linkedTo": "Прив'язано до",
-    "noNotes": "Нотаток поки немає. Створи першу!"
+    "noNotes": "Нотаток поки немає. Створи першу!",
+    "search": "Пошук нотаток…",
+    "filterAll": "Усі",
+    "filterNone": "Без підбірки",
+    "emptyContent": "Вміст відсутній…",
+    "noResults": "Нотаток за пошуком не знайдено",
+    "clearFilters": "Скинути фільтри"
   },
   "analytics": {
     "title": "Аналітика",
@@ -421,6 +469,94 @@
     "linkedTo": "Прив'язано до",
     "explanation": "Пояснення",
     "explanationPlaceholder": "Поясни правильну відповідь..."
+  },
+  "community": {
+    "title": "Спільнота",
+    "subtitle": "Місце де студенти Continuum діляться запитаннями, ресурсами і конспектами —",
+    "subtitleItalic": "будь у потоці",
+    "posts": "постів",
+    "online": "онлайн",
+    "today": "сьогодні",
+    "kinds": {
+      "discussion": "Обговорення",
+      "question": "Питання",
+      "share": "Поділитись"
+    },
+    "filter": {
+      "all": "Усе",
+      "questions": "Питання",
+      "shared": "Поділились",
+      "discussions": "Обговорення",
+      "sort": "Сортування",
+      "sortRecent": "Свіже",
+      "sortTop": "Популярні",
+      "sortUnsolved": "Без відповіді"
+    },
+    "compose": {
+      "placeholder": "Поділись думкою, постав питання або кинь корисне посилання…",
+      "create": "Створити",
+      "questionTitle": "Конкретне питання? Наприклад: «Як знайти передаточну функцію…»",
+      "questionBody": "Опиши контекст, що вже спробував, і де застряг",
+      "shareBody": "Кілька слів — чому це варто читати",
+      "discussionBody": "Що у тебе нового?",
+      "tags": "Теги:",
+      "shortcut": "⌘ + ↵ опублікувати",
+      "addLink": "Додати посилання",
+      "addTag": "Додати тег",
+      "tagPrompt": "Тег (без #):",
+      "removeLink": "Прибрати посилання",
+      "close": "Закрити",
+      "removeTag": "Прибрати тег",
+      "errorNoTitle": "Питання потребує заголовка"
+    },
+    "post": {
+      "kindQuestion": "Питання",
+      "kindShare": "Поділилась",
+      "reply": "Відповісти",
+      "replyingTo": "↩ Відповідь:",
+      "cancelReply": "Скасувати",
+      "solved": "Є відповідь",
+      "unsolved": "Без відповіді",
+      "markSolved": "Позначити",
+      "save": "Зберегти",
+      "saved": "Збережено"
+    },
+    "timeGroups": {
+      "today": "Сьогодні",
+      "week": "Цього тижня",
+      "older": "Раніше"
+    },
+    "empty": "Постів поки немає. Будь першою.",
+    "rail": {
+      "trending": "Трендові теги",
+      "all": "Усі",
+      "newMembers": "Нові у Continuum",
+      "newMembersHint": "Поки спілкування не запущене —",
+      "newMembersItalic": "будь першою хто привітає",
+      "newMembersPost": "їх постом 👋",
+      "dmSoon": "Особисті повідомлення",
+      "dmSoonBold": "скоро",
+      "saved": "Збережене"
+    },
+    "hashtag": {
+      "about": "Про тему",
+      "posts": "постів",
+      "members": "учасників",
+      "discussing": "обговорюють",
+      "follow": "Стежити за темою",
+      "unfollow": "Не стежити",
+      "activeMembers": "Активні учасники",
+      "relatedTags": "Суміжні теги",
+      "postSuffix": "пост",
+      "postSuffixPlural": "пости"
+    }
+  },
+  "topics": {
+    "algorithms": "Алгоритми та структури даних",
+    "databases": "Бази даних",
+    "web": "Веб-розробка",
+    "math": "Математика",
+    "software-engineering": "Програмна інженерія"
   },
   "common": {
     "loading": "Завантаження...",

@@ -27,16 +27,21 @@ export async function TaskCard({
 }: TaskCardProps) {
   const t = await getTranslations('tasks')
   const diffColor = DIFF_COLOR[difficulty]
+  const accentColor = isCompleted ? 'var(--success)' : diffColor
 
   return (
     <Link href={`/tasks/${id}`} className="block group">
       <div
-        className="h-full rounded-2xl border p-5 flex flex-col gap-2.5
+        className="h-full rounded-2xl p-5 flex flex-col gap-2.5
                    transition-all duration-200 group-hover:shadow-md group-hover:-translate-y-0.5"
         style={{
-          background: 'var(--card)',
-          borderColor: 'var(--border)',
-          opacity: isCompleted ? 0.72 : 1,
+          background: isCompleted
+            ? 'color-mix(in srgb, var(--success) 4%, var(--card))'
+            : 'var(--card)',
+          border: isCompleted
+            ? '1px solid color-mix(in srgb, var(--success) 25%, var(--border))'
+            : '1px solid var(--border)',
+          borderLeft: `3px solid ${accentColor}`,
         }}
       >
         {/* ── Top row: difficulty + completion / xp ── */}
@@ -58,13 +63,17 @@ export async function TaskCard({
             {t(`difficulty.${difficulty}`)}
           </span>
 
-          {/* Completion OR XP */}
+          {/* Done badge or XP */}
           {isCompleted ? (
             <span
-              className="flex items-center gap-1 text-[11px] font-medium"
-              style={{ color: 'var(--success)' }}
+              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+              style={{
+                background: 'color-mix(in srgb, var(--success) 15%, transparent)',
+                color: 'var(--success)',
+              }}
             >
-              <Check size={11} strokeWidth={2.5} />
+              <Check size={10} strokeWidth={3} />
+              {t('done')}
             </span>
           ) : (
             <span
@@ -92,31 +101,19 @@ export async function TaskCard({
           {description}
         </p>
 
-        {/* ── Footer: type · topic · xp (if done) ── */}
+        {/* ── Footer: type · topic ── */}
         <div
           className="flex items-center justify-between mt-auto pt-1.5 gap-3"
-          style={{
-            borderTop: '1px solid var(--border)',
-          }}
+          style={{ borderTop: '1px solid color-mix(in srgb, var(--border) 70%, transparent)' }}
         >
           <span className="text-[11px]" style={{ color: 'var(--muted-foreground)' }}>
             {t(`types.${type}`)}
           </span>
-          <div className="flex items-center gap-2 shrink-0">
-            {isCompleted && (
-              <span
-                className="text-[11px] font-medium tabular-nums"
-                style={{ color: 'var(--muted-foreground)' }}
-              >
-                +{xpReward} XP
-              </span>
-            )}
-            {topic && (
-              <span className="text-[11px] truncate" style={{ color: 'var(--muted-foreground)' }}>
-                {topic.icon} {topic.title}
-              </span>
-            )}
-          </div>
+          {topic && (
+            <span className="text-[11px] truncate" style={{ color: 'var(--muted-foreground)' }}>
+              {topic.icon} {topic.title}
+            </span>
+          )}
         </div>
       </div>
     </Link>

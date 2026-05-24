@@ -21,9 +21,10 @@ const DIFF_ACTIVE: Record<string, string> = {
 
 export default async function TasksPage({ searchParams }: Props) {
   const { topic: topicSlug, difficulty } = await searchParams
-  const supabase = await createClient()
-  const t           = await getTranslations('tasks')
-  const tMaterials  = await getTranslations('materials')
+  const supabase   = await createClient()
+  const t          = await getTranslations('tasks')
+  const tMaterials = await getTranslations('materials')
+  const tTopics    = await getTranslations('topics')
 
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -34,7 +35,7 @@ export default async function TasksPage({ searchParams }: Props) {
 
   let query = supabase
     .from('tasks')
-    .select('id, title, description, difficulty, type, xp_reward, topic_id, topics(title, icon)')
+    .select('id, title, description, difficulty, type, xp_reward, topic_id, topics(title, icon, slug)')
     .eq('is_published', true)
     .order('created_at', { ascending: false })
 
@@ -59,6 +60,12 @@ export default async function TasksPage({ searchParams }: Props) {
       .eq('user_id', user.id)
       .eq('is_correct', true)
     completedTaskIds = new Set(completed?.map((r) => r.task_id) ?? [])
+  }
+
+  function tTopic(slug: string | undefined, fallback: string): string {
+    if (!slug) return fallback
+    try { return tTopics(slug as Parameters<typeof tTopics>[0]) }
+    catch { return fallback }
   }
 
   const filterLink = (params: Record<string, string | undefined>) => {
@@ -97,7 +104,7 @@ export default async function TasksPage({ searchParams }: Props) {
               href={filterLink({ topic: topic.slug, difficulty })}
               active={topicSlug === topic.slug}
             >
-              {topic.icon} {topic.title}
+              {topic.icon} {tTopic(topic.slug, topic.title)}
             </PillLink>
           ))}
         </div>
@@ -129,31 +136,56 @@ export default async function TasksPage({ searchParams }: Props) {
         </div>
       </div>
 
-      {/* ── Task count ─────────────────────────────── */}
+      {/* ── Task count + progress ─────────────────── */}
       {tasks && tasks.length > 0 && (
-        <p className="text-[12px]" style={{ color: 'var(--muted-foreground)' }}>
-          {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
-          {completedTaskIds.size > 0 &&
-            ` · ${completedTaskIds.size} completed`}
-        </p>
+        <div className="flex items-center gap-3">
+          <p className="text-[12.5px] shrink-0" style={{ color: 'var(--muted-foreground)' }}>
+            {tasks.length} {t('tasksUnit')}
+            {completedTaskIds.size > 0 && (
+              <span style={{ color: 'var(--success)' }}>
+                {' '}· {completedTaskIds.size} {t('completedUnit')}
+              </span>
+            )}
+          </p>
+          {completedTaskIds.size > 0 && (
+            <div
+              className="flex-1 max-w-[180px] h-1.5 rounded-full overflow-hidden"
+              style={{ background: 'var(--muted)' }}
+            >
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${Math.round((completedTaskIds.size / tasks.length) * 100)}%`,
+                  background: 'var(--success)',
+                }}
+              />
+            </div>
+          )}
+        </div>
       )}
 
       {/* ── Grid ───────────────────────────────────── */}
       {tasks && tasks.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              id={task.id}
-              title={task.title}
-              description={task.description}
-              difficulty={task.difficulty as 'beginner' | 'intermediate' | 'advanced'}
-              type={task.type as 'single_choice' | 'multiple_choice' | 'text' | 'code'}
-              xpReward={task.xp_reward}
-              topic={task.topics as { title: string; icon: string | null } | null}
-              isCompleted={completedTaskIds.has(task.id)}
-            />
-          ))}
+          {tasks.map((task) => {
+            const rawTopic = task.topics as { title: string; icon: string | null; slug?: string } | null
+            const translatedTopic = rawTopic
+              ? { title: tTopic(rawTopic.slug, rawTopic.title), icon: rawTopic.icon as string | null }
+              : null
+            return (
+              <TaskCard
+                key={task.id}
+                id={task.id}
+                title={task.title}
+                description={task.description}
+                difficulty={task.difficulty as 'beginner' | 'intermediate' | 'advanced'}
+                type={task.type as 'single_choice' | 'multiple_choice' | 'text' | 'code'}
+                xpReward={task.xp_reward}
+                topic={translatedTopic}
+                isCompleted={completedTaskIds.has(task.id)}
+              />
+            )
+          })}
         </div>
       ) : (
         <div

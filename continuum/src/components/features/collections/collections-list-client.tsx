@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useMemo } from 'react'
 import Link from 'next/link'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { Plus, Search, X, ArrowUpDown, MoreHorizontal } from 'lucide-react'
 import { CollectionCover } from './_parts/collection-cover'
 import { CoverEditor } from './_parts/cover-editor'
@@ -67,13 +67,12 @@ export function CollectionsListClient({ collections: initial }: Props) {
             className="mt-1.5 max-w-[460px] text-[13px]"
             style={{ color: 'var(--muted-foreground)' }}
           >
-            Особисті колекції матеріалів, завдань і нотаток —{' '}
+            {t('subtitle')}{' '}
             <span style={{
               fontFamily: '"Instrument Serif", Georgia, serif',
               fontStyle: 'italic',
               color: 'var(--foreground)',
-            }}>твої робочі простори</span>{' '}
-            під теми, іспити, проєкти.
+            }}>{t('subtitleItalic')}</span>
           </p>
         </div>
         <span className="flex-1" />
@@ -99,12 +98,12 @@ export function CollectionsListClient({ collections: initial }: Props) {
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Знайти підбірку…"
+              placeholder={t('searchPlaceholder')}
               className="flex-1 bg-transparent text-[13.5px] outline-none"
               style={{ color: 'var(--foreground)' }}
             />
             <span className="text-xs" style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }}>
-              {filtered.length} {filtered.length === 1 ? 'підбірка' : 'підбірок'}
+              {filtered.length} {filtered.length === 1 ? t('countOne') : t('countMany')}
             </span>
             {search && (
               <button onClick={() => setSearch('')} className="opacity-60" style={{ color: 'var(--muted-foreground)' }}>
@@ -117,7 +116,7 @@ export function CollectionsListClient({ collections: initial }: Props) {
             style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
           >
             <ArrowUpDown className="h-3.5 w-3.5" />
-            Нещодавні
+            {t('sortRecent')}
           </button>
         </div>
       )}
@@ -130,7 +129,7 @@ export function CollectionsListClient({ collections: initial }: Props) {
           className="mt-6 rounded-2xl border p-12 text-center"
           style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
         >
-          Нічого не знайдено за «{search}»
+          {t('noResults', { query: search })}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -179,10 +178,10 @@ export function CollectionsListClient({ collections: initial }: Props) {
             }}
           >
             <h3 className="m-0 text-base font-semibold" style={{ color: 'var(--foreground)' }}>
-              Видалити підбірку?
+              {t('deleteDialogTitle')}
             </h3>
             <p className="mt-1.5 text-[13px]" style={{ color: 'var(--muted-foreground)' }}>
-              Матеріали і завдання залишаться доступними окремо. Лише сама колекція буде видалена.
+              {t('deleteDialogBody')}
             </p>
             <div className="mt-5 flex justify-end gap-2.5">
               <button
@@ -190,14 +189,14 @@ export function CollectionsListClient({ collections: initial }: Props) {
                 className="h-9 rounded-lg border bg-transparent px-3.5 text-[13px]"
                 style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
               >
-                Скасувати
+                {t('cancelAction')}
               </button>
               <button
                 onClick={() => handleDelete(confirmDeleteId)}
                 className="h-9 rounded-lg border-0 px-4 text-[13px] font-semibold text-white"
                 style={{ background: 'var(--destructive)' }}
               >
-                Видалити
+                {t('confirmDeleteAction')}
               </button>
             </div>
           </div>
@@ -218,10 +217,13 @@ function CollectionCard({
   onCloseMenu: () => void
   onDelete: () => void
 }) {
+  const t      = useTranslations('collections')
+  const locale = useLocale()
+
   const parts: [number, string][] = []
-  if (c.materialCount > 0) parts.push([c.materialCount, c.materialCount === 1 ? 'матеріал' : 'матеріалів'])
-  if (c.taskCount     > 0) parts.push([c.taskCount,     c.taskCount === 1     ? 'завдання' : 'завдань'])
-  if (c.noteCount     > 0) parts.push([c.noteCount,     c.noteCount === 1     ? 'нотатка'  : 'нотаток'])
+  if (c.materialCount > 0) parts.push([c.materialCount, c.materialCount === 1 ? t('materialOne') : t('materialMany')])
+  if (c.taskCount     > 0) parts.push([c.taskCount,     c.taskCount === 1     ? t('taskOne')     : t('taskMany')])
+  if (c.noteCount     > 0) parts.push([c.noteCount,     c.noteCount === 1     ? t('noteOne')     : t('noteMany')])
 
   return (
     <div
@@ -230,7 +232,7 @@ function CollectionCard({
     >
       <Link href={`/collections/${c.id}`} className="block no-underline">
         <CollectionCover emoji={c.emoji} cover={c.cover}>
-          <span /> {/* right slot intentionally empty here; menu is absolute below */}
+          <span /> {/* right slot intentionally empty; menu is absolute below */}
         </CollectionCover>
 
         <div className="px-[18px] pb-[18px] pt-4">
@@ -246,7 +248,7 @@ function CollectionCard({
             </p>
           ) : (
             <p className="mt-1.5 text-[12.5px] italic" style={{ color: 'color-mix(in srgb, var(--muted-foreground) 60%, transparent)' }}>
-              Без опису
+              {t('noDescription')}
             </p>
           )}
           <div
@@ -254,7 +256,7 @@ function CollectionCard({
             style={{ borderColor: 'color-mix(in srgb, var(--border) 60%, transparent)', color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }}
           >
             {parts.length === 0 ? (
-              <span className="italic">Поки порожньо</span>
+              <span className="italic">{t('emptySlot')}</span>
             ) : (
               parts.map(([n, label], i) => (
                 <span key={i} className="inline-flex items-baseline gap-1">
@@ -264,7 +266,7 @@ function CollectionCard({
               ))
             )}
             <span className="flex-1" />
-            {c.lastAccessedAt && <span>{relativeTime(c.lastAccessedAt)}</span>}
+            {c.lastAccessedAt && <span>{relativeTime(c.lastAccessedAt, locale)}</span>}
           </div>
         </div>
       </Link>
@@ -274,7 +276,7 @@ function CollectionCard({
         onClick={(e) => { e.preventDefault(); onOpenMenu() }}
         className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-lg border-0 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 aria-[expanded=true]:opacity-100"
         aria-expanded={menuOpen}
-        aria-label="Меню підбірки"
+        aria-label={t('menuLabel')}
         style={{ background: 'rgba(255,255,255,0.85)', color: 'var(--muted-foreground)' }}
       >
         <MoreHorizontal className="h-4 w-4" />
@@ -295,14 +297,14 @@ function CollectionCard({
               className="block px-3.5 py-2 text-[13px] no-underline hover:bg-[color-mix(in_srgb,var(--primary)_8%,var(--card))]"
               style={{ color: 'var(--foreground)' }}
             >
-              Відкрити
+              {t('openItem')}
             </Link>
             <button
               onClick={() => { onCloseMenu(); onDelete() }}
               className="block w-full px-3.5 py-2 text-left text-[13px]"
               style={{ color: 'var(--destructive)' }}
             >
-              Видалити
+              {t('deleteItem')}
             </button>
           </div>
         </>
@@ -314,6 +316,7 @@ function CollectionCard({
 /* ─────────── New card placeholder ─────────── */
 
 function NewCollectionCard({ onClick }: { onClick: () => void }) {
+  const t = useTranslations('collections')
   return (
     <button
       onClick={onClick}
@@ -327,13 +330,13 @@ function NewCollectionCard({ onClick }: { onClick: () => void }) {
         <Plus className="h-5 w-5" />
       </span>
       <span className="text-[13.5px] font-semibold" style={{ color: 'var(--foreground)' }}>
-        Створити підбірку
+        {t('newCardTitle')}
       </span>
       <span
         className="max-w-[200px] text-center text-xs"
         style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }}
       >
-        Робочий простір під тему, іспит або проєкт
+        {t('newCardHint')}
       </span>
     </button>
   )
@@ -342,10 +345,11 @@ function NewCollectionCard({ onClick }: { onClick: () => void }) {
 /* ─────────── Empty state ─────────── */
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
+  const t = useTranslations('collections')
   const examples = [
-    { emoji: '🧮', cover: 'blue'   as CoverKey, title: 'Підготовка до іспиту',  hint: 'матеріали + завдання + конспекти' },
-    { emoji: '🛠', cover: 'violet' as CoverKey, title: 'Дипломна / курсова',    hint: 'research notes + посилання' },
-    { emoji: '🌐', cover: 'amber'  as CoverKey, title: 'Англійська на щодень', hint: 'reading practice' },
+    { emoji: '🧮', cover: 'blue'   as CoverKey, title: t('exampleTitle1'), hint: t('exampleHint1') },
+    { emoji: '🛠', cover: 'violet' as CoverKey, title: t('exampleTitle2'), hint: t('exampleHint2') },
+    { emoji: '🌐', cover: 'amber'  as CoverKey, title: t('exampleTitle3'), hint: t('exampleHint3') },
   ]
   return (
     <div
@@ -354,14 +358,14 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
     >
       <div className="mb-4 text-5xl leading-none">🗂</div>
       <h2 className="m-0 text-[22px] font-semibold tracking-[-0.4px]" style={{ color: 'var(--foreground)' }}>
-        Ще немає{' '}
+        {t('emptyTitle')}{' '}
         <span style={{
           fontFamily: '"Instrument Serif", Georgia, serif',
           fontStyle: 'italic', fontWeight: 400, color: 'var(--primary)',
-        }}>жодної підбірки</span>
+        }}>{t('emptyTitleItalic')}</span>
       </h2>
       <p className="mx-auto mt-2 max-w-[460px] text-[14px]" style={{ color: 'var(--muted-foreground)' }}>
-        Створи перший робочий простір. Ось ідеї, з яких часто починають:
+        {t('emptySubtitle')}
       </p>
       <div className="mt-6 flex justify-center gap-3">
         {examples.map((ex) => {
@@ -377,7 +381,7 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
               <div className="mt-2 text-[13px] font-semibold" style={{ color: 'var(--foreground)' }}>{ex.title}</div>
               <div className="mt-1 text-[11.5px]" style={{ color: 'var(--muted-foreground)' }}>{ex.hint}</div>
               <span className="absolute right-3 top-3.5 text-[11px] font-semibold" style={{ color: palette.deep }}>
-                + Створити
+                {t('createLabel')}
               </span>
             </button>
           )
@@ -389,7 +393,7 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
         style={{ background: 'var(--primary)' }}
       >
         <Plus className="h-4 w-4" />
-        Створити з нуля
+        {t('createFromScratch')}
       </button>
     </div>
   )
@@ -411,15 +415,15 @@ function Overlay({ children, onClose }: { children: React.ReactNode; onClose: ()
 
 /* ─────────── helpers ─────────── */
 
-function relativeTime(iso: string): string {
-  const ms = Date.now() - new Date(iso).getTime()
-  const m = Math.floor(ms / 60000)
-  if (m < 1)  return 'щойно'
-  if (m < 60) return `${m} хв тому`
+function relativeTime(iso: string, locale: string): string {
+  const ms  = Date.now() - new Date(iso).getTime()
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+  const m   = Math.floor(ms / 60_000)
+  if (m < 1)  return rtf.format(0, 'second')
+  if (m < 60) return rtf.format(-m, 'minute')
   const h = Math.floor(m / 60)
-  if (h < 24) return `${h} год тому`
+  if (h < 24) return rtf.format(-h, 'hour')
   const d = Math.floor(h / 24)
-  if (d === 1) return 'учора'
-  if (d < 7)  return `${d} дн тому`
-  return new Date(iso).toLocaleDateString('uk-UA')
+  if (d < 30) return rtf.format(-d, 'day')
+  return new Date(iso).toLocaleDateString(locale)
 }

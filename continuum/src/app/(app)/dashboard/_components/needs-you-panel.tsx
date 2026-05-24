@@ -4,6 +4,7 @@
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { Panel } from './panel'
+import { UserAvatar } from '@/components/ui/user-avatar'
 
 export interface NeedsItem {
   id: string
@@ -53,23 +54,12 @@ export async function NeedsYouPanel({ items }: Props) {
 }
 
 function Row({ it, last }: { it: NeedsItem; last: boolean }) {
-  const initial = it.who.name.charAt(0).toUpperCase()
   return (
     <li
       className="flex items-start gap-3 py-3.5"
       style={{ borderBottom: last ? 'none' : '1px solid color-mix(in srgb, var(--border) 70%, transparent)' }}
     >
-      {it.who.avatarUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={it.who.avatarUrl} alt="" className="h-8 w-8 flex-none rounded-full object-cover" />
-      ) : (
-        <div
-          className="flex h-8 w-8 flex-none items-center justify-center rounded-full text-xs font-bold"
-          style={{ background: 'var(--muted)', color: 'var(--foreground)' }}
-        >
-          {initial}
-        </div>
-      )}
+      <UserAvatar name={it.who.name} url={it.who.avatarUrl} size={32} />
 
       <div className="min-w-0 flex-1">
         <div className="text-[13px]" style={{ color: 'var(--foreground)' }}>

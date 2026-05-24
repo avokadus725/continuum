@@ -19,17 +19,18 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
-const difficultyColors: Record<string, string> = {
-  beginner:     'bg-green-100 text-green-700',
-  intermediate: 'bg-amber-100 text-amber-700',
-  advanced:     'bg-red-100 text-red-700',
+const DIFF_VARS: Record<string, string> = {
+  beginner:     'var(--success)',
+  intermediate: 'var(--warning)',
+  advanced:     'var(--destructive)',
 }
 
 export default async function TaskDetailPage({ params }: Props) {
   const { id } = await params
   const supabase = await createClient()
-  const t = await getTranslations('tasks')
-  const tCommon = await getTranslations('common')
+  const t        = await getTranslations('tasks')
+  const tCommon  = await getTranslations('common')
+  const tTopics  = await getTranslations('topics')
 
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -48,10 +49,14 @@ export default async function TaskDetailPage({ params }: Props) {
   ])
 
   const { data: task } = taskRes
-
   if (!task) notFound()
 
-  const topic = task.topics as { title: string; icon: string | null; slug: string } | null
+  const rawTopic = task.topics as { title: string; icon: string | null; slug: string } | null
+  const topicTitle = rawTopic
+    ? (() => { try { return tTopics(rawTopic.slug as Parameters<typeof tTopics>[0]) } catch { return rawTopic.title } })()
+    : null
+  const topic = rawTopic ? { ...rawTopic, title: topicTitle! } : null
+
   const options = (task.task_options as { id: string; text: string; order_num: number }[]) ?? []
 
   const comments = (commentsRes.data ?? []).map((c) => ({
@@ -87,7 +92,7 @@ export default async function TaskDetailPage({ params }: Props) {
     attemptCount = count ?? 0
   }
 
-  // Collections (to power the "Add to collection" button)
+  // Collections
   const collectionsData = user ? await (async () => {
     const { data: cols } = await (supabase as any)
       .from('collections')
@@ -102,12 +107,12 @@ export default async function TaskDetailPage({ params }: Props) {
   })() : []
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-3xl space-y-5">
 
       {/* Back */}
       <Link
-        href={topic ? `/tasks?topic=${topic.slug}` : '/tasks'}
-        className="inline-flex items-center gap-1.5 text-sm mb-6 transition-colors"
+        href={rawTopic ? `/tasks?topic=${rawTopic.slug}` : '/tasks'}
+        className="inline-flex items-center gap-1.5 text-sm transition-colors"
         style={{ color: 'var(--muted-foreground)' }}
       >
         ← {tCommon('back')}
@@ -115,23 +120,34 @@ export default async function TaskDetailPage({ params }: Props) {
 
       {/* Header */}
       <div
-        className="rounded-2xl border p-6 mb-6"
-        style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+        className="rounded-2xl p-6"
+        style={{
+          background: 'var(--card)',
+          border: '1px solid var(--border)',
+          borderLeft: `3px solid ${DIFF_VARS[task.difficulty]}`,
+        }}
       >
         <div className="flex items-center gap-2 flex-wrap mb-3">
           {topic && (
-            <span className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+            <span className="text-[12.5px]" style={{ color: 'var(--muted-foreground)' }}>
               {topic.icon} {topic.title}
             </span>
           )}
           <span
-            className={`text-xs px-2 py-0.5 rounded-full font-medium ${difficultyColors[task.difficulty]}`}
+            className="text-[11.5px] px-2.5 py-0.5 rounded-full font-semibold"
+            style={{
+              background: `color-mix(in srgb, ${DIFF_VARS[task.difficulty]} 15%, transparent)`,
+              color: DIFF_VARS[task.difficulty],
+            }}
           >
             {t(`difficulty.${task.difficulty}`)}
           </span>
           <span
-            className="text-xs px-2 py-0.5 rounded-full font-semibold ml-auto"
-            style={{ color: 'var(--primary)' }}
+            className="text-[12px] px-2.5 py-0.5 rounded-full font-semibold ml-auto"
+            style={{
+              background: 'color-mix(in srgb, var(--primary) 10%, transparent)',
+              color: 'var(--primary)',
+            }}
           >
             +{task.xp_reward} XP
           </span>
@@ -172,7 +188,7 @@ export default async function TaskDetailPage({ params }: Props) {
       {/* Comments */}
       {user && (
         <div
-          className="rounded-2xl border p-6 mt-6"
+          className="rounded-2xl border p-6"
           style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
         >
           <CommentsSection

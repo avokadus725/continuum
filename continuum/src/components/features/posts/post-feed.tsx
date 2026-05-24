@@ -11,6 +11,7 @@ import {
 } from '@/app/actions/posts'
 import { AutoLink } from '@/components/auto-link'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import { toast } from 'sonner'
 
 /* ─── Types ────────────────────────────────────────── */
@@ -40,33 +41,6 @@ function formatRelative(iso: string, locale: string) {
   if (diff < 86400) return rtf.format(-Math.floor(diff / 3600), 'hours')
   if (diff < 604800) return rtf.format(-Math.floor(diff / 86400), 'days')
   return new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
-}
-
-/* ─── Avatar ───────────────────────────────────────── */
-export function Avatar({
-  name, url, size = 36,
-}: { name: string | null; url: string | null; size?: number }) {
-  const s = `${size}px`
-  const font = `${Math.round(size * 0.38)}px`
-  if (url) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={url} alt={name ?? ''}
-        style={{ width: s, height: s, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
-      />
-    )
-  }
-  return (
-    <div style={{
-      width: s, height: s, borderRadius: '50%', flexShrink: 0,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: font, fontWeight: 700,
-      background: 'var(--primary)', color: 'var(--primary-foreground)',
-    }}>
-      {(name?.[0] ?? '?').toUpperCase()}
-    </div>
-  )
 }
 
 /* ─── Create Post Form ─────────────────────────────── */
@@ -118,7 +92,7 @@ export function CreatePostForm({
     >
       <div className="flex gap-3 p-4">
         <div className="shrink-0 pt-0.5">
-          <Avatar name={currentName} url={currentAvatarUrl} size={36} />
+          <UserAvatar name={currentName} url={currentAvatarUrl} size={36} />
         </div>
         <textarea
           ref={textareaRef}
@@ -280,7 +254,7 @@ export function PostItem({ post, currentUserId }: { post: Post; currentUserId: s
     >
       {/* ── Header ── */}
       <div className="flex items-start gap-3 px-5 pt-4 pb-3">
-        <Avatar name={author?.full_name ?? null} url={author?.avatar_url ?? null} size={38} />
+        <UserAvatar name={author?.full_name ?? null} url={author?.avatar_url ?? null} size={38} />
         <div className="flex-1 min-w-0">
           <p className="text-[13.5px] font-semibold truncate" style={{ color: 'var(--foreground)' }}>
             {authorName}
@@ -394,7 +368,7 @@ export function PostItem({ post, currentUserId }: { post: Post; currentUserId: s
               {topComments.map(c => (
                 <div key={c.id}>
                   <div className="flex gap-2.5">
-                    <Avatar name={c.profiles?.full_name ?? null} url={c.profiles?.avatar_url ?? null} size={28} />
+                    <UserAvatar name={c.profiles?.full_name ?? null} url={c.profiles?.avatar_url ?? null} size={28} />
                     <div className="flex-1 min-w-0">
                       <div
                         className="rounded-2xl rounded-tl-sm px-3 py-2.5"
@@ -425,7 +399,7 @@ export function PostItem({ post, currentUserId }: { post: Post; currentUserId: s
                   {/* Replies */}
                   {(repliesMap.get(c.id) ?? []).map(r => (
                     <div key={r.id} className="ml-9 mt-2.5 flex gap-2.5">
-                      <Avatar name={r.profiles?.full_name ?? null} url={r.profiles?.avatar_url ?? null} size={24} />
+                      <UserAvatar name={r.profiles?.full_name ?? null} url={r.profiles?.avatar_url ?? null} size={24} />
                       <div className="flex-1 min-w-0">
                         <div
                           className="rounded-2xl rounded-tl-sm px-3 py-2"
@@ -466,7 +440,7 @@ export function PostItem({ post, currentUserId }: { post: Post; currentUserId: s
               </div>
             )}
             <div className="flex gap-2.5">
-              <Avatar name={null} url={null} size={28} />
+              <UserAvatar name={null} url={null} size={28} />
               <div
                 className="flex flex-1 items-end gap-2 rounded-2xl rounded-tl-sm border px-3 py-2"
                 style={{ background: 'var(--muted)', borderColor: 'transparent' }}

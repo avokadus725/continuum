@@ -10,6 +10,7 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { NotificationBell } from '@/components/features/notifications/notification-bell'
 import { signOut } from '@/app/actions/auth'
+import { UserAvatar } from '@/components/ui/user-avatar'
 
 interface TopbarProps {
   user: { id: string; email?: string | null }
@@ -49,16 +50,7 @@ export function Topbar({ user, avatarUrl, displayName, level, onMobileMenu }: To
         }}
       >
         <Search className="h-4 w-4" />
-        <span className="flex-1 text-left">Пошук…</span>
-        <span
-          className="rounded border px-1.5 py-px text-[10.5px] font-semibold"
-          style={{
-            borderColor: 'var(--border)',
-            color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)',
-          }}
-        >
-          ⌘K
-        </span>
+        <span className="flex-1 text-left">{t('searchPlaceholder')}</span>
       </button>
 
       {/* Right cluster */}
@@ -77,17 +69,7 @@ export function Topbar({ user, avatarUrl, displayName, level, onMobileMenu }: To
             aria-haspopup="menu"
             aria-expanded={menuOpen}
           >
-            {avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
-            ) : (
-              <div
-                className="flex h-8 w-8 items-center justify-center rounded-full border text-xs font-bold"
-                style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
-              >
-                {(displayName[0] ?? '?').toUpperCase()}
-              </div>
-            )}
+            <UserAvatar name={displayName} url={avatarUrl} size={32} />
             <span className="hidden text-[13px] font-semibold leading-tight md:inline" style={{ color: 'var(--foreground)' }}>
               {displayName.split(' ')[0]}
             </span>

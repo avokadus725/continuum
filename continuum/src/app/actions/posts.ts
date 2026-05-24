@@ -3,28 +3,55 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+type PostKind = 'discussion' | 'question' | 'share'
+
+/* ───────────── createPost ───────────── */
+
 export async function createPost(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
-  const content  = (formData.get('content') as string).trim()
-  const url      = (formData.get('url') as string | null)?.trim() || null
-  const urlTitle = (formData.get('url_title') as string | null)?.trim() || null
-
+  const content = (formData.get('content') as string)?.trim()
   if (!content) return { error: 'Content required' }
 
-  // cast: posts not in generated types yet
-  const { data, error } = await (supabase as any).from('posts')
-    .insert({ user_id: user.id, content, url, url_title: urlTitle })
+  const rawKind = (formData.get('kind') as string) || 'discussion'
+  const kind: PostKind =
+    rawKind === 'question' || rawKind === 'share' ? rawKind : 'discussion'
+
+  const title    = (formData.get('title') as string | null)?.trim() || null
+  const url      = (formData.get('url')   as string | null)?.trim() || null
+  const urlTitle = (formData.get('url_title') as string | null)?.trim() || null
+
+  // tags[] — array of slugs already normalised on client (lowercase, kebab-case)
+  const tags = (formData.getAll('tags[]') as string[])
+    .map(t => t.trim().toLowerCase().replace(/^#/, ''))
+    .filter(Boolean)
+    .slice(0, 5)
+
+  // 1) Insert post
+  const { data: post, error } = await (supabase as any).from('posts')
+    .insert({ user_id: user.id, content, url, url_title: urlTitle, kind, title })
     .select('id')
     .single()
-
   if (error) return { error: error.message }
 
+  // 2) Upsert tag rows + post_tags
+  if (tags.length > 0) {
+    await (supabase as any).from('tags').upsert(
+      tags.map(slug => ({ slug })),
+      { onConflict: 'slug', ignoreDuplicates: true },
+    )
+    await (supabase as any).from('post_tags').insert(
+      tags.map(slug => ({ post_id: post.id, tag_slug: slug })),
+    )
+  }
+
   revalidatePath('/community')
-  return { id: data.id }
+  return { id: post.id }
 }
+
+/* ───────────── deletePost ───────────── */
 
 export async function deletePost(formData: FormData) {
   const supabase = await createClient()
@@ -32,17 +59,15 @@ export async function deletePost(formData: FormData) {
   if (!user) return { error: 'Unauthorized' }
 
   const id = formData.get('id') as string
-
   const { error } = await (supabase as any).from('posts')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', user.id)
-
+    .delete().eq('id', id).eq('user_id', user.id)
   if (error) return { error: error.message }
 
   revalidatePath('/community')
   return { success: true }
 }
+
+/* ───────────── togglePostReaction ───────────── */
 
 export async function togglePostReaction(formData: FormData) {
   const supabase = await createClient()
@@ -66,14 +91,8 @@ export async function togglePostReaction(formData: FormData) {
   } else {
     const { error: insErr } = await (supabase as any).from('reactions')
       .insert({ user_id: user.id, post_id: postId, type })
+    if (insErr) return { error: insErr.message }
 
-    // ← якщо insert впав — повертаємо помилку, НЕ надсилаємо сповіщення
-    if (insErr) {
-      console.error('[togglePostReaction]', insErr.message, insErr.details)
-      return { error: insErr.message }
-    }
-
-    // Notify post author (skip self-reaction)
     try {
       const { data: post } = await (supabase as any).from('posts')
         .select('user_id, content').eq('id', postId).single()
@@ -99,6 +118,8 @@ export async function togglePostReaction(formData: FormData) {
   return { success: true }
 }
 
+/* ───────────── createPostComment ───────────── */
+
 export async function createPostComment(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -107,17 +128,13 @@ export async function createPostComment(formData: FormData) {
   const content  = (formData.get('content') as string).trim()
   const postId   = formData.get('post_id') as string
   const parentId = (formData.get('parent_id') as string | null) || null
-
   if (!content) return { error: 'Content required' }
 
   const { data: comment, error } = await (supabase as any).from('comments')
     .insert({ user_id: user.id, content, post_id: postId, parent_id: parentId })
-    .select('id')
-    .single()
-
+    .select('id').single()
   if (error) return { error: error.message }
 
-  // Notify: if reply → notify parent comment author; else notify post author
   const { data: commenter } = await supabase
     .from('profiles').select('full_name').eq('id', user.id).single()
   const name = commenter?.full_name ?? 'Хтось'
@@ -127,8 +144,7 @@ export async function createPostComment(formData: FormData) {
       .select('user_id').eq('id', parentId).single()
     if (parent && parent.user_id !== user.id) {
       await (supabase as any).from('notifications').insert({
-        user_id: parent.user_id,
-        type: 'comment_reply',
+        user_id: parent.user_id, type: 'comment_reply',
         title: `${name} відповів на ваш коментар`,
         body: content.slice(0, 80),
         meta: { post_id: postId, comment_id: comment.id },
@@ -139,8 +155,7 @@ export async function createPostComment(formData: FormData) {
       .select('user_id, content').eq('id', postId).single()
     if (post && post.user_id !== user.id) {
       await (supabase as any).from('notifications').insert({
-        user_id: post.user_id,
-        type: 'post_comment',
+        user_id: post.user_id, type: 'post_comment',
         title: `${name} прокоментував ваш пост`,
         body: (post.content as string).slice(0, 80),
         meta: { post_id: postId, comment_id: comment.id },
@@ -150,4 +165,77 @@ export async function createPostComment(formData: FormData) {
 
   revalidatePath('/community')
   return { success: true }
+}
+
+/* ───────────── markQuestionSolved ───────────── */
+
+export async function markQuestionSolved(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  const postId  = formData.get('post_id') as string
+  const solved  = formData.get('solved') === 'true'
+
+  const { error } = await (supabase as any).from('posts')
+    .update({ is_solved: solved })
+    .eq('id', postId)
+    .eq('user_id', user.id)
+    .eq('kind', 'question')
+  if (error) return { error: error.message }
+
+  revalidatePath('/community')
+  return { success: true }
+}
+
+/* ───────────── toggleSavePost ───────────── */
+
+export async function toggleSavePost(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  const postId = formData.get('post_id') as string
+
+  const { data: existing } = await (supabase as any).from('saved_posts')
+    .select('post_id').eq('user_id', user.id).eq('post_id', postId).maybeSingle()
+
+  if (existing) {
+    await (supabase as any).from('saved_posts')
+      .delete().eq('user_id', user.id).eq('post_id', postId)
+  } else {
+    await (supabase as any).from('saved_posts')
+      .insert({ user_id: user.id, post_id: postId })
+  }
+
+  revalidatePath('/community')
+  return { success: true, saved: !existing }
+}
+
+/* ───────────── toggleTagFollow ───────────── */
+
+export async function toggleTagFollow(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  const tagSlug = (formData.get('tag') as string)?.trim().toLowerCase().replace(/^#/, '')
+  if (!tagSlug) return { error: 'Missing tag' }
+
+  await (supabase as any).from('tags').upsert({ slug: tagSlug }, { onConflict: 'slug', ignoreDuplicates: true })
+
+  const { data: existing } = await (supabase as any).from('tag_subscriptions')
+    .select('user_id').eq('user_id', user.id).eq('tag_slug', tagSlug).maybeSingle()
+
+  if (existing) {
+    await (supabase as any).from('tag_subscriptions')
+      .delete().eq('user_id', user.id).eq('tag_slug', tagSlug)
+  } else {
+    await (supabase as any).from('tag_subscriptions')
+      .insert({ user_id: user.id, tag_slug: tagSlug })
+  }
+
+  revalidatePath(`/community/tag/${tagSlug}`)
+  revalidatePath('/community')
+  return { success: true, following: !existing }
 }

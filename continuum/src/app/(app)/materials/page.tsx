@@ -16,7 +16,8 @@ interface Props {
 export default async function MaterialsPage({ searchParams }: Props) {
   const { topic: topicSlug } = await searchParams
   const supabase = await createClient()
-  const t = await getTranslations('materials')
+  const t        = await getTranslations('materials')
+  const tTopics  = await getTranslations('topics')
   const { data: { user } } = await supabase.auth.getUser()
 
   // Fetch user's collections + which material IDs each one contains
@@ -29,7 +30,7 @@ export default async function MaterialsPage({ searchParams }: Props) {
     return data ?? []
   })() : []
 
-  // Fetch topics for filter
+  // Fetch topics for filter pills
   const { data: topics } = await supabase
     .from('topics')
     .select('id, title, icon, slug')
@@ -38,7 +39,7 @@ export default async function MaterialsPage({ searchParams }: Props) {
   // Fetch materials, optionally filtered by topic
   let query = supabase
     .from('materials')
-    .select('id, title, content, url, type, topic_id, topics(title, icon)')
+    .select('id, title, content, url, type, topic_id, topics(title, icon, slug)')
     .eq('is_published', true)
     .order('created_at', { ascending: false })
 
@@ -49,24 +50,29 @@ export default async function MaterialsPage({ searchParams }: Props) {
 
   const { data: materials } = await query
 
+  /** Translate a topic slug → display title, falling back to DB title */
+  function tTopic(slug: string | undefined, fallback: string): string {
+    if (!slug) return fallback
+    try { return tTopics(slug as Parameters<typeof tTopics>[0]) }
+    catch { return fallback }
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
 
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
-          {t('title')}
-        </h1>
-      </div>
+      <h1 className="text-2xl font-bold tracking-[-0.3px]" style={{ color: 'var(--foreground)' }}>
+        {t('title')}
+      </h1>
 
-      {/* Topic filter */}
-      <div className="flex flex-wrap gap-2">
+      {/* Topic filter pills */}
+      <div className="flex flex-wrap gap-1.5">
         <Link
           href="/materials"
-          className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors border"
+          className="px-3 py-1 rounded-full text-xs font-medium transition-colors border"
           style={{
-            background: !topicSlug || topicSlug === 'all' ? 'var(--primary)' : 'var(--card)',
-            color: !topicSlug || topicSlug === 'all' ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
+            background:  !topicSlug || topicSlug === 'all' ? 'var(--primary)' : 'var(--card)',
+            color:       !topicSlug || topicSlug === 'all' ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
             borderColor: !topicSlug || topicSlug === 'all' ? 'var(--primary)' : 'var(--border)',
           }}
         >
@@ -78,14 +84,14 @@ export default async function MaterialsPage({ searchParams }: Props) {
             <Link
               key={topic.id}
               href={`/materials?topic=${topic.slug}`}
-              className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors border"
+              className="px-3 py-1 rounded-full text-xs font-medium transition-colors border"
               style={{
-                background: isActive ? 'var(--primary)' : 'var(--card)',
-                color: isActive ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
+                background:  isActive ? 'var(--primary)' : 'var(--card)',
+                color:       isActive ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
                 borderColor: isActive ? 'var(--primary)' : 'var(--border)',
               }}
             >
-              {topic.icon} {topic.title}
+              {topic.icon} {tTopic(topic.slug, topic.title)}
             </Link>
           )
         })}
@@ -93,13 +99,17 @@ export default async function MaterialsPage({ searchParams }: Props) {
 
       {/* Materials grid */}
       {materials && materials.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {materials.map((material) => {
             const colsForMaterial = collectionsRaw.map(c => ({
               id: c.id,
               title: c.title,
               hasItem: (c.collection_materials as { material_id: string }[]).some(cm => cm.material_id === material.id),
             }))
+            const rawTopic = material.topics as { title: string; icon: string | null; slug?: string } | null
+            const translatedTopic = rawTopic
+              ? { title: tTopic(rawTopic.slug, rawTopic.title), icon: rawTopic.icon }
+              : null
             return (
               <MaterialCard
                 key={material.id}
@@ -108,7 +118,7 @@ export default async function MaterialsPage({ searchParams }: Props) {
                 content={material.content}
                 url={material.url}
                 type={material.type as 'article' | 'video' | 'link' | 'interactive'}
-                topic={material.topics as { title: string; icon: string | null } | null}
+                topic={translatedTopic}
                 collections={user ? colsForMaterial : undefined}
               />
             )
