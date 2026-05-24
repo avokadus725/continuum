@@ -75,7 +75,7 @@ export default async function MaterialDetailPage({ params }: Props) {
     return (cols ?? []).map(c => ({
       id: c.id,
       title: c.title,
-      hasMaterial: (c.collection_materials as { material_id: string }[]).some(cm => cm.material_id === materialId),
+      hasItem: (c.collection_materials as { material_id: string }[]).some(cm => cm.material_id === materialId),
     }))
   })() : []
 
@@ -181,7 +181,7 @@ export default async function MaterialDetailPage({ params }: Props) {
       {user && (
         <div className="flex items-center gap-3 flex-wrap">
           <ReactionsBar reactions={reactionCounts} materialId={materialId} />
-          <AddToCollectionButton materialId={materialId} collections={collectionsData} />
+          <AddToCollectionButton itemId={materialId} itemType="material" collections={collectionsData} />
           <QuickNoteButton materialId={materialId} materialTitle={material.title} />
         </div>
       )}

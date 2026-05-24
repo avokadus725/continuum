@@ -6,22 +6,25 @@ import { BookMarked, Plus, Check, ChevronDown } from 'lucide-react'
 import {
   toggleMaterialInCollection,
   createCollectionWithMaterial,
+  toggleTaskInCollection,
+  createCollectionWithTask,
 } from '@/app/actions/collections'
 
 interface CollectionOption {
   id: string
   title: string
-  hasMaterial: boolean
+  hasItem: boolean
 }
 
 interface AddToCollectionButtonProps {
-  materialId: string
+  itemId: string
+  itemType: 'material' | 'task'
   collections: CollectionOption[]
-  /** Smaller variant for use inside material cards */
+  /** Smaller variant for use inside cards */
   compact?: boolean
 }
 
-export function AddToCollectionButton({ materialId, collections: initial, compact }: AddToCollectionButtonProps) {
+export function AddToCollectionButton({ itemId, itemType, collections: initial, compact }: AddToCollectionButtonProps) {
   const t = useTranslations('collections')
   const [open, setOpen] = useState(false)
   const [localCols, setLocalCols] = useState(initial)
@@ -30,7 +33,6 @@ export function AddToCollectionButton({ materialId, collections: initial, compac
   const [isPending, startTransition] = useTransition()
   const ref = useRef<HTMLDivElement>(null)
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return
     function handler(e: MouseEvent) {
@@ -40,39 +42,44 @@ export function AddToCollectionButton({ materialId, collections: initial, compac
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
-  const anyAdded = localCols.some(c => c.hasMaterial)
+  const anyAdded = localCols.some(c => c.hasItem)
 
-  function handleToggle(colId: string, hasMaterial: boolean) {
-    // Optimistic update
-    setLocalCols(prev =>
-      prev.map(c => c.id === colId ? { ...c, hasMaterial: !c.hasMaterial } : c)
-    )
+  function handleToggle(colId: string, hasItem: boolean) {
+    setLocalCols(prev => prev.map(c => c.id === colId ? { ...c, hasItem: !c.hasItem } : c))
     startTransition(async () => {
       const fd = new FormData()
       fd.set('collection_id', colId)
-      fd.set('material_id', materialId)
-      fd.set('action', hasMaterial ? 'remove' : 'add')
-      await toggleMaterialInCollection(fd)
+      fd.set('action', hasItem ? 'remove' : 'add')
+      if (itemType === 'task') {
+        fd.set('task_id', itemId)
+        await toggleTaskInCollection(fd)
+      } else {
+        fd.set('material_id', itemId)
+        await toggleMaterialInCollection(fd)
+      }
     })
   }
 
   function handleCreateNew() {
     if (!newTitle.trim()) return
     const title = newTitle.trim()
-    // Optimistic: add new collection to local list with hasMaterial=true
     const tempId = `temp-${Date.now()}`
-    setLocalCols(prev => [...prev, { id: tempId, title, hasMaterial: true }])
+    setLocalCols(prev => [...prev, { id: tempId, title, hasItem: true }])
     setNewTitle('')
     setShowNew(false)
     startTransition(async () => {
       const fd = new FormData()
       fd.set('title', title)
-      fd.set('material_id', materialId)
-      const res = await createCollectionWithMaterial(fd)
+      let res: { id?: string; error?: string }
+      if (itemType === 'task') {
+        fd.set('task_id', itemId)
+        res = await createCollectionWithTask(fd)
+      } else {
+        fd.set('material_id', itemId)
+        res = await createCollectionWithMaterial(fd)
+      }
       if (res.id) {
-        setLocalCols(prev =>
-          prev.map(c => c.id === tempId ? { ...c, id: res.id! } : c)
-        )
+        setLocalCols(prev => prev.map(c => c.id === tempId ? { ...c, id: res.id! } : c))
       }
     })
   }
@@ -83,9 +90,9 @@ export function AddToCollectionButton({ materialId, collections: initial, compac
         onClick={() => setOpen(v => !v)}
         className={`flex items-center gap-1.5 border font-medium transition-all rounded-xl ${compact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'}`}
         style={{
-          background: anyAdded ? 'color-mix(in srgb, var(--primary) 12%, transparent)' : 'var(--card)',
-          borderColor: anyAdded ? 'var(--primary)' : 'var(--border)',
-          color: anyAdded ? 'var(--primary)' : 'var(--muted-foreground)',
+          background:   anyAdded ? 'color-mix(in srgb, var(--primary) 12%, transparent)' : 'var(--card)',
+          borderColor:  anyAdded ? 'var(--primary)' : 'var(--border)',
+          color:        anyAdded ? 'var(--primary)' : 'var(--muted-foreground)',
         }}
       >
         <BookMarked className={compact ? 'w-3.5 h-3.5' : 'w-4 h-4'} />
@@ -98,7 +105,6 @@ export function AddToCollectionButton({ materialId, collections: initial, compac
           className="absolute top-full mt-2 left-0 z-30 w-64 rounded-2xl border shadow-xl overflow-hidden"
           style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
         >
-          {/* Existing collections */}
           <div className="max-h-52 overflow-y-auto">
             {localCols.length === 0 && !showNew && (
               <p className="px-4 py-3 text-sm" style={{ color: 'var(--muted-foreground)' }}>
@@ -108,7 +114,7 @@ export function AddToCollectionButton({ materialId, collections: initial, compac
             {localCols.map(col => (
               <button
                 key={col.id}
-                onClick={() => handleToggle(col.id, col.hasMaterial)}
+                onClick={() => handleToggle(col.id, col.hasItem)}
                 disabled={isPending}
                 className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-left transition-colors hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-60"
                 style={{ color: 'var(--foreground)' }}
@@ -116,18 +122,17 @@ export function AddToCollectionButton({ materialId, collections: initial, compac
                 <div
                   className="w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors"
                   style={{
-                    background: col.hasMaterial ? 'var(--primary)' : 'transparent',
-                    borderColor: col.hasMaterial ? 'var(--primary)' : 'var(--border)',
+                    background:  col.hasItem ? 'var(--primary)' : 'transparent',
+                    borderColor: col.hasItem ? 'var(--primary)' : 'var(--border)',
                   }}
                 >
-                  {col.hasMaterial && <Check className="w-3 h-3 text-white" />}
+                  {col.hasItem && <Check className="w-3 h-3 text-white" />}
                 </div>
                 <span className="truncate">{col.title}</span>
               </button>
             ))}
           </div>
 
-          {/* New collection */}
           <div className="border-t" style={{ borderColor: 'var(--border)' }}>
             {showNew ? (
               <div className="p-3 flex gap-2">

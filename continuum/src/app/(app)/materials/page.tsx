@@ -98,7 +98,7 @@ export default async function MaterialsPage({ searchParams }: Props) {
             const colsForMaterial = collectionsRaw.map(c => ({
               id: c.id,
               title: c.title,
-              hasMaterial: (c.collection_materials as { material_id: string }[]).some(cm => cm.material_id === material.id),
+              hasItem: (c.collection_materials as { material_id: string }[]).some(cm => cm.material_id === material.id),
             }))
             return (
               <MaterialCard

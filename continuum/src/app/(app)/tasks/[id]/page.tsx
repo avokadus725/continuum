@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { TaskForm } from '@/components/features/tasks/task-form'
 import { CommentsSection } from '@/components/features/comments/comments-section'
 import { QuickNoteButton } from '@/components/features/notes/quick-note-button'
+import { AddToCollectionButton } from '@/components/features/collections/add-to-collection-button'
 import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -86,6 +87,20 @@ export default async function TaskDetailPage({ params }: Props) {
     attemptCount = count ?? 0
   }
 
+  // Collections (to power the "Add to collection" button)
+  const collectionsData = user ? await (async () => {
+    const { data: cols } = await (supabase as any)
+      .from('collections')
+      .select('id, title, collection_tasks(task_id)')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+    return ((cols ?? []) as { id: string; title: string; collection_tasks: { task_id: string }[] }[]).map(c => ({
+      id: c.id,
+      title: c.title,
+      hasItem: c.collection_tasks.some(ct => ct.task_id === id),
+    }))
+  })() : []
+
   return (
     <div className="max-w-2xl">
 
@@ -146,9 +161,10 @@ export default async function TaskDetailPage({ params }: Props) {
         explanation={(task as { explanation?: string | null }).explanation ?? null}
       />
 
-      {/* Quick note */}
+      {/* Quick note + collection */}
       {user && (
-        <div className="flex justify-end">
+        <div className="flex items-center justify-end gap-2">
+          <AddToCollectionButton itemId={id} itemType="task" collections={collectionsData} />
           <QuickNoteButton taskId={id} taskTitle={task.title} />
         </div>
       )}

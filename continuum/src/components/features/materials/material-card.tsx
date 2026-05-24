@@ -4,7 +4,7 @@ import { AddToCollectionButton } from '@/components/features/collections/add-to-
 
 type MaterialType = 'article' | 'video' | 'link' | 'interactive'
 
-interface CollectionOption { id: string; title: string; hasMaterial: boolean }
+interface CollectionOption { id: string; title: string; hasItem: boolean }
 
 interface MaterialCardProps {
   id: string
@@ -79,7 +79,7 @@ export async function MaterialCard({ id, title, content, url, type, topic, colle
       {/* Collection button — only when collections are provided (logged-in context) */}
       {collections !== undefined && (
         <div className="px-4 pb-4 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
-          <AddToCollectionButton materialId={id} collections={collections} compact />
+          <AddToCollectionButton itemId={id} itemType="material" collections={collections} compact />
         </div>
       )}
     </div>
