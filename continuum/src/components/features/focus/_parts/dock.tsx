@@ -64,10 +64,7 @@ export function Dock({
         }
         <span
           className="ml-1.5"
-          style={{
-            color: bellOn ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.35)',
-            textDecoration: bellOn ? 'none' : 'line-through',
-          }}
+          style={{ color: bellOn ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.35)' }}
         >
           {t('notifications')}
         </span>

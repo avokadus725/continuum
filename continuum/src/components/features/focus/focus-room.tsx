@@ -257,7 +257,7 @@ export function FocusRoom() {
       </div>
 
       {/* Layout column */}
-      <div className="relative z-10 flex h-full flex-col">
+      <div className="relative z-10 flex h-full min-h-0 flex-col overflow-y-auto">
         <TopChrome
           showEnd={phase !== 'idle'}
           onEnd={handleEnd}
@@ -266,7 +266,7 @@ export function FocusRoom() {
         />
 
         {/* Center */}
-        <div className="flex flex-1 flex-col items-center justify-center gap-7">
+        <div className="flex flex-1 flex-col items-center justify-center gap-7 py-4">
           <PomodoroDots
             current={currentRound}
             total={settings.targetSessions}
