@@ -168,12 +168,30 @@ export default async function DashboardPage() {
   const xpGap = nextRow ? nextRow.xp - (yourRow?.xp ?? 0) : null
 
   /* ── Weekly chart ─────────────────────────────────── */
-  // TODO: aggregate from `focus_sessions` group by day-of-week, last 7 days.
+  const nowForChart = new Date()
+  const mondayThisWeek = new Date(nowForChart)
+  mondayThisWeek.setDate(nowForChart.getDate() - ((nowForChart.getDay() + 6) % 7))
+  mondayThisWeek.setHours(0, 0, 0, 0)
+
+  const { data: weekFocusRaw } = await (supabase as any)
+    .from('focus_sessions')
+    .select('started_at, focus_seconds')
+    .eq('user_id', user.id)
+    .gte('started_at', mondayThisWeek.toISOString())
+
   const perDay = [0, 0, 0, 0, 0, 0, 0]
+  for (const s of (weekFocusRaw ?? []) as Array<{ started_at: string; focus_seconds: number }>) {
+    const idx = (new Date(s.started_at).getDay() + 6) % 7  // Mon=0…Sun=6
+    perDay[idx] += Math.round((s.focus_seconds ?? 0) / 60)
+  }
   const todayIndex = (new Date().getDay() + 6) % 7  // Mon=0…Sun=6
 
-  /* ── Recommendations (personalized) ──────────────── */
-  const [{ data: progressRaw }, { data: allMaterials }] = await Promise.all([
+  /* ── Recommendations + streak + focus today ──────────── */
+  const startOfTodayUTC = new Date()
+  startOfTodayUTC.setUTCHours(0, 0, 0, 0)
+
+  const [{ data: progressRaw }, { data: allMaterials }, focusTodayRes] = await Promise.all([
+    // All-time progress — used for recommendations AND streak
     supabase
       .from('student_progress')
       .select('task_id, is_correct, completed_at, tasks(topic_id)')
@@ -183,9 +201,32 @@ export default async function DashboardPage() {
       .select('id, title, type, topic_id')
       .eq('is_published', true)
       .limit(30),
+    // Today's focus sessions for the "Focus" stat in the hero
+    (supabase as any)
+      .from('focus_sessions')
+      .select('focus_seconds')
+      .eq('user_id', user.id)
+      .gte('started_at', startOfTodayUTC.toISOString()),
   ])
 
-  const topicStats = buildTopicStats((progressRaw ?? []) as ProgressRow[])
+  const progressRows = (progressRaw ?? []) as ProgressRow[]
+  const topicStats   = buildTopicStats(progressRows)
+
+  /* ── Streak ─────────────────────────────────────────── */
+  const daySet = new Set(progressRows.map(r => r.completed_at.slice(0, 10)))
+  let streakDays = 0
+  for (let i = 0; i < 365; i++) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    if (daySet.has(d.toISOString().slice(0, 10))) streakDays++
+    else break
+  }
+
+  /* ── Focus minutes today ─────────────────────────────── */
+  const focusMinutesToday = Math.round(
+    ((focusTodayRes?.data ?? []) as { focus_seconds: number }[])
+      .reduce((s, r) => s + (r.focus_seconds ?? 0), 0) / 60
+  )
 
   const materialTypeKeys = ['video', 'article', 'link', 'interactive'] as const
   type MaterialType = typeof materialTypeKeys[number]
@@ -204,10 +245,6 @@ export default async function DashboardPage() {
       href: `/materials#${m.id}`,
     }))
 
-  /* ── Focus state ──────────────────────────────────── */
-  // TODO: read from `focus_sessions` — currently shows 'idle' default.
-  const focus = { state: 'idle' as const, workMin: 25, breakMin: 5 }
-
   /* ── Encouragement ────────────────────────────────── */
   const unfinished = todayItems.filter(i => !i.done).length
   const encouragement = todayItems.length > 0
@@ -222,12 +259,12 @@ export default async function DashboardPage() {
           firstName={firstName}
           dateLabel={dateLabel(new Date(), locale)}
           encouragement={encouragement}
-          streakDays={0 /* TODO: compute streak */}
+          streakDays={streakDays}
           todayDone={todayItems.filter(i => i.done).length}
           todayTotal={todayItems.length}
-          focusMinutesToday={0 /* TODO */}
+          focusMinutesToday={focusMinutesToday}
         />
-        <FocusBand focus={focus} />
+        <FocusBand />
         <TodayPanel items={todayItems} />
         <NeedsYouPanel items={needsItems} />
         <FreshPanel items={freshItems} />

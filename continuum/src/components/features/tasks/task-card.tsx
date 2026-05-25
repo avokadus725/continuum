@@ -2,8 +2,10 @@ import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { Check } from 'lucide-react'
 
-type Difficulty = 'beginner' | 'intermediate' | 'advanced'
-type TaskType   = 'single_choice' | 'multiple_choice' | 'text' | 'code'
+import { DIFF_COLOR, type Difficulty } from '@/lib/difficulty-colors'
+import { TopicIcon } from '@/lib/topic-icons'
+
+type TaskType = 'single_choice' | 'multiple_choice' | 'text' | 'code'
 
 interface TaskCardProps {
   id: string
@@ -12,14 +14,8 @@ interface TaskCardProps {
   difficulty: Difficulty
   type: TaskType
   xpReward: number
-  topic: { title: string; icon: string | null } | null
+  topic: { title: string; icon: string | null; slug?: string | null } | null
   isCompleted?: boolean
-}
-
-const DIFF_COLOR: Record<Difficulty, string> = {
-  beginner:     'var(--success)',
-  intermediate: 'var(--warning)',
-  advanced:     'var(--destructive)',
 }
 
 export async function TaskCard({
@@ -110,8 +106,8 @@ export async function TaskCard({
             {t(`types.${type}`)}
           </span>
           {topic && (
-            <span className="text-[11px] truncate" style={{ color: 'var(--muted-foreground)' }}>
-              {topic.icon} {topic.title}
+            <span className="flex items-center gap-1 text-[11px] truncate" style={{ color: 'var(--muted-foreground)' }}>
+              <TopicIcon slug={topic.slug} size={11} className="shrink-0" />{topic.title}
             </span>
           )}
         </div>

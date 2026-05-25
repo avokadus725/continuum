@@ -128,6 +128,7 @@
     "youLabel": "ти",
     "weeklyDetails": "Деталі →",
     "weeklyFocusTotal": "{hours}г {minutes}хв фокусу",
+    "weeklyFocusTotalMin": "{minutes}хв фокусу",
     "recsMore": "Більше →",
     "kindTask": "Завдання",
     "kindNote": "Нотатка",
@@ -183,7 +184,8 @@
     },
     "addToCollection": "Додати до підбірки",
     "noMaterials": "Матеріалів поки немає",
-    "readMore": "Детальніше →"
+    "readMore": "Детальніше →",
+    "searchPlaceholder": "Пошук за назвою або вмістом…"
   },
   "notifications": {
     "title": "Сповіщення",
@@ -216,7 +218,8 @@
     "completedUnit": "виконано",
     "textAnswerPlaceholder": "Введи відповідь тут…",
     "selectHint": "Обери одну відповідь",
-    "selectMultiHint": "Обери всі правильні відповіді"
+    "selectMultiHint": "Обери всі правильні відповіді",
+    "searchPlaceholder": "Пошук за назвою або описом…"
   },
   "posts": {
     "placeholder": "Що у тебе нового?",
@@ -332,7 +335,15 @@
     "tasksLabel": "завдань",
     "correctLabel": "правильно",
     "noActivity": "Завдань цього тижня немає",
-    "xpGapToRank": "{xp} XP до #{rank} місця"
+    "xpGapToRank": "{xp} XP до #{rank} місця",
+    "streak": "серія днів",
+    "streakDays": "{count}д",
+    "hotThisWeek": "Гарячі цього тижня",
+    "hotNoActivity": "Активності цього тижня ще немає",
+    "rivals": "Суперники",
+    "rivalsAhead": "трохи попереду",
+    "rivalsBelow": "трохи позаду",
+    "rivalsNoRivals": "Ти на вершині!"
   },
   "profile": {
     "title": "Профіль",
@@ -416,7 +427,17 @@
       "fireplace": "Камін",
       "underwater": "Під водою",
       "whitenoise": "Абстракція"
-    }
+    },
+    "sessionCounter": "Сесія {n} з {total}",
+    "intentionLabel": "На чому фокусуєшся?",
+    "intentionHint": "напр. ТАУ — лекція 7",
+    "leaveTitle": "Вийти з кімнати фокусу?",
+    "leaveBody": "Сесія залишиться активною у міні-таймері. Повернись будь-коли.",
+    "leaveKeep": "Залишитись",
+    "leaveMinimize": "Переглянути матеріали",
+    "leaveEnd": "Завершити сесію",
+    "floatingReturn": "Повернутись до фокусу",
+    "floatingPaused": "ПАУЗА"
   },
   "comments": {
     "title": "Коментарі",
@@ -437,7 +458,7 @@
     "users": "Користувачі",
     "materials": "Матеріали",
     "tasks": "Завдання",
-    "attempts": "Спроби",
+    "attempts": "Спроби завдань",
     "name": "Назва",
     "role": "Роль",
     "level": "Рівень",

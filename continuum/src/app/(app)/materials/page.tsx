@@ -3,6 +3,8 @@ import { getTranslations } from 'next-intl/server'
 import { MaterialCard } from '@/components/features/materials/material-card'
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { LiveSearch } from '@/components/ui/live-search'
+import { TopicIcon } from '@/lib/topic-icons'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('materials')
@@ -10,11 +12,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 interface Props {
-  searchParams: Promise<{ topic?: string }>
+  searchParams: Promise<{ topic?: string; q?: string }>
 }
 
 export default async function MaterialsPage({ searchParams }: Props) {
-  const { topic: topicSlug } = await searchParams
+  const { topic: topicSlug, q: rawQ } = await searchParams
+  const q = rawQ?.trim() ?? ''
   const supabase = await createClient()
   const t        = await getTranslations('materials')
   const tTopics  = await getTranslations('topics')
@@ -48,9 +51,12 @@ export default async function MaterialsPage({ searchParams }: Props) {
     if (topic) query = query.eq('topic_id', topic.id)
   }
 
+  if (q) {
+    query = query.or(`title.ilike.%${q}%,content.ilike.%${q}%`)
+  }
+
   const { data: materials } = await query
 
-  /** Translate a topic slug → display title, falling back to DB title */
   function tTopic(slug: string | undefined, fallback: string): string {
     if (!slug) return fallback
     try { return tTopics(slug as Parameters<typeof tTopics>[0]) }
@@ -65,11 +71,18 @@ export default async function MaterialsPage({ searchParams }: Props) {
         {t('title')}
       </h1>
 
+      {/* Search */}
+      <LiveSearch
+        q={q}
+        extraParams={topicSlug && topicSlug !== 'all' ? { topic: topicSlug } : {}}
+        placeholder={t('searchPlaceholder')}
+      />
+
       {/* Topic filter pills */}
       <div className="flex flex-wrap gap-1.5">
         <Link
-          href="/materials"
-          className="px-3 py-1 rounded-full text-xs font-medium transition-colors border"
+          href={q ? `/materials?q=${encodeURIComponent(q)}` : '/materials'}
+          className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors border"
           style={{
             background:  !topicSlug || topicSlug === 'all' ? 'var(--primary)' : 'var(--card)',
             color:       !topicSlug || topicSlug === 'all' ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
@@ -80,18 +93,22 @@ export default async function MaterialsPage({ searchParams }: Props) {
         </Link>
         {topics?.map((topic) => {
           const isActive = topicSlug === topic.slug
+          const topicHref = q
+            ? `/materials?topic=${topic.slug}&q=${encodeURIComponent(q)}`
+            : `/materials?topic=${topic.slug}`
           return (
             <Link
               key={topic.id}
-              href={`/materials?topic=${topic.slug}`}
-              className="px-3 py-1 rounded-full text-xs font-medium transition-colors border"
+              href={topicHref}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors border"
               style={{
                 background:  isActive ? 'var(--primary)' : 'var(--card)',
                 color:       isActive ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
                 borderColor: isActive ? 'var(--primary)' : 'var(--border)',
               }}
             >
-              {topic.icon} {tTopic(topic.slug, topic.title)}
+              <TopicIcon slug={topic.slug} size={11} />
+              {tTopic(topic.slug, topic.title)}
             </Link>
           )
         })}
@@ -108,7 +125,7 @@ export default async function MaterialsPage({ searchParams }: Props) {
             }))
             const rawTopic = material.topics as { title: string; icon: string | null; slug?: string } | null
             const translatedTopic = rawTopic
-              ? { title: tTopic(rawTopic.slug, rawTopic.title), icon: rawTopic.icon }
+              ? { title: tTopic(rawTopic.slug, rawTopic.title), icon: rawTopic.icon, slug: rawTopic.slug }
               : null
             return (
               <MaterialCard

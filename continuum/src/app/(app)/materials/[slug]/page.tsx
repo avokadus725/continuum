@@ -6,18 +6,14 @@ import { CommentsSection } from '@/components/features/comments/comments-section
 import { ReactionsBar } from '@/components/features/reactions/reactions-bar'
 import { AddToCollectionButton } from '@/components/features/collections/add-to-collection-button'
 import { QuickNoteButton } from '@/components/features/notes/quick-note-button'
+import { MaterialTypeIcon } from '@/components/ui/material-type-icon'
+import { TopicIcon } from '@/lib/topic-icons'
 import type { Metadata } from 'next'
 
 interface Props {
   params: Promise<{ slug: string }>
 }
 
-const typeIcons: Record<string, string> = {
-  article:     '📄',
-  video:       '🎬',
-  link:        '🔗',
-  interactive: '⚡',
-}
 
 const TYPE_ACCENT: Record<string, string> = {
   article:     'var(--primary)',
@@ -216,7 +212,7 @@ export default async function MaterialDetailPage({ params }: Props) {
           >
             {topic && (
               <div className="flex items-center gap-2" style={{ color: 'var(--muted-foreground)' }}>
-                <span className="text-lg leading-none">{topic.icon}</span>
+                <TopicIcon slug={topic.slug} size={18} className="shrink-0" />
                 <span className="text-[13px] font-medium">{topic.title}</span>
               </div>
             )}
@@ -227,7 +223,8 @@ export default async function MaterialDetailPage({ params }: Props) {
                 color: accent,
               }}
             >
-              {typeIcons[material.type]} {t(`types.${material.type}`)}
+              <MaterialTypeIcon type={material.type} size={12} />
+              {t(`types.${material.type}`)}
             </span>
           </div>
 
@@ -243,7 +240,7 @@ export default async function MaterialDetailPage({ params }: Props) {
                 style={{ borderColor: 'color-mix(in srgb, var(--border) 60%, transparent)' }}
               >
                 <AddToCollectionButton itemId={materialId} itemType="material" collections={collectionsData} />
-                <QuickNoteButton materialId={materialId} materialTitle={material.title} />
+                <QuickNoteButton materialId={materialId} materialTitle={material.title} collections={collectionsData.map(c => ({ id: c.id, title: c.title }))} />
               </div>
             </div>
           )}

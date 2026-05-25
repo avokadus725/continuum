@@ -124,7 +124,15 @@ function TypeTab({
     >
       {icon}
       {label}
-      <span className="text-[10.5px] tabular-nums" style={{ opacity: active ? 0.7 : 1, color: active ? 'currentColor' : 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }}>
+      <span
+        className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] tabular-nums font-bold"
+        style={{
+          background: active
+            ? (accent ? `color-mix(in srgb, ${accent} 18%, transparent)` : 'color-mix(in srgb, var(--primary) 15%, transparent)')
+            : 'color-mix(in srgb, var(--muted-foreground) 15%, transparent)',
+          color: 'currentColor',
+        }}
+      >
         {n}
       </span>
     </button>

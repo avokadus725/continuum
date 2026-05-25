@@ -17,6 +17,7 @@ import {
   X, ShieldCheck,
 } from 'lucide-react'
 import { Topbar } from '@/components/topbar'
+import { FocusFloatingTimer } from '@/components/features/focus/focus-floating-timer'
 
 interface NavItem { href: string; labelKey: string; group: 'top' | 'learning' | 'community' | 'progress' }
 
@@ -118,6 +119,9 @@ export function SidebarLayout({
         />
         <main className="mx-auto w-full max-w-[1240px] flex-1 px-8 py-8">{children}</main>
       </div>
+
+      {/* Floating timer pill — appears when a focus session is minimized */}
+      <FocusFloatingTimer />
     </div>
   )
 }

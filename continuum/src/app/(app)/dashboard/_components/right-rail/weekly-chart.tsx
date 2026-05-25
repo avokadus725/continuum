@@ -19,14 +19,20 @@ function weekdayLabels(locale: string): string[] {
   })
 }
 
+const BAR_H = 68 // px available for bars (label row ~20px makes total ~88px)
+
 export async function WeeklyChartCard({ perDay, todayIndex }: Props) {
   const [t, locale] = await Promise.all([getTranslations('dashboard'), getLocale()])
 
-  const total = perDay.reduce((a, b) => a + b, 0)
-  const max = Math.max(...perDay, 1)
-  const hours = Math.floor(total / 60)
+  const total   = perDay.reduce((a, b) => a + b, 0)
+  const max     = Math.max(...perDay, 1)
+  const hours   = Math.floor(total / 60)
   const minutes = total % 60
   const WEEKDAYS = weekdayLabels(locale)
+
+  const totalLabel = total < 60
+    ? t('weeklyFocusTotalMin', { minutes: total })
+    : t('weeklyFocusTotal', { hours, minutes })
 
   return (
     <section
@@ -42,16 +48,18 @@ export async function WeeklyChartCard({ perDay, todayIndex }: Props) {
         </Link>
       </header>
       <div className="mt-1 text-[11.5px]" style={{ color: 'var(--muted-foreground)' }}>
-        {t('weeklyFocusTotal', { hours, minutes })}
+        {totalLabel}
       </div>
 
-      <div className="mt-3.5 flex h-[92px] items-end gap-1.5">
-        {perDay.map((h, i) => (
+      {/* Bar chart — pixel heights so bars render correctly in flex layout */}
+      <div className="mt-3.5 flex items-end gap-1.5">
+        {perDay.map((val, i) => (
           <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
             <div
-              className="w-full rounded-[3px]"
+              className="w-full rounded-[3px] transition-all"
               style={{
-                height: `${(h / max) * 100}%`,
+                height: `${(val / max) * BAR_H}px`,
+                minHeight: val > 0 ? 3 : 0,
                 background: i === todayIndex ? 'var(--primary)' : 'var(--muted)',
               }}
             />

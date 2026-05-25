@@ -1,11 +1,11 @@
 'use client'
 
-/* search + theme + notifications + language + profile menu. */
+/* theme + notifications + language + profile menu. */
 
 import { useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { Search, Menu, LogOut, User } from 'lucide-react'
+import { Menu, LogOut, User } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { NotificationBell } from '@/components/features/notifications/notification-bell'
@@ -37,20 +37,6 @@ export function Topbar({ user, avatarUrl, displayName, level, onMobileMenu }: To
         aria-label="Меню"
       >
         <Menu className="h-5 w-5" />
-      </button>
-
-      {/* Search */}
-      <button
-        type="button"
-        className="hidden h-[34px] flex-1 max-w-[380px] items-center gap-2.5 rounded-lg border px-3 text-[13px] md:flex"
-        style={{
-          background: 'var(--card)',
-          borderColor: 'var(--border)',
-          color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)',
-        }}
-      >
-        <Search className="h-4 w-4" />
-        <span className="flex-1 text-left">{t('searchPlaceholder')}</span>
       </button>
 
       {/* Right cluster */}

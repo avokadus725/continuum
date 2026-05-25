@@ -6,6 +6,7 @@ import { TaskForm } from '@/components/features/tasks/task-form'
 import { CommentsSection } from '@/components/features/comments/comments-section'
 import { QuickNoteButton } from '@/components/features/notes/quick-note-button'
 import { AddToCollectionButton } from '@/components/features/collections/add-to-collection-button'
+import { TopicIcon } from '@/lib/topic-icons'
 import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -19,11 +20,7 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
-const DIFF_VARS: Record<string, string> = {
-  beginner:     'var(--success)',
-  intermediate: 'var(--warning)',
-  advanced:     'var(--destructive)',
-}
+import { DIFF_COLOR as DIFF_VARS } from '@/lib/difficulty-colors'
 
 export default async function TaskDetailPage({ params }: Props) {
   const { id } = await params
@@ -129,8 +126,8 @@ export default async function TaskDetailPage({ params }: Props) {
       >
         <div className="flex items-center gap-2 flex-wrap mb-3">
           {topic && (
-            <span className="text-[12.5px]" style={{ color: 'var(--muted-foreground)' }}>
-              {topic.icon} {topic.title}
+            <span className="inline-flex items-center gap-1.5 text-[12.5px]" style={{ color: 'var(--muted-foreground)' }}>
+              <TopicIcon slug={topic.slug} size={12} className="shrink-0" />{topic.title}
             </span>
           )}
           <span
@@ -181,7 +178,7 @@ export default async function TaskDetailPage({ params }: Props) {
       {user && (
         <div className="flex items-center justify-end gap-2">
           <AddToCollectionButton itemId={id} itemType="task" collections={collectionsData} />
-          <QuickNoteButton taskId={id} taskTitle={task.title} />
+          <QuickNoteButton taskId={id} taskTitle={task.title} collections={collectionsData.map(c => ({ id: c.id, title: c.title }))} />
         </div>
       )}
 

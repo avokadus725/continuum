@@ -1,28 +1,30 @@
 'use client'
 
 /* Top chrome — minimal exit + action pills.
-   Only visible inside the focus room. */
+   Only visible inside the focus room.
+   onBack is called when the user clicks the "Home" button — the parent
+   decides whether to navigate directly or show the leave-guard dialog. */
 
-import Link from 'next/link'
 import { ArrowLeft, Settings as SettingsIcon, Maximize2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 interface Props {
   showEnd: boolean
+  onBack: () => void
   onEnd: () => void
   onOpenSettings: () => void
   onToggleFullscreen: () => void
 }
 
-export function TopChrome({ showEnd, onEnd, onOpenSettings, onToggleFullscreen }: Props) {
+export function TopChrome({ showEnd, onBack, onEnd, onOpenSettings, onToggleFullscreen }: Props) {
   const t = useTranslations('focus')
 
   return (
     <header className="relative z-10 flex items-center gap-3.5 px-7 py-5">
-      <Link href="/dashboard" className={pillCls()} style={{ background: 'transparent' }}>
+      <button onClick={onBack} className={pillCls()} style={{ background: 'transparent' }}>
         <ArrowLeft className="h-4 w-4" />
         <span className="hidden sm:inline">{t('backHome')}</span>
-      </Link>
+      </button>
 
       <span
         className="ml-1.5 hidden text-[11px] font-semibold uppercase tracking-[2.4px] sm:inline"

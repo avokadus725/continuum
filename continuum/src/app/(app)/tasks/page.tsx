@@ -1,8 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { getTranslations } from 'next-intl/server'
 import { TaskCard } from '@/components/features/tasks/task-card'
+import { LiveSearch } from '@/components/ui/live-search'
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { TopicIcon } from '@/lib/topic-icons'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('tasks')
@@ -10,17 +12,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 interface Props {
-  searchParams: Promise<{ topic?: string; difficulty?: string }>
+  searchParams: Promise<{ topic?: string; difficulty?: string; q?: string }>
 }
 
-const DIFF_ACTIVE: Record<string, string> = {
-  beginner:     'var(--success)',
-  intermediate: 'var(--warning)',
-  advanced:     'var(--destructive)',
-}
+import { DIFF_COLOR as DIFF_ACTIVE } from '@/lib/difficulty-colors'
 
 export default async function TasksPage({ searchParams }: Props) {
-  const { topic: topicSlug, difficulty } = await searchParams
+  const { topic: topicSlug, difficulty, q: rawQ } = await searchParams
+  const q = rawQ?.trim() ?? ''
   const supabase   = await createClient()
   const t          = await getTranslations('tasks')
   const tMaterials = await getTranslations('materials')
@@ -50,6 +49,10 @@ export default async function TasksPage({ searchParams }: Props) {
     query = query.eq('difficulty', difficulty as Diff)
   }
 
+  if (q) {
+    query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`)
+  }
+
   const { data: tasks } = await query
 
   let completedTaskIds = new Set<string>()
@@ -72,6 +75,7 @@ export default async function TasksPage({ searchParams }: Props) {
     const p = new URLSearchParams()
     if (params.topic && params.topic !== 'all') p.set('topic', params.topic)
     if (params.difficulty) p.set('difficulty', params.difficulty)
+    if (q) p.set('q', q)
     const s = p.toString()
     return `/tasks${s ? `?${s}` : ''}`
   }
@@ -86,6 +90,16 @@ export default async function TasksPage({ searchParams }: Props) {
       >
         {t('title')}
       </h1>
+
+      {/* ── Search ─────────────────────────────────── */}
+      <LiveSearch
+        q={q}
+        extraParams={{
+          ...(topicSlug && topicSlug !== 'all' ? { topic: topicSlug } : {}),
+          ...(difficulty ? { difficulty } : {}),
+        }}
+        placeholder={t('searchPlaceholder')}
+      />
 
       {/* ── Filters ────────────────────────────────── */}
       <div className="space-y-2">
@@ -104,7 +118,7 @@ export default async function TasksPage({ searchParams }: Props) {
               href={filterLink({ topic: topic.slug, difficulty })}
               active={topicSlug === topic.slug}
             >
-              {topic.icon} {tTopic(topic.slug, topic.title)}
+              <TopicIcon slug={topic.slug} size={11} className="shrink-0" /> {tTopic(topic.slug, topic.title)}
             </PillLink>
           ))}
         </div>
@@ -170,7 +184,7 @@ export default async function TasksPage({ searchParams }: Props) {
           {tasks.map((task) => {
             const rawTopic = task.topics as { title: string; icon: string | null; slug?: string } | null
             const translatedTopic = rawTopic
-              ? { title: tTopic(rawTopic.slug, rawTopic.title), icon: rawTopic.icon as string | null }
+              ? { title: tTopic(rawTopic.slug, rawTopic.title), icon: rawTopic.icon as string | null, slug: rawTopic.slug }
               : null
             return (
               <TaskCard
@@ -207,7 +221,7 @@ function PillLink({
   return (
     <Link
       href={href}
-      className="px-3 py-1 rounded-full text-xs font-medium transition-colors border"
+      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors border"
       style={{
         background:  active ? 'var(--primary)' : 'var(--card)',
         color:       active ? 'var(--primary-foreground)' : 'var(--muted-foreground)',

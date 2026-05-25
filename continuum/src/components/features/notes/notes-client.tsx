@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { useState, useTransition } from 'react'
-import { BookMarked, Pencil, Trash2, StickyNote, Search, X } from 'lucide-react'
+import { BookMarked, Pencil, Trash2, StickyNote, Search, X, Paperclip } from 'lucide-react'
 import { NoteEditor } from './note-editor'
 import { deleteNote } from '@/app/actions/notes'
 import { ConfirmDialog } from '@/components/confirm-dialog'
@@ -159,9 +159,8 @@ export function NotesClient({ notes: initialNotes, collections }: NotesClientPro
             const linkedTo =
               note.material?.title ||
               note.task?.title ||
-              (note.topic
-                ? `${note.topic.icon ?? ''} ${note.topic.title}`.trim()
-                : null)
+              note.topic?.title ||
+              null
 
             return (
               <div
@@ -245,7 +244,7 @@ export function NotesClient({ notes: initialNotes, collections }: NotesClientPro
                           className="text-[11px] truncate"
                           style={{ color: 'var(--muted-foreground)' }}
                         >
-                          📎 {linkedTo}
+                          <Paperclip size={10} className="shrink-0" /> {linkedTo}
                         </span>
                       )}
                     </div>

@@ -1,8 +1,9 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useRef, useState, useTransition } from 'react'
-import { X, BookMarked } from 'lucide-react'
+import { useRef, useState, useTransition, useEffect } from 'react'
+import { X, BookMarked, ChevronDown, Paperclip } from 'lucide-react'
+import { toast } from 'sonner'
 import { createNote, updateNote } from '@/app/actions/notes'
 
 interface Collection { id: string; title: string }
@@ -40,6 +41,18 @@ export function NoteEditor({
   const [isPending, startTransition]          = useTransition()
   const [error, setError]                     = useState<string | null>(null)
   const [selectedCollection, setSelectedCollection] = useState<string>(note?.collectionId ?? '')
+  const [collectionOpen, setCollectionOpen]   = useState(false)
+  const collectionRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function onOutside(e: MouseEvent) {
+      if (collectionRef.current && !collectionRef.current.contains(e.target as Node)) {
+        setCollectionOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onOutside)
+    return () => document.removeEventListener('mousedown', onOutside)
+  }, [])
 
   /* Auto-grow the textarea as content grows */
   function autoGrow(ta: HTMLTextAreaElement) {
@@ -55,7 +68,9 @@ export function NoteEditor({
       const res = note ? await updateNote(formData) : await createNote(formData)
       if ('error' in res && res.error) {
         setError(res.error)
+        toast.error(res.error)
       } else {
+        toast.success(note ? 'Нотатку оновлено' : 'Нотатку збережено')
         onClose()
       }
     })
@@ -63,7 +78,7 @@ export function NoteEditor({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.5)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
@@ -120,7 +135,8 @@ export function NoteEditor({
                   color: 'var(--primary)',
                 }}
               >
-                📎 {t('linkedTo')}: <strong>{materialTitle ?? taskTitle}</strong>
+                <Paperclip size={11} className="shrink-0" />
+                {t('linkedTo')}: <strong>{materialTitle ?? taskTitle}</strong>
               </span>
             </div>
           )}
@@ -151,44 +167,58 @@ export function NoteEditor({
             />
           </div>
 
-          {/* ── Collection picker (pill chips) ────── */}
+          {/* ── Collection picker (chip-style dropdown) ────── */}
           {collections.length > 0 && (
             <div
-              className="px-6 py-3 border-t"
+              className="flex items-center gap-2 px-6 py-3 border-t"
               style={{ borderColor: 'color-mix(in srgb, var(--border) 60%, transparent)' }}
             >
-              <div className="flex items-center gap-2 flex-wrap">
-                <BookMarked size={12} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
-                {/* "No collection" chip */}
+              <BookMarked size={12} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
+              <div ref={collectionRef} className="relative">
+                {/* Trigger chip */}
                 <button
                   type="button"
-                  onClick={() => setSelectedCollection('')}
-                  className="rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium transition-all"
+                  onClick={() => setCollectionOpen(v => !v)}
+                  className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium transition-all"
                   style={{
-                    background: !selectedCollection ? 'var(--muted)' : 'transparent',
-                    borderColor: !selectedCollection ? 'transparent' : 'var(--border)',
-                    color: !selectedCollection ? 'var(--foreground)' : 'var(--muted-foreground)',
+                    background: selectedCollection
+                      ? 'color-mix(in srgb, var(--primary) 12%, transparent)'
+                      : 'var(--muted)',
+                    borderColor: selectedCollection ? 'var(--primary)' : 'transparent',
+                    color: selectedCollection ? 'var(--primary)' : 'var(--foreground)',
                   }}
                 >
-                  {t('noCollection')}
+                  {selectedCollection
+                    ? (collections.find(c => c.id === selectedCollection)?.title ?? t('noCollection'))
+                    : t('noCollection')}
+                  <ChevronDown size={10} style={{ opacity: 0.7 }} />
                 </button>
-                {collections.map(c => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => setSelectedCollection(c.id)}
-                    className="rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium transition-all"
-                    style={{
-                      background: selectedCollection === c.id
-                        ? 'color-mix(in srgb, var(--primary) 12%, transparent)'
-                        : 'transparent',
-                      borderColor: selectedCollection === c.id ? 'var(--primary)' : 'var(--border)',
-                      color: selectedCollection === c.id ? 'var(--primary)' : 'var(--muted-foreground)',
-                    }}
+
+                {/* Dropdown list */}
+                {collectionOpen && (
+                  <div
+                    className="absolute bottom-full left-0 z-10 mb-1.5 min-w-[180px] overflow-hidden rounded-xl border py-1 shadow-xl"
+                    style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
                   >
-                    {c.title}
-                  </button>
-                ))}
+                    {[{ id: '', title: t('noCollection') }, ...collections].map(c => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => { setSelectedCollection(c.id); setCollectionOpen(false) }}
+                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[12.5px] transition-colors"
+                        style={{
+                          background: selectedCollection === c.id
+                            ? 'color-mix(in srgb, var(--primary) 8%, transparent)'
+                            : 'transparent',
+                          color: selectedCollection === c.id ? 'var(--primary)' : 'var(--foreground)',
+                          fontWeight: selectedCollection === c.id ? 600 : 400,
+                        }}
+                      >
+                        {c.title}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

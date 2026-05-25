@@ -1,6 +1,7 @@
 /* Personalized greeting with inline stats strip.
    Server component — receives data as props. */
 
+import type { ReactNode } from 'react'
 import { getTranslations } from 'next-intl/server'
 
 interface HeroProps {
@@ -28,10 +29,17 @@ export async function Hero({
   const focusM = focusMinutesToday % 60
   const focusValue = focusH > 0 ? `${focusH}г ${focusM}` : `${focusM}`
 
-  const stats = [
-    { label: t('streakLabel'),  value: String(streakDays),            sub: t('streakUnit') },
-    { label: t('todayLabel'),   value: `${todayDone}/${todayTotal}`,  sub: t('todayUnit') },
-    { label: t('focusLabel'),   value: focusValue,                    sub: t('focusUnit') },
+  const stats: { label: string; value: ReactNode; sub: string }[] = [
+    {
+      label: t('streakLabel'),
+      value: streakDays > 0
+        /* eslint-disable-next-line @next/next/no-img-element */
+        ? <span className="inline-flex items-center gap-1"><img src="/icons/fire.png" alt="" width={20} height={20} className="dark:invert" style={{ display: 'inline-block', verticalAlign: '-0.18em' }} />{streakDays}</span>
+        : '0',
+      sub: t('streakUnit'),
+    },
+    { label: t('todayLabel'),  value: `${todayDone}/${todayTotal}`, sub: t('todayUnit') },
+    { label: t('focusLabel'),  value: focusValue,                   sub: t('focusUnit') },
   ]
 
   return (

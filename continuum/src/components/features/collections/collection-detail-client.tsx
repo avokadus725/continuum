@@ -1,12 +1,14 @@
 'use client'
 
+import { DIFF_COLOR } from '@/lib/difficulty-colors'
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { toast } from 'sonner'
 import {
-  ArrowLeft, MoreHorizontal, Pencil, Plus,
-  FileText, Video, Link as LinkIcon, CheckSquare, Sticker, Search, X,
+  ArrowLeft, Pencil, Plus,
+  FileText, Video, Link as LinkIcon, CheckSquare, Sticker, Search, X, Trash2,
 } from 'lucide-react'
 import { CollectionCover } from './_parts/collection-cover'
 import { CoverEditor, type CoverEditorValue } from './_parts/cover-editor'
@@ -53,11 +55,6 @@ interface Props {
 
 type Tab = 'all' | 'mat' | 'task' | 'note'
 
-const DIFF_COLOR: Record<string, string> = {
-  beginner:     'var(--success)',
-  intermediate: 'var(--warning)',
-  advanced:     'var(--destructive)',
-}
 const DIFF_LABEL: Record<string, string> = {
   beginner: 'Початковий', intermediate: 'Середній', advanced: 'Складний',
 }
@@ -96,35 +93,66 @@ export function CollectionDetailClient({
       fd.set('cover', v.cover)
       await updateCollectionMeta(fd)
       setEditorOpen(false)
+      toast.success('Підбірку оновлено')
     })
   }
 
   function handleDeleteCollection() {
-    if (!confirm('Видалити підбірку?')) return
-    startTransition(async () => {
-      const fd = new FormData()
-      fd.set('id', collection.id)
-      await deleteCollection(fd)
-      router.push('/collections')
+    toast('Видалити підбірку?', {
+      description: 'Цю дію не можна скасувати.',
+      action: {
+        label: 'Видалити',
+        onClick: () => {
+          startTransition(async () => {
+            const fd = new FormData()
+            fd.set('id', collection.id)
+            await deleteCollection(fd)
+            toast.success('Підбірку видалено')
+            router.push('/collections')
+          })
+        },
+      },
+      cancel: { label: 'Скасувати', onClick: () => {} },
     })
   }
 
-  function handleRemoveMaterial(id: string) {
-    startTransition(async () => {
-      const fd = new FormData()
-      fd.set('collection_id', collection.id)
-      fd.set('material_id', id)
-      fd.set('action', 'remove')
-      await toggleMaterialInCollection(fd)
+  function handleRemoveMaterial(id: string, title: string) {
+    toast(`Прибрати «${title}»?`, {
+      description: 'Матеріал буде видалено з підбірки.',
+      action: {
+        label: 'Прибрати',
+        onClick: () => {
+          startTransition(async () => {
+            const fd = new FormData()
+            fd.set('collection_id', collection.id)
+            fd.set('material_id', id)
+            fd.set('action', 'remove')
+            await toggleMaterialInCollection(fd)
+            toast.success('Матеріал прибрано з підбірки')
+          })
+        },
+      },
+      cancel: { label: 'Скасувати', onClick: () => {} },
     })
   }
-  function handleRemoveTask(id: string) {
-    startTransition(async () => {
-      const fd = new FormData()
-      fd.set('collection_id', collection.id)
-      fd.set('task_id', id)
-      fd.set('action', 'remove')
-      await toggleTaskInCollection(fd)
+
+  function handleRemoveTask(id: string, title: string) {
+    toast(`Прибрати «${title}»?`, {
+      description: 'Завдання буде видалено з підбірки.',
+      action: {
+        label: 'Прибрати',
+        onClick: () => {
+          startTransition(async () => {
+            const fd = new FormData()
+            fd.set('collection_id', collection.id)
+            fd.set('task_id', id)
+            fd.set('action', 'remove')
+            await toggleTaskInCollection(fd)
+            toast.success('Завдання прибрано з підбірки')
+          })
+        },
+      },
+      cancel: { label: 'Скасувати', onClick: () => {} },
     })
   }
 
@@ -133,11 +161,12 @@ export function CollectionDetailClient({
       {/* Hero */}
       <div className="overflow-hidden rounded-[18px] border" style={{ borderColor: 'var(--border)' }}>
         <CollectionCover emoji={collection.emoji} cover={collection.cover}>
+          {/* Frosted buttons — always dark text so they're visible on any cover */}
           <div className="flex gap-2">
             <Link
               href="/collections"
               className="inline-flex h-[30px] items-center gap-1.5 rounded-lg px-3 text-xs font-semibold no-underline"
-              style={{ background: 'rgba(255,255,255,0.7)', color: 'var(--foreground)' }}
+              style={{ background: 'rgba(255,255,255,0.88)', color: '#18181b' }}
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               До підбірок
@@ -145,23 +174,15 @@ export function CollectionDetailClient({
             <button
               onClick={() => setEditorOpen(true)}
               className="grid h-[30px] w-[30px] place-items-center rounded-lg border-0"
-              style={{ background: 'rgba(255,255,255,0.7)', color: 'var(--foreground)' }}
+              style={{ background: 'rgba(255,255,255,0.88)', color: '#18181b' }}
               aria-label="Редагувати"
             >
               <Pencil className="h-3.5 w-3.5" />
-            </button>
-            <button
-              className="grid h-[30px] w-[30px] place-items-center rounded-lg border-0"
-              style={{ background: 'rgba(255,255,255,0.7)', color: 'var(--foreground)' }}
-              aria-label="Меню"
-            >
-              <MoreHorizontal className="h-3.5 w-3.5" />
             </button>
           </div>
         </CollectionCover>
 
         <div className="relative px-7 pb-6 pt-5" style={{ background: 'var(--card)' }}>
-          {/* Title row */}
           <div className="flex items-end gap-6">
             <div className="flex-1">
               <h1
@@ -183,14 +204,24 @@ export function CollectionDetailClient({
                 <Count icon={<Sticker className="h-3.5 w-3.5" />} n={notes.length} label="нотаток" tone="#C2956C" />
               </div>
             </div>
-            <button
-              onClick={() => setPickerOpen(true)}
-              className="inline-flex h-10 flex-none items-center gap-2 rounded-[10px] border-0 px-4 text-[13.5px] font-semibold text-white"
-              style={{ background: 'var(--primary)' }}
-            >
-              <Plus className="h-4 w-4" />
-              Додати
-            </button>
+            <div className="flex items-center gap-2 flex-none">
+              <button
+                onClick={handleDeleteCollection}
+                className="grid h-9 w-9 place-items-center rounded-[10px] border transition-colors hover:bg-red-50 dark:hover:bg-red-950/30"
+                style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
+                title="Видалити підбірку"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setPickerOpen(true)}
+                className="inline-flex h-10 items-center gap-2 rounded-[10px] border-0 px-4 text-[13.5px] font-semibold text-white"
+                style={{ background: 'var(--primary)' }}
+              >
+                <Plus className="h-4 w-4" />
+                Додати
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -226,28 +257,24 @@ export function CollectionDetailClient({
 
       {/* Feed */}
       <div className="space-y-0">
-        {/* Materials */}
         {(tab === 'all' || tab === 'mat') && filtered.mat.map((m, i, arr) => (
           <MaterialRow
             key={m.id} m={m}
             last={tab !== 'all' && i === arr.length - 1 && filtered.task.length === 0 && filtered.note.length === 0}
-            onRemove={() => handleRemoveMaterial(m.id)}
+            onRemove={() => handleRemoveMaterial(m.id, m.title)}
           />
         ))}
-        {/* Tasks */}
         {(tab === 'all' || tab === 'task') && filtered.task.map((t, i, arr) => (
           <TaskRow
             key={t.id} t={t}
             last={tab === 'task' && i === arr.length - 1}
-            onRemove={() => handleRemoveTask(t.id)}
+            onRemove={() => handleRemoveTask(t.id, t.title)}
           />
         ))}
-        {/* Notes */}
         {(tab === 'all' || tab === 'note') && filtered.note.map((n, i, arr) => (
           <NoteRow key={n.id} n={n} last={i === arr.length - 1} />
         ))}
 
-        {/* Empty state per tab */}
         {((tab === 'all'  && total === 0) ||
           (tab === 'mat'  && materials.length === 0) ||
           (tab === 'task' && tasks.length === 0) ||
@@ -352,8 +379,8 @@ function Count({ icon, n, label, tone }: { icon: React.ReactNode; n: number; lab
 
 function MaterialRow({ m, last, onRemove }: { m: Material; last: boolean; onRemove: () => void }) {
   const Icon =
-    m.type === 'video'       ? Video
-    : m.type === 'link'      ? LinkIcon
+    m.type === 'video'  ? Video
+    : m.type === 'link' ? LinkIcon
     : FileText
   const labelKind = m.type === 'video' ? 'Відео' : m.type === 'link' ? 'Посилання' : 'Стаття'
   const excerpt = m.content?.slice(0, 140) ?? (m.url ? m.url.replace(/^https?:\/\//, '') : null)
@@ -365,14 +392,14 @@ function MaterialRow({ m, last, onRemove }: { m: Material; last: boolean; onRemo
       title={<Link href={`/materials/${m.id}`} className="no-underline" style={{ color: 'var(--foreground)' }}>{m.title}</Link>}
       desc={excerpt}
       meta={null}
-      onMore={onRemove}
+      onRemove={onRemove}
       last={last}
     />
   )
 }
 
 function TaskRow({ t, last, onRemove }: { t: Task; last: boolean; onRemove: () => void }) {
-  const tone = DIFF_COLOR[t.difficulty] ?? 'var(--muted-foreground)'
+  const tone = DIFF_COLOR[t.difficulty as keyof typeof DIFF_COLOR] ?? 'var(--muted-foreground)'
   const label = DIFF_LABEL[t.difficulty] ?? t.difficulty
   return (
     <Row
@@ -388,7 +415,7 @@ function TaskRow({ t, last, onRemove }: { t: Task; last: boolean; onRemove: () =
           +{t.xp_reward} XP
         </span>
       }
-      onMore={onRemove}
+      onRemove={onRemove}
       last={last}
     />
   )
@@ -409,7 +436,7 @@ function NoteRow({ n, last }: { n: Note; last: boolean }) {
 }
 
 function Row({
-  icon, iconTone, kind, badge, badgeColor, title, desc, meta, rightExtra, onMore, last,
+  icon, iconTone, kind, badge, badgeColor, title, desc, meta, rightExtra, onRemove, last,
 }: {
   icon: React.ReactNode
   iconTone: string
@@ -420,12 +447,12 @@ function Row({
   desc?: string | null
   meta?: string | null
   rightExtra?: React.ReactNode
-  onMore?: () => void
+  onRemove?: () => void
   last?: boolean
 }) {
   return (
     <div
-      className="flex items-start gap-3.5 py-3.5"
+      className="group flex items-start gap-3.5 py-3.5"
       style={{ borderBottom: last ? 'none' : '1px solid color-mix(in srgb, var(--border) 60%, transparent)' }}
     >
       <span
@@ -453,14 +480,14 @@ function Row({
       </div>
       <div className="flex flex-none items-center gap-3">
         {rightExtra}
-        {onMore && (
+        {onRemove && (
           <button
-            onClick={onMore}
-            className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent"
-            style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }}
+            onClick={onRemove}
+            className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent opacity-0 transition-opacity group-hover:opacity-100"
+            style={{ color: 'var(--muted-foreground)' }}
             title="Прибрати з підбірки"
           >
-            <MoreHorizontal className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </button>
         )}
       </div>

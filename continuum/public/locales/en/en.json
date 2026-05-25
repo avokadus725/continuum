@@ -124,6 +124,7 @@
     "youLabel": "you",
     "weeklyDetails": "Details →",
     "weeklyFocusTotal": "{hours}h {minutes}m focus",
+    "weeklyFocusTotalMin": "{minutes}m focus",
     "recsMore": "More →",
     "kindTask": "Task",
     "kindNote": "Note",
@@ -179,7 +180,8 @@
     },
     "addToCollection": "Add to collection",
     "noMaterials": "No materials yet",
-    "readMore": "Read more →"
+    "readMore": "Read more →",
+    "searchPlaceholder": "Search by title or content…"
   },
   "notifications": {
     "title": "Notifications",
@@ -212,7 +214,8 @@
     "completedUnit": "completed",
     "textAnswerPlaceholder": "Type your answer here…",
     "selectHint": "Select one answer",
-    "selectMultiHint": "Select all that apply"
+    "selectMultiHint": "Select all that apply",
+    "searchPlaceholder": "Search by title or description…"
   },
   "posts": {
     "placeholder": "What's on your mind?",
@@ -328,7 +331,15 @@
     "tasksLabel": "tasks",
     "correctLabel": "correct",
     "noActivity": "No tasks this week",
-    "xpGapToRank": "{xp} XP to #{rank}"
+    "xpGapToRank": "{xp} XP to #{rank}",
+    "streak": "day streak",
+    "streakDays": "{count}d",
+    "hotThisWeek": "Hot this week",
+    "hotNoActivity": "No activity yet this week",
+    "rivals": "Close rivals",
+    "rivalsAhead": "just ahead",
+    "rivalsBelow": "just behind",
+    "rivalsNoRivals": "You're alone at the top!"
   },
   "profile": {
     "title": "Profile",
@@ -412,7 +423,17 @@
       "fireplace": "Fireplace",
       "underwater": "Underwater",
       "whitenoise": "Abstract"
-    }
+    },
+    "sessionCounter": "Session {n} of {total}",
+    "intentionLabel": "What are you focusing on?",
+    "intentionHint": "e.g. math — lecture 7",
+    "leaveTitle": "Leave the focus room?",
+    "leaveBody": "Your session stays live as a small timer — come back any time.",
+    "leaveKeep": "Keep focusing",
+    "leaveMinimize": "Browse & return later",
+    "leaveEnd": "End session",
+    "floatingReturn": "Return to focus",
+    "floatingPaused": "PAUSED"
   },
   "comments": {
     "title": "Comments",
@@ -433,7 +454,7 @@
     "users": "Users",
     "materials": "Materials",
     "tasks": "Tasks",
-    "attempts": "Attempts",
+    "attempts": "Task Attempts",
     "name": "Name",
     "role": "Role",
     "level": "Level",

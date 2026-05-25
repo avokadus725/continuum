@@ -1,52 +1,63 @@
-/* Focus accent band.
-   NOT an interactive timer — pure navigation accent to /focus.
-   Three states: 'running' (active session somewhere), 'paused', 'idle'. */
+'use client'
 
+/* Focus accent band — live-aware client component.
+   Reads localStorage every second.
+   - Minimized session active → shows live countdown, progress bar, "Return to room"
+   - Idle                     → shows static 25:00 with "Start session" */
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Timer, ArrowRight } from 'lucide-react'
-import { getTranslations } from 'next-intl/server'
+import { readFocusLive, computeSecondsLeft, type FocusLive } from '@/lib/focus-live-store'
 
-type FocusState =
-  | { state: 'running'; time: string; progress: number; session: number; total: number }
-  | { state: 'paused';  time: string; progress: number; session: number; total: number }
-  | { state: 'idle'; workMin: number; breakMin: number }
+function pad(n: number) { return String(n).padStart(2, '0') }
+function fmt(s: number)  { return `${pad(Math.floor(s / 60))}:${pad(s % 60)}` }
 
-interface FocusBandProps {
-  focus: FocusState
-}
+export function FocusBand() {
+  const t = useTranslations('dashboard')
 
-export async function FocusBand({ focus }: FocusBandProps) {
-  const t = await getTranslations('dashboard')
+  // Start null so first (server) render is always idle — no hydration mismatch.
+  const [live, setLive]           = useState<FocusLive | null>(null)
+  const [displaySecs, setDisplay] = useState(0)
 
-  const cfg = (() => {
-    if (focus.state === 'running') {
-      return {
-        eyebrow: t('focusEyebrowWork'),
-        dotColor: '#D45050', pulse: true,
-        status: t('focusRunning', { n: focus.session, total: focus.total }),
-        time: focus.time, progress: focus.progress,
-        cta: t('focusCtaReturn'),
+  useEffect(() => {
+    function tick() {
+      const l = readFocusLive()
+      if (!l?.isMinimized) { setLive(null); return }
+      setLive(l)
+      setDisplay(computeSecondsLeft(l))
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  const isWork = live?.phase === 'work'
+  const totalSecs = live
+    ? (isWork ? live.workMin * 60 : live.breakMin * 60)
+    : 25 * 60
+  const progress = live ? Math.min(100, (1 - displaySecs / totalSecs) * 100) : 0
+
+  const cfg = live
+    ? {
+        eyebrow:  t(isWork ? 'focusEyebrowWork' : 'focusEyebrowRoom'),
+        dotColor: live.isRunning && isWork ? '#D45050' : '#C2956C',
+        pulse:    live.isRunning && isWork,
+        status:   live.isRunning
+                    ? t('focusRunning', { n: live.pomodorosCompleted + 1, total: live.targetSessions })
+                    : t('focusPaused',  { n: live.pomodorosCompleted + 1, total: live.targetSessions }),
+        time:     fmt(displaySecs),
+        cta:      t('focusCtaReturn'),
       }
-    }
-    if (focus.state === 'paused') {
-      return {
-        eyebrow: t('focusEyebrowWork'),
-        dotColor: '#C2956C', pulse: false,
-        status: t('focusPaused', { n: focus.session, total: focus.total }),
-        time: focus.time, progress: focus.progress,
-        cta: t('focusCtaResume'),
+    : {
+        eyebrow:  t('focusEyebrowRoom'),
+        dotColor: 'var(--muted-foreground)',
+        pulse:    false,
+        status:   t('focusIdle', { work: 25, rest: 5 }),
+        time:     '25:00',
+        cta:      t('focusCtaStart'),
       }
-    }
-    const workMin  = focus.state === 'idle' ? focus.workMin  : 25
-    const breakMin = focus.state === 'idle' ? focus.breakMin : 5
-    return {
-      eyebrow: t('focusEyebrowRoom'),
-      dotColor: 'var(--muted-foreground)', pulse: false,
-      status: t('focusIdle', { work: workMin, rest: breakMin }),
-      time: `${String(workMin).padStart(2, '0')}:00`, progress: 0,
-      cta: t('focusCtaStart'),
-    }
-  })()
 
   return (
     <Link
@@ -54,9 +65,9 @@ export async function FocusBand({ focus }: FocusBandProps) {
       className="relative mb-7 flex items-center gap-6 overflow-hidden rounded-2xl border px-6 py-4 pl-[26px] no-underline transition-colors hover:border-[color-mix(in_srgb,var(--primary)_30%,var(--border))]"
       style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
     >
-      {/* primary accent strip */}
+      {/* left accent strip */}
       <span
-        className="absolute left-0 top-0 bottom-0 w-[3px]"
+        className="absolute bottom-0 left-0 top-0 w-[3px]"
         style={{ background: 'var(--primary)' }}
         aria-hidden
       />
@@ -77,15 +88,15 @@ export async function FocusBand({ focus }: FocusBandProps) {
           <span
             className={cfg.pulse ? 'cont-pulse' : ''}
             style={{
-              display: 'inline-block', width: 6, height: 6, borderRadius: 999,
-              background: cfg.dotColor,
+              display: 'inline-block', width: 6, height: 6,
+              borderRadius: 999, background: cfg.dotColor,
             }}
           />
           {cfg.status}
         </div>
       </div>
 
-      {/* big timer (display only) */}
+      {/* big live timer */}
       <div className="flex flex-1 flex-col items-center">
         <div
           className="text-[38px] font-semibold leading-none tracking-[-1.4px] tabular-nums"
@@ -97,7 +108,10 @@ export async function FocusBand({ focus }: FocusBandProps) {
           className="mt-2.5 h-[3px] w-[220px] overflow-hidden rounded-full"
           style={{ background: 'var(--muted)' }}
         >
-          <div className="h-full" style={{ width: `${cfg.progress}%`, background: 'var(--primary)' }} />
+          <div
+            className="h-full transition-[width] duration-700"
+            style={{ width: `${progress}%`, background: 'var(--primary)' }}
+          />
         </div>
       </div>
 

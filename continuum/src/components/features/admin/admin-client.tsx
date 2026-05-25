@@ -202,7 +202,15 @@ export function AdminClient({ currentUserId, users, tasks, materials, topics, to
                         onClick={() => handleToggleUser(u.id, u.is_active)}
                         disabled={pendingId === u.id || isPending}
                         className="text-xs px-2 py-1 rounded-lg border transition-colors disabled:opacity-40"
-                        style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
+                        style={u.is_active ? {
+                          borderColor: 'color-mix(in srgb, var(--destructive) 70%, transparent)',
+                          color: 'var(--destructive)',
+                          background: 'transparent',
+                        } : {
+                          borderColor: 'color-mix(in srgb, var(--success) 70%, transparent)',
+                          color: 'var(--success)',
+                          background: 'transparent',
+                        }}>
                         {u.is_active ? t('deactivate') : t('activate')}
                       </button>
                     )}

@@ -1,14 +1,21 @@
 'use client'
 
 /* Continuum Focus Room — main orchestrator.
-   Replaces continuum/src/components/features/focus/focus-room.tsx.
+   State machine: idle → work → break → … → reflection (after last session).
 
-   - Hides app chrome (assumes sidebar-layout sees /focus as full-bleed and
-     hides sidebar + topbar — see updated sidebar-layout.tsx).
-   - Background image fills the viewport.
-   - State machine: idle → work → break → … → reflection (after last session). */
+   Leave-guard flow:
+   - Clicking "Home" while a session is active shows a confirm dialog with 3 options:
+       • Keep focusing  — dismiss, stay
+       • Browse & return later  — writes session to localStorage (isMinimized:true), navigates away;
+                                  the FocusFloatingTimer pill appears on all other pages
+       • End session  — persists as interrupted, navigates to /dashboard
+
+   Session restoration:
+   - On mount, if localStorage contains an isMinimized session, state is restored
+     and the session continues as if the user never left. */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 
@@ -17,6 +24,9 @@ import {
   DEFAULT_WORK_MINUTES, DEFAULT_BREAK_MINUTES,
 } from '@/lib/focus-presets'
 import { saveFocusSession } from '@/app/actions/focus'
+import {
+  writeFocusLive, clearFocusLive, readFocusLive, computeSecondsLeft,
+} from '@/lib/focus-live-store'
 
 import { TopChrome } from './_parts/top-chrome'
 import { PomodoroDots } from './_parts/pomodoro-dots'
@@ -36,7 +46,8 @@ function pad(n: number) { return String(n).padStart(2, '0') }
 function formatSeconds(s: number) { return `${pad(Math.floor(s / 60))}:${pad(s % 60)}` }
 
 export function FocusRoom() {
-  const t = useTranslations('focus')
+  const t      = useTranslations('focus')
+  const router = useRouter()
 
   // ── settings ───────────────────────────────────────────
   const [settings, setSettings] = useState<FocusSettings>({
@@ -50,9 +61,9 @@ export function FocusRoom() {
   const [pendingSettings, setPendingSettings] = useState(settings)
 
   // ── timer state ─────────────────────────────────────────
-  const [phase, setPhase] = useState<Phase>('idle')
+  const [phase, setPhase]           = useState<Phase>('idle')
   const [secondsLeft, setSecondsLeft] = useState(settings.workMin * 60)
-  const [isRunning, setIsRunning] = useState(false)
+  const [isRunning, setIsRunning]   = useState(false)
 
   // ── session accumulators ────────────────────────────────
   const [pomodorosCompleted, setPomodorosCompleted] = useState(0)
@@ -61,21 +72,85 @@ export function FocusRoom() {
   const sessionStartRef = useRef<Date | null>(null)
 
   // ── room mood ───────────────────────────────────────────
-  const [intention, setIntention] = useState('')
-  const [bgId, setBgId] = useState(BACKGROUND_PRESETS[0].id)
-  const [soundId, setSoundId] = useState('none')
-  const [volume, setVolume] = useState(0.5)
-  const [picker, setPicker] = useState<'none' | 'scene' | 'sound'>('none')
+  const [intention, setIntention]   = useState('')
+  const [bgId, setBgId]             = useState(BACKGROUND_PRESETS[0].id)
+  const [soundId, setSoundId]       = useState('none')
+  const [volume, setVolume]         = useState(0.5)
+  const [picker, setPicker]         = useState<'none' | 'scene' | 'sound'>('none')
 
-  // ── reflection ──────────────────────────────────────────
-  const [showReflection, setShowReflection] = useState(false)
-  const [mood, setMood] = useState<number | null>(null)
+  // ── reflection / leave guard ────────────────────────────
+  const [showReflection,   setShowReflection]   = useState(false)
+  const [mood, setMood]                         = useState<number | null>(null)
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
 
-  const containerRef = useRef<HTMLDivElement>(null)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const containerRef   = useRef<HTMLDivElement>(null)
+  const audioRef       = useRef<HTMLAudioElement | null>(null)
+  // Ref — not state — so the sync effect reads the latest value without
+  // triggering an extra re-render that could race with the write.
+  const isMinimizedRef = useRef(false)
+  // Mirror endChime setting into a ref so playChime() never goes stale
+  // inside useCallback closures.
+  const endChimeRef    = useRef(settings.endChime)
+  endChimeRef.current  = settings.endChime
+  // Readable synchronously inside setInterval without adding secondsLeft to
+  // the countdown effect's dep array (which would restart the interval every tick).
+  const secondsLeftRef = useRef(secondsLeft)
+  secondsLeftRef.current = secondsLeft
 
   const scene = BACKGROUND_PRESETS.find(b => b.id === bgId) ?? BACKGROUND_PRESETS[0]
   const sound = SOUND_PRESETS.find(s => s.id === soundId) ?? SOUND_PRESETS[0]
+
+  // ── restore minimized session on mount ─────────────────
+  useEffect(() => {
+    const live = readFocusLive()
+    if (!live?.isMinimized) {
+      clearFocusLive()   // clear any orphaned data
+      return
+    }
+    // Restore
+    const adjSecs = computeSecondsLeft(live)
+    sessionStartRef.current = new Date(live.sessionStartMs)
+    setPhase(live.phase)
+    setSecondsLeft(adjSecs)
+    setIsRunning(live.isRunning)
+    setPomodorosCompleted(live.pomodorosCompleted)
+    setFocusSeconds(live.focusSeconds)
+    setBreakSeconds(live.breakSeconds)
+    setIntention(live.intention)
+    setSettings(s => ({
+      ...s,
+      workMin: live.workMin,
+      breakMin: live.breakMin,
+      targetSessions: live.targetSessions,
+    }))
+    // clearFocusLive() — intentionally NOT called here;
+    // the sync effect below will overwrite it with isMinimized:false on the next render.
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── sync live state to localStorage (for floating timer) ─
+  useEffect(() => {
+    if (phase === 'idle') {
+      clearFocusLive()
+      return
+    }
+    writeFocusLive({
+      phase,
+      secondsLeft,
+      updatedAt: Date.now(),
+      isRunning,
+      isMinimized: isMinimizedRef.current,   // true once user clicked "Browse & return"
+      pomodorosCompleted,
+      targetSessions: settings.targetSessions,
+      workMin:        settings.workMin,
+      breakMin:       settings.breakMin,
+      intention,
+      focusSeconds,
+      breakSeconds,
+      sessionStartMs: sessionStartRef.current?.getTime() ?? Date.now(),
+    })
+  }, [phase, secondsLeft, isRunning, pomodorosCompleted,
+      settings.targetSessions, settings.workMin, settings.breakMin,
+      intention, focusSeconds, breakSeconds])
 
   // ── audio ───────────────────────────────────────────────
   useEffect(() => {
@@ -99,6 +174,32 @@ export function FocusRoom() {
     }
   }, [soundId, isRunning, volume, sound])
   useEffect(() => () => { audioRef.current?.pause() }, [])
+
+  // ── end-of-phase chime (Web Audio API, no file needed) ──
+  function playChime(type: 'work' | 'break') {
+    if (!endChimeRef.current) return
+    try {
+      const ctx = new AudioContext()
+      // Two harmonics → bell-like tone; 'work' phase done = higher pitch, 'break' done = lower
+      const pairs: [number, number][] = type === 'work'
+        ? [[880, 0.30], [1320, 0.15]]   // A5 + E6 — bright "break time" ding
+        : [[660, 0.30], [990,  0.15]]   // E5 + B5 — mellower "back to work" ding
+      pairs.forEach(([freq, vol]) => {
+        const osc  = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.type = 'sine'
+        osc.frequency.value = freq
+        const now = ctx.currentTime
+        gain.gain.setValueAtTime(vol, now)
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.2)
+        osc.start(now)
+        osc.stop(now + 2.2)
+      })
+      setTimeout(() => ctx.close(), 3000)
+    } catch { /* AudioContext blocked (e.g. no user gesture) — silently ignore */ }
+  }
 
   function pickSound(id: string) {
     setSoundId(id)
@@ -124,8 +225,8 @@ export function FocusRoom() {
   const transitionToBreak = useCallback(() => {
     const next = pomodorosCompleted + 1
     setPomodorosCompleted(next)
+    playChime('work')   // work phase just ended → bright ding
 
-    // Final session done → reflection
     if (next >= settings.targetSessions) {
       setPhase('idle')
       setIsRunning(false)
@@ -136,28 +237,31 @@ export function FocusRoom() {
     setPhase('break')
     setSecondsLeft(settings.breakMin * 60)
     showNotification(t('notification.breakTitle'), t('notification.breakBody'))
-  }, [pomodorosCompleted, settings.breakMin, settings.targetSessions, t])
+  }, [pomodorosCompleted, settings.breakMin, settings.targetSessions, t]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const transitionToWork = useCallback(() => {
+    playChime('break')  // break phase just ended → mellower ding
     setPhase('work')
     setSecondsLeft(settings.workMin * 60)
     showNotification(t('notification.workTitle'), t('notification.workBody'))
-  }, [settings.workMin, t])
+  }, [settings.workMin, t]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── countdown tick ─────────────────────────────────────
   useEffect(() => {
     if (!isRunning || phase === 'idle') return
     const id = setInterval(() => {
-      setSecondsLeft(prev => {
-        if (prev <= 1) {
-          if (phase === 'work')  transitionToBreak()
-          else                   transitionToWork()
-          return 0
-        }
-        return prev - 1
-      })
-      if (phase === 'work')  setFocusSeconds(s => s + 1)
-      if (phase === 'break') setBreakSeconds(s => s + 1)
+      if (secondsLeftRef.current <= 1) {
+        // Transition must be called OUTSIDE a setState updater.
+        // React 18 Strict Mode double-invokes updater functions to detect
+        // side effects — calling showNotification() inside one fires it twice.
+        setSecondsLeft(0)
+        if (phase === 'work')  { setFocusSeconds(s => s + 1); transitionToBreak() }
+        else                   { setBreakSeconds(s => s + 1); transitionToWork()  }
+      } else {
+        setSecondsLeft(s => s - 1)
+        if (phase === 'work')  setFocusSeconds(s => s + 1)
+        if (phase === 'break') setBreakSeconds(s => s + 1)
+      }
     }, 1000)
     return () => clearInterval(id)
   }, [isRunning, phase, transitionToBreak, transitionToWork])
@@ -180,16 +284,18 @@ export function FocusRoom() {
   }
 
   async function persistAndReset(status: 'completed' | 'interrupted') {
+    isMinimizedRef.current = false   // ensure sync effect won't re-minimize
+    clearFocusLive()                 // immediately clear so the pill disappears
     if (sessionStartRef.current && (focusSeconds > 0 || breakSeconds > 0)) {
       await saveFocusSession({
-        startedAt: sessionStartRef.current.toISOString(),
-        endedAt: new Date().toISOString(),
+        startedAt:       sessionStartRef.current.toISOString(),
+        endedAt:         new Date().toISOString(),
         focusSeconds, breakSeconds, pomodorosCompleted,
-        mode: settings.mode,
+        mode:            settings.mode,
         workDurationMin: settings.workMin,
         breakDurationMin: settings.breakMin,
         status,
-        intention, 
+        intention,
         mood,
       })
       toast.success(t('sessionSaved'))
@@ -214,11 +320,52 @@ export function FocusRoom() {
     void persistAndReset('completed')
     setTimeout(handleStart, 0)
   }
-  function handleExitToDashboard() {
-    void persistAndReset(phase === 'idle' ? 'completed' : 'interrupted')
-    // Navigation handled by the user clicking out; we just reset.
+  async function handleExitToDashboard() {
+    await persistAndReset(pomodorosCompleted > 0 ? 'completed' : 'interrupted')
+    router.push('/dashboard')
   }
 
+  // ── leave guard ────────────────────────────────────────
+  function handleBackHome() {
+    if (phase !== 'idle') {
+      setShowLeaveConfirm(true)
+    } else {
+      router.push('/dashboard')
+    }
+  }
+
+  function handleMinimizeAndLeave() {
+    if (!sessionStartRef.current || phase === 'idle') return
+    // Set the ref FIRST so that if the countdown interval fires and
+    // triggers the sync effect before the component unmounts, it will
+    // still write isMinimized:true (not false).
+    isMinimizedRef.current = true
+    writeFocusLive({
+      phase: phase as 'work' | 'break',
+      secondsLeft,
+      updatedAt:        Date.now(),
+      isRunning,
+      isMinimized:      true,
+      pomodorosCompleted,
+      targetSessions:   settings.targetSessions,
+      workMin:          settings.workMin,
+      breakMin:         settings.breakMin,
+      intention,
+      focusSeconds,
+      breakSeconds,
+      sessionStartMs:   sessionStartRef.current.getTime(),
+    })
+    setShowLeaveConfirm(false)
+    router.push('/dashboard')
+  }
+
+  async function handleLeaveAndEnd() {
+    setShowLeaveConfirm(false)
+    await persistAndReset('interrupted')
+    router.push('/dashboard')
+  }
+
+  // ── settings ───────────────────────────────────────────
   function applySettings() {
     setSettings(pendingSettings)
     setSecondsLeft(pendingSettings.workMin * 60)
@@ -260,6 +407,7 @@ export function FocusRoom() {
       <div className="relative z-10 flex h-full min-h-0 flex-col overflow-y-auto">
         <TopChrome
           showEnd={phase !== 'idle'}
+          onBack={handleBackHome}
           onEnd={handleEnd}
           onOpenSettings={() => { setPendingSettings(settings); setShowSettings(true) }}
           onToggleFullscreen={toggleFullscreen}
@@ -308,7 +456,6 @@ export function FocusRoom() {
             onToggleBell={() => setSettings(s => ({ ...s, endChime: !s.endChime }))}
           />
 
-          {/* Pickers */}
           {picker !== 'none' && (
             <div className="absolute bottom-20 left-1/2 -translate-x-1/2">
               {picker === 'sound' && (
@@ -337,7 +484,7 @@ export function FocusRoom() {
         </div>
       </div>
 
-      {/* Settings overlay */}
+      {/* ── Settings overlay ──────────────────────────────── */}
       {showSettings && (
         <div
           className="absolute inset-0 z-30 grid place-items-center"
@@ -353,7 +500,7 @@ export function FocusRoom() {
         </div>
       )}
 
-      {/* Reflection overlay */}
+      {/* ── Reflection overlay ────────────────────────────── */}
       {showReflection && (
         <div
           className="absolute inset-0 z-30 grid place-items-center"
@@ -368,6 +515,69 @@ export function FocusRoom() {
             onAnother={handleAnother}
             onExit={handleExitToDashboard}
           />
+        </div>
+      )}
+
+      {/* ── Leave-guard overlay ───────────────────────────── */}
+      {showLeaveConfirm && (
+        <div
+          className="absolute inset-0 z-40 grid place-items-center"
+          style={{ background: 'rgba(5,9,8,0.62)', backdropFilter: 'blur(4px)' }}
+          onClick={e => { if (e.target === e.currentTarget) setShowLeaveConfirm(false) }}
+        >
+          <div
+            className="mx-4 w-full max-w-[340px] rounded-[22px] border p-7 text-center"
+            style={{
+              background:   'rgba(12,18,14,0.94)',
+              borderColor:  'rgba(255,255,255,0.12)',
+              boxShadow:    '0 30px 80px -10px rgba(0,0,0,0.65)',
+            }}
+          >
+            <p
+              className="text-[22px] font-semibold leading-snug tracking-[-0.3px]"
+              style={{ color: '#fff' }}
+            >
+              {t('leaveTitle')}
+            </p>
+            <p
+              className="mt-2.5 text-sm leading-[1.55]"
+              style={{ color: 'rgba(255,255,255,0.58)' }}
+            >
+              {t('leaveBody')}
+            </p>
+
+            <div className="mt-7 flex flex-col gap-2.5">
+              {/* Primary — keep focusing */}
+              <button
+                onClick={() => setShowLeaveConfirm(false)}
+                className="h-11 w-full rounded-xl text-sm font-bold transition-opacity hover:opacity-90"
+                style={{ background: '#5BD4A4', color: '#0c1812' }}
+              >
+                {t('leaveKeep')}
+              </button>
+
+              {/* Secondary — minimize (browse & return) */}
+              <button
+                onClick={handleMinimizeAndLeave}
+                className="h-11 w-full rounded-xl border text-sm font-semibold transition-colors hover:bg-white/[0.06]"
+                style={{
+                  borderColor: 'rgba(255,255,255,0.16)',
+                  color:       'rgba(255,255,255,0.82)',
+                }}
+              >
+                {t('leaveMinimize')}
+              </button>
+
+              {/* Tertiary — end session */}
+              <button
+                onClick={handleLeaveAndEnd}
+                className="h-9 w-full text-sm font-medium transition-colors hover:text-white/80"
+                style={{ color: 'rgba(255,255,255,0.36)' }}
+              >
+                {t('leaveEnd')}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

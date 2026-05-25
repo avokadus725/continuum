@@ -42,5 +42,6 @@ export async function saveFocusSession(payload: SaveSessionPayload) {
 
   revalidatePath('/analytics')
   revalidatePath('/focus')
+  revalidatePath('/dashboard')
   return { success: true }
 }

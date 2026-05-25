@@ -2,14 +2,22 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { CollectionDetailClient } from '@/components/features/collections/collection-detail-client'
 import type { CoverKey } from '@/lib/collection-covers'
+import { getTranslations } from 'next-intl/server'
 
 interface Props { params: Promise<{ id: string }> }
 
 export default async function CollectionDetailPage({ params }: Props) {
   const { id } = await params
   const supabase = await createClient()
+  const tTopics = await getTranslations('topics')
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  function tTopic(slug: string | null | undefined, fallback: string): string {
+    if (!slug) return fallback
+    try { return tTopics(slug as Parameters<typeof tTopics>[0]) }
+    catch { return fallback }
+  }
 
   const { data: col } = await (supabase as any)
     .from('collections')
@@ -58,23 +66,23 @@ export default async function CollectionDetailPage({ params }: Props) {
 
   const { data: allMats } = await supabase
     .from('materials')
-    .select('id, title, type, topics(title, icon)')
+    .select('id, title, type, topics(title, icon, slug)')
     .eq('is_published', true)
     .limit(200)
   const { data: allTasks } = await supabase
     .from('tasks')
-    .select('id, title, difficulty, topics(title, icon)')
+    .select('id, title, difficulty, topics(title, icon, slug)')
     .eq('is_published', true)
     .limit(200)
 
   const pickerMaterials = (allMats ?? [])
     .filter(m => !existingMatIds.has(m.id))
     .map(m => {
-      const topic = Array.isArray(m.topics) ? m.topics[0] : m.topics
+      const topic = Array.isArray(m.topics) ? m.topics[0] : m.topics as { title: string; icon: string | null; slug?: string | null } | null
       return {
         id: m.id,
         title: m.title,
-        topic: topic ? `${topic.icon ?? ''} ${topic.title}`.trim() : null,
+        topic: topic ? tTopic(topic.slug, topic.title) : null,
         kind: (m.type as 'article' | 'video' | 'link' | 'interactive'),
       }
     })
@@ -82,11 +90,11 @@ export default async function CollectionDetailPage({ params }: Props) {
   const pickerTasks = (allTasks ?? [])
     .filter(t => !existingTaskIds.has(t.id))
     .map(t => {
-      const topic = Array.isArray(t.topics) ? t.topics[0] : t.topics
+      const topic = Array.isArray(t.topics) ? t.topics[0] : t.topics as { title: string; icon: string | null; slug?: string | null } | null
       return {
         id: t.id,
         title: t.title,
-        topic: topic ? `${topic.icon ?? ''} ${topic.title}`.trim() : null,
+        topic: topic ? tTopic(topic.slug, topic.title) : null,
         difficulty: t.difficulty,
       }
     })

@@ -7,6 +7,7 @@ import { MessageCircle, ExternalLink, ChevronDown, ChevronUp, CheckCircle2 } fro
 import { submitTaskAnswer } from '@/app/actions/tasks'
 import { CommentsSection } from '@/components/features/comments/comments-section'
 import { ReactionsBar } from '@/components/features/reactions/reactions-bar'
+import { DIFF_COLOR as DIFFICULTY_COLOR } from '@/lib/difficulty-colors'
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -18,6 +19,7 @@ type ReactionType = 'like' | 'helpful' | 'fire'
 interface TaskOption { id: string; text: string }
 
 export interface FeedTask {
+
   id: string
   title: string
   content: string | null
@@ -62,17 +64,11 @@ interface LearningFeedProps {
 
 // ── Constants ──────────────────────────────────────────────────
 
-const DIFFICULTY_COLOR: Record<Difficulty, string> = {
-  beginner:     'var(--success)',
-  intermediate: 'var(--warning)',
-  advanced:     'var(--destructive)',
-}
-
 const MATERIAL_ICON: Record<MaterialType, string> = {
-  article:     '📄',
-  video:       '🎬',
-  link:        '🔗',
-  interactive: '🖥',
+  article:     '/icons/material-article.png',
+  video:       '/icons/material-video.png',
+  link:        '/icons/material-link.png',
+  interactive: '/icons/material-interactive.png',
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -260,7 +256,15 @@ function MaterialFeedItem({
       {/* Header */}
       <div className="px-5 pt-5 pb-3">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-base">{MATERIAL_ICON[material.type]}</span>
+          {material.type === 'article' ? (
+            <img
+              src={MATERIAL_ICON.article}
+              alt={tMat(`types.${material.type}`)}
+              className="w-5 h-5 rounded-sm"
+            />
+          ) : (
+            <span className="text-base">{MATERIAL_ICON[material.type]}</span>
+          )}
           <span
             className="text-xs font-medium px-2 py-0.5 rounded-full"
             style={{

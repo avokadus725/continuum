@@ -10,15 +10,10 @@ import {
   type ProgressRow,
 } from '@/lib/recommendations'
 import { AlgoInfoButton, type AlgoStrings } from './_components/algo-modal'
+import { TopicIcon } from '@/lib/topic-icons'
 
 /* ─── Types ────────────────────────────────────────── */
-type Difficulty = 'beginner' | 'intermediate' | 'advanced'
-
-const DIFF_COLOR: Record<Difficulty, string> = {
-  beginner:     'var(--success)',
-  intermediate: 'var(--warning)',
-  advanced:     'var(--destructive)',
-}
+import { DIFF_COLOR, type Difficulty } from '@/lib/difficulty-colors'
 
 type CompactTask = {
   id: string; title: string
@@ -29,13 +24,13 @@ type CompactMaterial = {
   content: string | null; url: string | null
 }
 type WeakSection = {
-  topicId: string; title: string; icon: string | null
+  topicId: string; title: string; icon: string | null; slug: string | null
   correct: number; total: number; urgency: number
   tasks: CompactTask[]
   materials: CompactMaterial[]
 }
 type ExploreSection = {
-  topicId: string; title: string; icon: string | null
+  topicId: string; title: string; icon: string | null; slug: string | null
   tasks: CompactTask[]
 }
 
@@ -45,10 +40,11 @@ export default async function RecommendationsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [t, tTasks, tMaterials] = await Promise.all([
+  const [t, tTasks, tMaterials, tTopics] = await Promise.all([
     getTranslations('dashboard'),
     getTranslations('tasks'),
     getTranslations('materials'),
+    getTranslations('topics'),
   ])
 
   /* profile */
@@ -73,7 +69,7 @@ export default async function RecommendationsPage() {
         .eq('is_published', true),
       supabase
         .from('topics')
-        .select('id, title, icon'),
+        .select('id, title, icon, slug'),
     ])
 
   /* progress analysis */
@@ -83,8 +79,15 @@ export default async function RecommendationsPage() {
 
   /* topic lookup */
   const topicById = new Map(
-    (allTopics ?? []).map(tp => [tp.id as string, { title: tp.title as string, icon: tp.icon as string | null }])
+    (allTopics ?? []).map(tp => [tp.id as string, { title: tp.title as string, icon: tp.icon as string | null, slug: tp.slug as string | null }])
   )
+
+  /** Translate a topic slug → display title, falling back to DB title */
+  function tTopic(slug: string | null | undefined, fallback: string): string {
+    if (!slug) return fallback
+    try { return tTopics(slug as Parameters<typeof tTopics>[0]) }
+    catch { return fallback }
+  }
 
   /* tasks grouped by topic (uncompleted only) */
   const tasksByTopic = new Map<string, CompactTask[]>()
@@ -120,8 +123,9 @@ export default async function RecommendationsPage() {
       const materials = (matsByTopic.get(topicId) ?? []).slice(0, 2)
       return {
         topicId,
-        title:   info?.title ?? topicId,
+        title:   tTopic(info?.slug, info?.title ?? topicId),
         icon:    info?.icon  ?? null,
+        slug:    info?.slug  ?? null,
         correct: stat.totalCount - stat.wrongCount,
         total:   stat.totalCount,
         urgency: topicUrgency(stat),
@@ -137,8 +141,9 @@ export default async function RecommendationsPage() {
       const info = topicById.get(topicId)
       return {
         topicId,
-        title: info?.title ?? topicId,
+        title: tTopic(info?.slug, info?.title ?? topicId),
         icon:  info?.icon  ?? null,
+        slug:  info?.slug  ?? null,
         tasks: tasks.slice(0, 2),
       }
     })
@@ -210,7 +215,7 @@ export default async function RecommendationsPage() {
                 <div className="px-5 pt-5 pb-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-2.5">
-                      {sec.icon && <span className="shrink-0 text-xl">{sec.icon}</span>}
+                      <TopicIcon slug={sec.slug} size={16} className="shrink-0" />
                       <h2
                         className="truncate text-[15px] font-bold tracking-[-0.2px]"
                         style={{ color: 'var(--foreground)' }}
@@ -404,7 +409,7 @@ export default async function RecommendationsPage() {
                 style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
               >
                 <div className="mb-3 flex items-center gap-2">
-                  {sec.icon && <span className="text-base">{sec.icon}</span>}
+                  <TopicIcon slug={sec.slug} size={14} className="shrink-0" />
                   <span className="text-[13px] font-semibold" style={{ color: 'var(--foreground)' }}>
                     {sec.title}
                   </span>

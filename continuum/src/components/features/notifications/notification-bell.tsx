@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import Link from 'next/link'
-import { Bell } from 'lucide-react'
+import {
+  Bell, Heart, MessageCircle, CornerDownRight,
+  Trophy, FileText, Sparkles,
+} from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface Notification {
@@ -16,13 +19,21 @@ interface Notification {
   meta: Record<string, string> | null
 }
 
-const TYPE_ICON: Record<string, string> = {
-  post_reaction:  '👍',
-  post_comment:   '💬',
-  comment_reply:  '↩️',
-  achievement:    '🏅',
-  new_task:       '📝',
-  recommendation: '✨',
+interface TypeMeta { icon: React.ReactNode; color: string; bg: string }
+
+const TYPE_META: Record<string, TypeMeta> = {
+  post_reaction:  { icon: <Heart  className="w-3.5 h-3.5" />,             color: '#ef4444', bg: 'color-mix(in srgb, #ef4444 14%, transparent)' },
+  post_comment:   { icon: <MessageCircle className="w-3.5 h-3.5" />,       color: 'var(--primary)', bg: 'color-mix(in srgb, var(--primary) 12%, transparent)' },
+  comment_reply:  { icon: <CornerDownRight className="w-3.5 h-3.5" />,     color: 'var(--primary)', bg: 'color-mix(in srgb, var(--primary) 12%, transparent)' },
+  achievement:    { icon: <Trophy className="w-3.5 h-3.5" />,              color: '#f59e0b', bg: 'color-mix(in srgb, #f59e0b 14%, transparent)' },
+  new_task:       { icon: <FileText className="w-3.5 h-3.5" />,            color: '#22c55e', bg: 'color-mix(in srgb, #22c55e 14%, transparent)' },
+  recommendation: { icon: <Sparkles className="w-3.5 h-3.5" />,           color: '#8b5cf6', bg: 'color-mix(in srgb, #8b5cf6 14%, transparent)' },
+}
+
+const FALLBACK_META: TypeMeta = {
+  icon: <Bell className="w-3.5 h-3.5" />,
+  color: 'var(--muted-foreground)',
+  bg: 'var(--muted)',
 }
 
 const POST_TYPES = new Set(['post_reaction', 'post_comment', 'comment_reply'])
@@ -47,7 +58,6 @@ export function NotificationBell({ userId, slim }: { userId: string; slim?: bool
 
   useEffect(() => {
     const supabase = createClient()
-
     supabase
       .from('notifications')
       .select('*')
@@ -61,9 +71,7 @@ export function NotificationBell({ userId, slim }: { userId: string; slim?: bool
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
-        (payload) => {
-          setNotifications(prev => [payload.new as Notification, ...prev])
-        }
+        (payload) => { setNotifications(prev => [payload.new as Notification, ...prev]) }
       )
       .subscribe()
 
@@ -81,11 +89,7 @@ export function NotificationBell({ userId, slim }: { userId: string; slim?: bool
 
   async function markAllRead() {
     const supabase = createClient()
-    await supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('user_id', userId)
-      .eq('is_read', false)
+    await supabase.from('notifications').update({ is_read: true }).eq('user_id', userId).eq('is_read', false)
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
   }
 
@@ -116,7 +120,7 @@ export function NotificationBell({ userId, slim }: { userId: string; slim?: bool
 
       {open && (
         <div
-          className="absolute top-full mt-2 right-0 z-50 w-80 rounded-2xl border shadow-xl overflow-hidden"
+          className="absolute top-full mt-2 right-0 z-50 w-[340px] rounded-2xl border shadow-xl overflow-hidden"
           style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
         >
           {/* Header */}
@@ -125,20 +129,21 @@ export function NotificationBell({ userId, slim }: { userId: string; slim?: bool
               {t('title')}
             </span>
             {unread > 0 && (
-              <button onClick={markAllRead} className="text-xs" style={{ color: 'var(--primary)' }}>
+              <button onClick={markAllRead} className="text-xs font-medium" style={{ color: 'var(--primary)' }}>
                 {t('markAllRead')}
               </button>
             )}
           </div>
 
           {/* List */}
-          <div className="max-h-80 overflow-y-auto divide-y" style={{ '--tw-divide-opacity': 1 } as React.CSSProperties}>
+          <div className="max-h-[380px] overflow-y-auto">
             {notifications.length === 0 ? (
-              <p className="px-4 py-6 text-sm text-center" style={{ color: 'var(--muted-foreground)' }}>
+              <p className="px-4 py-8 text-sm text-center" style={{ color: 'var(--muted-foreground)' }}>
                 {t('empty')}
               </p>
             ) : (
               notifications.map(n => {
+                const meta = TYPE_META[n.type] ?? FALLBACK_META
                 const postId = n.meta?.post_id
                 const isPostNotif = POST_TYPES.has(n.type) && postId
 
@@ -146,43 +151,48 @@ export function NotificationBell({ userId, slim }: { userId: string; slim?: bool
                   <div
                     key={n.id}
                     onClick={() => markOneRead(n.id)}
-                    className="px-4 py-3 cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                    className="flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-white/5 border-b last:border-b-0"
                     style={{
-                      background: n.is_read
-                        ? 'transparent'
-                        : 'color-mix(in srgb, var(--primary) 5%, transparent)',
+                      borderColor: 'color-mix(in srgb, var(--border) 50%, transparent)',
+                      background: n.is_read ? 'transparent' : 'color-mix(in srgb, var(--primary) 4%, transparent)',
                     }}
                   >
-                    <div className="flex items-start gap-3">
-                      <span className="text-base shrink-0 mt-0.5">{TYPE_ICON[n.type] ?? '🔔'}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium leading-snug" style={{ color: 'var(--foreground)' }}>
-                          {n.title}
-                        </p>
-                        {n.body && (
-                          isPostNotif ? (
-                            <Link
-                              href={`/community#post-${postId}`}
-                              onClick={() => setOpen(false)}
-                              className="text-xs mt-0.5 truncate hover:underline block"
-                              style={{ color: 'var(--primary)' }}
-                            >
-                              {n.body}
-                            </Link>
-                          ) : (
-                            <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--muted-foreground)' }}>
-                              {n.body}
-                            </p>
-                          )
-                        )}
-                        <p className="text-xs mt-1" style={{ color: 'var(--muted-foreground)' }}>
-                          {formatRelative(n.created_at, locale)}
-                        </p>
-                      </div>
-                      {!n.is_read && (
-                        <div className="w-2 h-2 rounded-full shrink-0 mt-1.5" style={{ background: 'var(--primary)' }} />
+                    {/* Icon circle */}
+                    <span
+                      className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                      style={{ background: meta.bg, color: meta.color }}
+                    >
+                      {meta.icon}
+                    </span>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-medium leading-snug" style={{ color: 'var(--foreground)' }}>
+                        {n.title}
+                      </p>
+                      {n.body && (
+                        isPostNotif ? (
+                          <Link
+                            href={`/community#post-${postId}`}
+                            onClick={() => setOpen(false)}
+                            className="text-xs mt-0.5 truncate hover:underline block"
+                            style={{ color: 'var(--primary)' }}
+                          >
+                            {n.body}
+                          </Link>
+                        ) : (
+                          <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--muted-foreground)' }}>
+                            {n.body}
+                          </p>
+                        )
                       )}
+                      <p className="text-[11px] mt-1" style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }}>
+                        {formatRelative(n.created_at, locale)}
+                      </p>
                     </div>
+
+                    {!n.is_read && (
+                      <div className="w-2 h-2 rounded-full shrink-0 mt-2" style={{ background: 'var(--primary)' }} />
+                    )}
                   </div>
                 )
               })

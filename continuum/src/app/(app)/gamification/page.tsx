@@ -22,7 +22,7 @@ export default async function LeaderboardPage() {
   const weekStart = monday.toISOString()
 
   /* ── Queries ──────────────────────────────────── */
-  const [{ data: leaders }, focusRes, { data: weekProgress }] = await Promise.all([
+  const [{ data: leaders }, focusRes, { data: weekProgress }, { data: allProgress }, weekAllRes] = await Promise.all([
     supabase
       .from('profiles')
       .select('id, full_name, avatar_url, xp, level')
@@ -37,6 +37,16 @@ export default async function LeaderboardPage() {
       .select('is_correct, completed_at')
       .eq('user_id', user.id)
       .gte('completed_at', weekStart),
+    // All-time progress dates — for streak (must not be period-filtered)
+    supabase
+      .from('student_progress')
+      .select('completed_at')
+      .eq('user_id', user.id),
+    // All users' weekly scores — for "hot this week" mini-leaderboard
+    (supabase as any)
+      .from('student_progress')
+      .select('user_id, score')
+      .gte('completed_at', weekStart),
   ])
   const focusSessions = (focusRes.data ?? []) as Array<{ started_at: string; focus_seconds: number }>
 
@@ -46,6 +56,35 @@ export default async function LeaderboardPage() {
   const youRank  = yourRow?.rank ?? ranked.length + 1
   const nextRow  = ranked.find(r => r.rank === youRank - 1)
   const xpGap    = nextRow ? (nextRow.xp ?? 0) - (yourRow?.xp ?? 0) : null
+
+  /* ── Streak ───────────────────────────────────── */
+  const allDaySet = new Set((allProgress ?? []).map(r => r.completed_at.slice(0, 10)))
+  let streak = 0
+  for (let i = 0; i < 365; i++) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    if (allDaySet.has(d.toISOString().slice(0, 10))) streak++
+    else break
+  }
+
+  /* ── Close rivals ─────────────────────────────── */
+  const rivalAbove = youRank > 1 ? ranked.find(r => r.rank === youRank - 1) ?? null : null
+  const rivalBelow = ranked.find(r => r.rank === youRank + 1) ?? null
+  const xpToOvertake = rivalAbove ? (rivalAbove.xp ?? 0) - (yourRow?.xp ?? 0) : null
+  const xpLeadBelow  = rivalBelow ? (yourRow?.xp ?? 0) - (rivalBelow.xp ?? 0) : null
+
+  /* ── Hot this week ────────────────────────────── */
+  const weekScoreMap = new Map<string, number>()
+  for (const row of ((weekAllRes?.data ?? []) as Array<{ user_id: string; score: number | null }>)) {
+    if (row.user_id) {
+      weekScoreMap.set(row.user_id, (weekScoreMap.get(row.user_id) ?? 0) + (row.score ?? 0))
+    }
+  }
+  const hotThisWeek = (leaders ?? [])
+    .map(p => ({ ...p, weekXp: weekScoreMap.get(p.id) ?? 0 }))
+    .filter(p => p.weekXp > 0)
+    .sort((a, b) => b.weekXp - a.weekXp)
+    .slice(0, 5)
 
   /* ── XP progress ──────────────────────────────── */
   const XP_PER_LEVEL = 100
@@ -207,6 +246,56 @@ export default async function LeaderboardPage() {
               —
             </p>
           )}
+
+          {/* Hot this week */}
+          {hotThisWeek.length > 0 && (
+            <div
+              className="rounded-2xl border p-5"
+              style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+            >
+              <p
+                className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.07em]"
+                style={{ color: 'var(--muted-foreground)' }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/icons/fire.png" alt="" width={14} height={14} className="dark:invert" style={{ display: 'inline-block' }} />
+                {t('hotThisWeek')}
+              </p>
+              <div className="space-y-3">
+                {hotThisWeek.map((p, i) => {
+                  const isMe = p.id === user.id
+                  return (
+                    <div key={p.id} className="flex items-center gap-3">
+                      <span
+                        className="w-5 shrink-0 text-center text-[11px] font-bold tabular-nums"
+                        style={{ color: 'var(--muted-foreground)' }}
+                      >
+                        {i + 1}
+                      </span>
+                      <UserAvatar url={p.avatar_url} name={p.full_name} size={30} highlight={isMe} />
+                      <span
+                        className="flex-1 truncate text-[13px] font-medium"
+                        style={{ color: isMe ? 'var(--primary)' : 'var(--foreground)' }}
+                      >
+                        {p.full_name ?? '—'}
+                        {isMe && (
+                          <span className="ml-2 text-[11px]" style={{ color: 'var(--muted-foreground)' }}>
+                            {youLabel}
+                          </span>
+                        )}
+                      </span>
+                      <span
+                        className="shrink-0 text-[12px] font-bold tabular-nums"
+                        style={{ color: 'var(--primary)' }}
+                      >
+                        +{p.weekXp} XP
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* RIGHT sidebar ─────────────────────────── */}
@@ -253,6 +342,15 @@ export default async function LeaderboardPage() {
                   <span>{t('xpGapToRank', { xp: xpGap, rank: youRank - 1 })}</span>
                 )}
               </div>
+              {streak > 0 && (
+                <div className="mt-2.5 flex items-center gap-1.5">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/icons/fire.png" alt="" width={13} height={13} className="dark:invert" style={{ display: 'inline-block' }} />
+                  <span className="text-[11px] tabular-nums" style={{ color: 'var(--muted-foreground)' }}>
+                    {t('streakDays', { count: streak })} {t('streak')}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -361,8 +459,61 @@ export default async function LeaderboardPage() {
             )}
           </div>
 
+          {/* Close rivals */}
+          {(rivalAbove || rivalBelow) && (
+            <div
+              className="rounded-2xl border p-4"
+              style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+            >
+              <p
+                className="mb-3 text-[11px] font-semibold uppercase tracking-[0.07em]"
+                style={{ color: 'var(--muted-foreground)' }}
+              >
+                {t('rivals')}
+              </p>
+              <div className="space-y-2.5">
+                {rivalAbove && (
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-4 shrink-0 text-center text-[11px] font-bold" style={{ color: 'var(--warning)' }}>↑</span>
+                    <UserAvatar url={rivalAbove.avatar_url} name={rivalAbove.full_name} size={28} />
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-[12px] font-medium" style={{ color: 'var(--foreground)' }}>
+                        {rivalAbove.full_name ?? '—'}
+                      </p>
+                      <p className="text-[10px]" style={{ color: 'var(--muted-foreground)' }}>{t('rivalsAhead')}</p>
+                    </div>
+                    {xpToOvertake != null && xpToOvertake > 0 && (
+                      <span className="shrink-0 text-[11px] font-bold tabular-nums" style={{ color: 'var(--warning)' }}>
+                        +{xpToOvertake} XP
+                      </span>
+                    )}
+                  </div>
+                )}
+                {rivalBelow && (
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-4 shrink-0 text-center text-[11px] font-bold" style={{ color: 'var(--success)' }}>↓</span>
+                    <UserAvatar url={rivalBelow.avatar_url} name={rivalBelow.full_name} size={28} />
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-[12px] font-medium" style={{ color: 'var(--foreground)' }}>
+                        {rivalBelow.full_name ?? '—'}
+                      </p>
+                      <p className="text-[10px]" style={{ color: 'var(--muted-foreground)' }}>{t('rivalsBelow')}</p>
+                    </div>
+                    {xpLeadBelow != null && xpLeadBelow >= 0 && (
+                      <span className="shrink-0 text-[11px] font-bold tabular-nums" style={{ color: 'var(--success)' }}>
+                        +{xpLeadBelow} XP
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
+
+
     </div>
   )
 }

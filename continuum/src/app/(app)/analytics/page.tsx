@@ -3,7 +3,9 @@ import { getTranslations, getLocale } from 'next-intl/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ActivityChart } from '@/components/features/analytics/activity-chart'
+import { TopicIcon } from '@/lib/topic-icons'
 import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('analytics')
@@ -17,13 +19,7 @@ interface Props {
 const PERIODS = { '7': 7, '30': 30, '90': 90 } as const
 type PeriodKey = keyof typeof PERIODS
 
-type Difficulty = 'beginner' | 'intermediate' | 'advanced'
-
-const DIFF_COLOR: Record<Difficulty, string> = {
-  beginner:     'var(--success)',
-  intermediate: 'var(--warning)',
-  advanced:     'var(--destructive)',
-}
+import { DIFF_COLOR, type Difficulty } from '@/lib/difficulty-colors'
 
 function startOfDayUTC(daysAgo: number): string {
   const d = new Date()
@@ -38,9 +34,10 @@ export default async function AnalyticsPage({ searchParams }: Props) {
   const days = PERIODS[period]
 
   const supabase = await createClient()
-  const [t, tTasks, locale] = await Promise.all([
+  const [t, tTasks, tTopics, locale] = await Promise.all([
     getTranslations('analytics'),
     getTranslations('tasks'),
+    getTranslations('topics'),
     getLocale(),
   ])
 
@@ -50,18 +47,25 @@ export default async function AnalyticsPage({ searchParams }: Props) {
   const since = startOfDayUTC(days)
 
   /* ── Fetch ──────────────────────────────────── */
-  const [{ data: progress }, focusRes] = await Promise.all([
+  const [{ data: progress }, focusRes, { data: allTimeProgress }] = await Promise.all([
+    // Period-filtered progress (for charts + stats)
     supabase
       .from('student_progress')
-      .select('task_id, is_correct, score, completed_at, tasks(topic_id, difficulty, topics(title, icon))')
+      .select('task_id, is_correct, score, completed_at, tasks(topic_id, difficulty, topics(title, icon, slug))')
       .eq('user_id', user.id)
       .gte('completed_at', since)
       .order('completed_at', { ascending: true }),
+    // Period-filtered focus sessions
     (supabase as any)
       .from('focus_sessions')
       .select('started_at, focus_seconds')
       .gte('started_at', since)
       .order('started_at', { ascending: true }),
+    // ALL-TIME progress dates — used only for streak, must not be period-filtered
+    supabase
+      .from('student_progress')
+      .select('completed_at')
+      .eq('user_id', user.id),
   ])
 
   const rows = progress ?? []
@@ -79,14 +83,14 @@ export default async function AnalyticsPage({ searchParams }: Props) {
   const focusLabel = totalFocusSec === 0 ? '0m'
     : focusHrs > 0 ? `${focusHrs}h ${focusMins}m` : `${focusMins}m`
 
-  /* ── Streak ─────────────────────────────────── */
-  const daySet = new Set(rows.map(r => r.completed_at.slice(0, 10)))
+  /* ── Streak (all-time, independent of the selected period) ─── */
+  const allDaySet = new Set((allTimeProgress ?? []).map(r => r.completed_at.slice(0, 10)))
   let streak = 0
   const today = new Date()
   for (let i = 0; i < 365; i++) {
     const d = new Date(today)
     d.setDate(d.getDate() - i)
-    if (daySet.has(d.toISOString().slice(0, 10))) streak++
+    if (allDaySet.has(d.toISOString().slice(0, 10))) streak++
     else break
   }
 
@@ -121,13 +125,19 @@ export default async function AnalyticsPage({ searchParams }: Props) {
   const focusChart = Array.from(focusByDay.entries()).map(([d, count]) => ({ date: dayLabel(d), count }))
 
   /* ── Topic stats ─────────────────────────────── */
-  const topicMap = new Map<string, { title: string; icon: string | null; total: number; correct: number }>()
+  function tTopic(slug: string | null | undefined, fallback: string): string {
+    if (!slug) return fallback
+    try { return tTopics(slug as Parameters<typeof tTopics>[0]) }
+    catch { return fallback }
+  }
+
+  const topicMap = new Map<string, { title: string; icon: string | null; slug: string | null; total: number; correct: number }>()
   for (const r of rows) {
-    const task = r.tasks as { topic_id: string | null; difficulty: string | null; topics: { title: string; icon: string | null } | null } | null
+    const task = r.tasks as { topic_id: string | null; difficulty: string | null; topics: { title: string; icon: string | null; slug?: string | null } | null } | null
     if (!task?.topic_id || !task.topics) continue
     const ex = topicMap.get(task.topic_id)
     if (ex) { ex.total++; if (r.is_correct) ex.correct++ }
-    else topicMap.set(task.topic_id, { title: task.topics.title, icon: task.topics.icon, total: 1, correct: r.is_correct ? 1 : 0 })
+    else topicMap.set(task.topic_id, { title: tTopic(task.topics.slug, task.topics.title), icon: task.topics.icon, slug: task.topics.slug ?? null, total: 1, correct: r.is_correct ? 1 : 0 })
   }
   const topicStats = Array.from(topicMap.values())
     .sort((a, b) => (a.correct / a.total) - (b.correct / b.total))
@@ -173,13 +183,21 @@ export default async function AnalyticsPage({ searchParams }: Props) {
 
       {/* ── Stats row ───────────────────────────── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {[
-          { label: t('tasksCompleted'), value: total },
-          { label: t('correctRate'),    value: total > 0 ? `${correctPct}%` : '—' },
-          { label: t('totalXp'),        value: total > 0 ? `+${totalXp} XP` : '—' },
-          { label: t('streak'),         value: streak > 0 ? `${streak}d` : '—' },
-          { label: t('focusTime'),      value: focusLabel },
-        ].map(({ label, value }) => (
+        {(
+          [
+            { label: t('tasksCompleted'), value: total },
+            { label: t('correctRate'),    value: total > 0 ? `${correctPct}%` : '—' },
+            { label: t('totalXp'),        value: total > 0 ? `+${totalXp} XP` : '—' },
+            {
+              label: t('streak'),
+              value: streak > 0
+                /* eslint-disable-next-line @next/next/no-img-element */
+                ? <span className="inline-flex items-center gap-1.5"><img src="/icons/fire.png" alt="" width={22} height={22} className="dark:invert" style={{ display: 'inline-block', verticalAlign: '-0.18em' }} />{streak}d</span>
+                : '—',
+            },
+            { label: t('focusTime'),      value: focusLabel },
+          ] as { label: string; value: ReactNode }[]
+        ).map(({ label, value }) => (
           <div
             key={label}
             className="rounded-2xl border p-4 text-center"
@@ -229,7 +247,7 @@ export default async function AnalyticsPage({ searchParams }: Props) {
                 <div key={topic.title}>
                   <div className="mb-1.5 flex items-center justify-between gap-3">
                     <span className="flex items-center gap-1.5 text-[13px]" style={{ color: 'var(--foreground)' }}>
-                      {topic.icon && <span>{topic.icon}</span>}
+                      <TopicIcon slug={topic.slug} size={13} className="shrink-0" />
                       {topic.title}
                     </span>
                     <div className="flex items-center gap-2 shrink-0">
