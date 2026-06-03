@@ -20,7 +20,7 @@ export default async function NotesPage() {
         id, title, content, created_at, updated_at, collection_id,
         materials(title),
         tasks(title),
-        topics(title, icon),
+        topics(title, icon, slug),
         collections(id, title)
       `)
       .eq('user_id', user.id)
@@ -43,7 +43,8 @@ export default async function NotesPage() {
     collectionTitle: (n.collections as { title: string } | null)?.title ?? null,
     material: n.materials as { title: string } | null,
     task: n.tasks as { title: string } | null,
-    topic: n.topics as { title: string; icon: string | null } | null,
+    topic: n.topics as { title: string; icon: string | null; slug?: string | null } | null,
+    topicSlug: (n.topics as { slug?: string | null } | null)?.slug ?? null,
   }))
 
   const collections = (collectionsRes.data ?? []) as { id: string; title: string }[]

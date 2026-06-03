@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useState, useTransition } from 'react'
 import { BookMarked, Pencil, Trash2, StickyNote, Search, X, Paperclip } from 'lucide-react'
+import { topicColor } from '@/lib/topic-colors'
 import { NoteEditor } from './note-editor'
 import { deleteNote } from '@/app/actions/notes'
 import { ConfirmDialog } from '@/components/confirm-dialog'
@@ -19,7 +20,8 @@ interface Note {
   collectionTitle?: string | null
   material?: { title: string } | null
   task?: { title: string } | null
-  topic?: { title: string; icon: string | null } | null
+  topic?: { title: string; icon: string | null; slug?: string | null } | null
+  topicSlug?: string | null
 }
 
 interface NotesClientProps {
@@ -27,13 +29,6 @@ interface NotesClientProps {
   collections: Collection[]
 }
 
-/* Deterministic accent from note id — stable across reorders/deletes */
-const NOTE_PALETTE = ['#f59e0b', '#10b981', '#6366f1', '#ec4899', '#0ea5e9']
-function noteAccent(id: string): string {
-  let hash = 0
-  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash)
-  return NOTE_PALETTE[Math.abs(hash) % NOTE_PALETTE.length]
-}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -150,7 +145,7 @@ export function NotesClient({ notes: initialNotes, collections }: NotesClientPro
       {filtered.length > 0 ? (
         <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 mt-2">
           {filtered.map(note => {
-            const accent = noteAccent(note.id)
+            const accent = topicColor(note.topicSlug)
 
             const excerpt = note.content
               ? note.content.slice(0, 220) + (note.content.length > 220 ? '…' : '')
