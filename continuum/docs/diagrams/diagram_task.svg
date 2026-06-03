@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="590" height="900" viewBox="0 0 590 900" font-family="Arial, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 9 3, 0 6" fill="#000"/>
+    </marker>
+  </defs>
+  <rect width="590" height="900" fill="white" stroke="#000" stroke-width="1.5"/>
+  <circle cx="225" cy="38" r="11" fill="#000"/>
+  <line x1="225" y1="49" x2="225" y2="71" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="115" y="71" width="220" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="225" y="98.0" text-anchor="middle" font-size="13" fill="#000">Перехід на сторінку завдання</text>
+  <line x1="225" y1="117" x2="225" y2="121" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <polygon points="225,121 345,159 225,197 105,159" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="225" y="155.5" text-anchor="middle" font-size="12" fill="#000">Завдання вже</text>
+  <text x="225" y="170.5" text-anchor="middle" font-size="12" fill="#000">виконано?</text>
+  <line x1="345" y1="159" x2="455" y2="159" stroke="#000" stroke-width="1.5"/>
+  <text x="348" y="153" text-anchor="start" font-size="11" fill="#000">Так</text>
+  <line x1="455" y1="159" x2="455" y2="204" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="381" y="204" width="148" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="455" y="223.0" text-anchor="middle" font-size="13" fill="#000">Відображення статусу</text>
+  <text x="455" y="239.0" text-anchor="middle" font-size="13" fill="#000">'Виконано'</text>
+  <line x1="455" y1="250" x2="455" y2="277" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <circle cx="455" cy="290" r="13" fill="white" stroke="#000" stroke-width="3"/>
+  <circle cx="455" cy="290" r="7" fill="#000"/>
+  <line x1="225" y1="197" x2="225" y2="219" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="229" y="209" font-size="11" fill="#000">Ні</text>
+  <rect x="115" y="219" width="220" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="225" y="238.0" text-anchor="middle" font-size="13" fill="#000">Ознайомлення з умовою</text>
+  <text x="225" y="254.0" text-anchor="middle" font-size="13" fill="#000">завдання</text>
+  <line x1="225" y1="265" x2="225" y2="287" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="115" y="287" width="220" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="225" y="314.0" text-anchor="middle" font-size="13" fill="#000">Введення або вибір відповіді</text>
+  <line x1="225" y1="333" x2="225" y2="355" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="115" y="355" width="220" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="225" y="374.0" text-anchor="middle" font-size="13" fill="#000">Надсилання відповіді</text>
+  <text x="225" y="390.0" text-anchor="middle" font-size="13" fill="#000">на сервер</text>
+  <line x1="225" y1="401" x2="225" y2="423" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="115" y="423" width="220" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="225" y="442.0" text-anchor="middle" font-size="13" fill="#000">Перевірка відповіді</text>
+  <text x="225" y="458.0" text-anchor="middle" font-size="13" fill="#000">на сервері</text>
+  <line x1="225" y1="469" x2="225" y2="473" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <polygon points="225,473 343,511 225,549 107,511" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="225" y="507.5" text-anchor="middle" font-size="12" fill="#000">Відповідь</text>
+  <text x="225" y="522.5" text-anchor="middle" font-size="12" fill="#000">правильна?</text>
+  <line x1="343" y1="511" x2="448" y2="511" stroke="#000" stroke-width="1.5"/>
+  <text x="346" y="505" text-anchor="start" font-size="11" fill="#000">Ні</text>
+  <line x1="448" y1="511" x2="448" y2="550" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="369" y="550" width="158" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="448" y="569.0" text-anchor="middle" font-size="13" fill="#000">Відображення повідомлення</text>
+  <text x="448" y="585.0" text-anchor="middle" font-size="13" fill="#000">про помилку</text>
+  <line x1="448" y1="596" x2="448" y2="626" stroke="#000" stroke-width="1.5"/>
+  <line x1="448" y1="626" x2="46" y2="626" stroke="#000" stroke-width="1.5"/>
+  <line x1="46" y1="626" x2="46" y2="310" stroke="#000" stroke-width="1.5"/>
+  <line x1="46" y1="310" x2="115" y2="310" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="48" y="303" text-anchor="start" font-size="10" fill="#000">Callback</text>
+  <line x1="225" y1="549" x2="225" y2="571" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="229" y="561" font-size="11" fill="#000">Так</text>
+  <rect x="115" y="571" width="220" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="225" y="590.0" text-anchor="middle" font-size="13" fill="#000">Нарахування XP балів</text>
+  <text x="225" y="606.0" text-anchor="middle" font-size="13" fill="#000">та оновлення прогресу</text>
+  <line x1="225" y1="617" x2="225" y2="625" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <polygon points="225,625 337,659 225,693 113,659" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="225" y="663.0" text-anchor="middle" font-size="12" fill="#000">Є пояснення?</text>
+  <line x1="225" y1="693" x2="225" y2="715" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="229" y="705" font-size="11" fill="#000">Так</text>
+  <rect x="115" y="715" width="220" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="225" y="734.0" text-anchor="middle" font-size="13" fill="#000">Відображення пояснення</text>
+  <text x="225" y="750.0" text-anchor="middle" font-size="13" fill="#000">до завдання</text>
+  <line x1="337" y1="659" x2="415" y2="659" stroke="#000" stroke-width="1.5"/>
+  <text x="340" y="653" text-anchor="start" font-size="11" fill="#000">Ні</text>
+  <line x1="415" y1="659" x2="415" y2="796" stroke="#000" stroke-width="1.5"/>
+  <line x1="415" y1="796" x2="225" y2="796" stroke="#000" stroke-width="1.5"/>
+  <line x1="225" y1="761" x2="225" y2="796" stroke="#000" stroke-width="1.5"/>
+  <line x1="225" y1="796" x2="225" y2="825" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <circle cx="225" cy="838" r="13" fill="white" stroke="#000" stroke-width="3"/>
+  <circle cx="225" cy="838" r="7" fill="#000"/>
+  <text x="295" y="892" text-anchor="middle" font-size="12" fill="#000">Рисунок X.2 – UML діаграма діяльності процесу виконання навчального завдання</text>
+</svg>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="870" viewBox="0 0 560 870" font-family="Arial, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 9 3, 0 6" fill="#000"/>
+    </marker>
+  </defs>
+  <rect width="560" height="870" fill="white" stroke="#000" stroke-width="1.5"/>
+  <circle cx="245" cy="38" r="11" fill="#000"/>
+  <line x1="245" y1="49" x2="245" y2="67" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="138" y="67" width="215" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="245" y="94.0" text-anchor="middle" font-size="13" fill="#000">Перехід на сторінку входу</text>
+  <line x1="245" y1="113" x2="245" y2="131" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="135" y="131" width="220" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="245" y="150.0" text-anchor="middle" font-size="13" fill="#000">Натискання кнопки</text>
+  <text x="245" y="166.0" text-anchor="middle" font-size="13" fill="#000">входу через Google</text>
+  <line x1="245" y1="177" x2="245" y2="195" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="133" y="195" width="225" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="245" y="214.0" text-anchor="middle" font-size="13" fill="#000">Перенаправлення на</text>
+  <text x="245" y="230.0" text-anchor="middle" font-size="13" fill="#000">сторінку Google OAuth</text>
+  <line x1="245" y1="241" x2="245" y2="243" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <polygon points="245,243 365,283 245,323 125,283" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="245" y="279.5" text-anchor="middle" font-size="12" fill="#000">Авторизація</text>
+  <text x="245" y="294.5" text-anchor="middle" font-size="12" fill="#000">успішна?</text>
+  <line x1="125" y1="283" x2="82" y2="283" stroke="#000" stroke-width="1.5"/>
+  <text x="84" y="277" text-anchor="start" font-size="11" fill="#000">Ні</text>
+  <line x1="82" y1="283" x2="82" y2="328" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="8" y="328" width="148" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="82" y="347.0" text-anchor="middle" font-size="13" fill="#000">Відображення</text>
+  <text x="82" y="363.0" text-anchor="middle" font-size="13" fill="#000">помилки входу</text>
+  <line x1="82" y1="374" x2="82" y2="403" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <circle cx="82" cy="416" r="13" fill="white" stroke="#000" stroke-width="3"/>
+  <circle cx="82" cy="416" r="7" fill="#000"/>
+  <line x1="245" y1="323" x2="245" y2="447" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="249" y="335" font-size="11" fill="#000">Так</text>
+  <polygon points="245,447 363,485 245,523 127,485" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="245" y="481.5" text-anchor="middle" font-size="12" fill="#000">Профіль існує</text>
+  <text x="245" y="496.5" text-anchor="middle" font-size="12" fill="#000">в базі даних?</text>
+  <line x1="363" y1="485" x2="440" y2="485" stroke="#000" stroke-width="1.5"/>
+  <text x="366" y="479" text-anchor="start" font-size="11" fill="#000">Ні</text>
+  <line x1="440" y1="485" x2="440" y2="534" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="366" y="534" width="148" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="440" y="553.0" text-anchor="middle" font-size="13" fill="#000">Створення профілю</text>
+  <text x="440" y="569.0" text-anchor="middle" font-size="13" fill="#000">користувача</text>
+  <line x1="245" y1="523" x2="245" y2="625" stroke="#000" stroke-width="1.5"/>
+  <text x="249" y="536" text-anchor="start" font-size="11" fill="#000">Так</text>
+  <line x1="440" y1="580" x2="440" y2="625" stroke="#000" stroke-width="1.5"/>
+  <line x1="440" y1="625" x2="245" y2="625" stroke="#000" stroke-width="1.5"/>
+  <line x1="152" y1="625" x2="514" y2="625" stroke="#c00" stroke-width="3"/>
+  <text x="333.0" y="620" text-anchor="middle" font-size="11" fill="#000">Join</text>
+  <line x1="245" y1="625" x2="245" y2="643" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="133" y="643" width="225" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="245" y="662.0" text-anchor="middle" font-size="13" fill="#000">Завантаження профілю</text>
+  <text x="245" y="678.0" text-anchor="middle" font-size="13" fill="#000">та налаштувань</text>
+  <line x1="245" y1="689" x2="245" y2="707" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="133" y="707" width="225" height="46" rx="4" fill="white" stroke="#000" stroke-width="1.5"/>
+  <text x="245" y="726.0" text-anchor="middle" font-size="13" fill="#000">Перенаправлення</text>
+  <text x="245" y="742.0" text-anchor="middle" font-size="13" fill="#000">на дашборд</text>
+  <line x1="245" y1="753" x2="245" y2="780" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+  <circle cx="245" cy="793" r="13" fill="white" stroke="#000" stroke-width="3"/>
+  <circle cx="245" cy="793" r="7" fill="#000"/>
+  <text x="280" y="862" text-anchor="middle" font-size="12" fill="#000">Рисунок X.1 – UML діаграма діяльності процесу автентифікації користувача</text>
+</svg>

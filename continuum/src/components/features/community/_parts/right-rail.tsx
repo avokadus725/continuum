@@ -33,7 +33,7 @@ function TrendingTags({ items }: { items: RailTag[] }) {
   const t = useTranslations('community.rail')
   if (items.length === 0) return null
   return (
-    <RailCard title={t('trending')} actionHref="#" actionLabel={t('all')}>
+    <RailCard title={t('trending')}>
       <ul className="m-0 list-none p-0">
         {items.map((t, i) => (
           <li
@@ -70,7 +70,7 @@ function NewMembers({ items }: { items: RailMember[] }) {
   const locale = useLocale()
   if (items.length === 0) return null
   return (
-    <RailCard title={t('newMembers')} actionHref="#" actionLabel={t('all')}>
+    <RailCard title={t('newMembers')}>
       <p
         className="m-0 mb-3 text-[11.5px] italic leading-[1.55]"
         style={{ color: 'var(--muted-foreground)' }}
@@ -119,11 +119,11 @@ function NewMembers({ items }: { items: RailMember[] }) {
 function Saved({ items }: { items: RailSaved[] }) {
   const t = useTranslations('community.rail')
   return (
-    <RailCard title={t('saved')} actionHref="#" actionLabel={t('all')}>
+    <RailCard title={t('saved')} actionHref="/community/saved" actionLabel={t('all')}>
       <div className="flex flex-col gap-2.5">
         {items.map((s, i) => (
           <Link
-            key={s.id} href={`#post-${s.id}`}
+            key={s.id} href={`/community/saved`}
             className="block no-underline"
             style={{
               paddingTop: i ? 10 : 0,

@@ -110,7 +110,7 @@
     "focusLabel": "Фокус",
     "focusUnit": "хвилин",
     "encouragementStreak": "Серія тримається — закрий {count} пунктів сьогодні.",
-    "encouragementStart": "Готова почати новий день?",
+    "encouragementStart": "Ready-steady почати новий день?",
     "freshNewMaterial": "Новий матеріал",
     "freshPostedInFeed": "опублікував/ла у стрічці",
     "freshJustNow": "нещодавно",
@@ -573,11 +573,17 @@
     }
   },
   "topics": {
-    "algorithms": "Алгоритми та структури даних",
+    "algorithms-ds": "Алгоритми та структури даних",
     "databases": "Бази даних",
+    "web-development": "Веб-розробка",
+    "mathematics": "Математика",
+    "software-engineering": "Програмна інженерія",
+    "oop": "ООП",
+    "operating-systems": "Операційні системи",
+    "computer-networks": "Комп'ютерні мережі",
+    "algorithms": "Алгоритми та структури даних",
     "web": "Веб-розробка",
-    "math": "Математика",
-    "software-engineering": "Програмна інженерія"
+    "math": "Математика"
   },
   "common": {
     "loading": "Завантаження...",

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="530" height="560" viewBox="0 0 530 560" font-family="Arial, sans-serif">
+<defs>
+  <marker id="arr" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
+    <polygon points="0 0,9 3,0 6" fill="#000"/>
+  </marker>
+</defs>
+<rect width="530" height="560" fill="white" stroke="#000" stroke-width="1.5"/>
+<ellipse cx="265" cy="270" rx="248" ry="242" fill="white" stroke="#000" stroke-width="1.5"/>
+<ellipse cx="265" cy="270" rx="194" ry="188" fill="white" stroke="#000" stroke-width="1.5"/>
+<ellipse cx="265" cy="270" rx="140" ry="134" fill="white" stroke="#000" stroke-width="1.5"/>
+<ellipse cx="265" cy="270" rx="86" ry="80" fill="white" stroke="#000" stroke-width="1.5"/>
+<text x="265" y="58" text-anchor="middle" font-size="16" font-weight="bold" fill="#000">API</text>
+<text x="265" y="76" text-anchor="middle" font-size="10" fill="#444">Server Components · Server Actions</text>
+<text x="265" y="90" text-anchor="middle" font-size="10" fill="#444">Middleware · Route Handlers</text>
+<text x="265" y="112" text-anchor="middle" font-size="14" font-weight="bold" fill="#000">Persistence</text>
+<text x="265" y="129" text-anchor="middle" font-size="10" fill="#444">Supabase JS Client · Data Access Layer</text>
+<text x="265" y="166" text-anchor="middle" font-size="13" font-weight="bold" fill="#000">Application</text>
+<text x="265" y="182" text-anchor="middle" font-size="10" fill="#444">Recommendation · Analytics</text>
+<text x="265" y="196" text-anchor="middle" font-size="10" fill="#444">Progress Services</text>
+<text x="265" y="252" text-anchor="middle" font-size="13" font-weight="bold" fill="#000">Domain</text>
+<text x="265" y="270" text-anchor="middle" font-size="10" fill="#444">Profile · Topic · Material · Task</text>
+<text x="265" y="285" text-anchor="middle" font-size="10" fill="#444">Note · Post · Collection · FocusSession</text>
+<text x="265" y="552" text-anchor="middle" font-size="12" fill="#000">Рисунок 3.3 – Структура архітектурних шарів системи (виконано самостійно)</text>
+</svg>

@@ -569,11 +569,17 @@
     }
   },
   "topics": {
-    "algorithms": "Algorithms & Data Structures",
+    "algorithms-ds": "Algorithms & Data Structures",
     "databases": "Databases",
+    "web-development": "Web Development",
+    "mathematics": "Mathematics",
+    "software-engineering": "Software Engineering",
+    "oop": "OOP",
+    "operating-systems": "Operating Systems",
+    "computer-networks": "Computer Networks",
+    "algorithms": "Algorithms & Data Structures",
     "web": "Web Development",
-    "math": "Mathematics",
-    "software-engineering": "Software Engineering"
+    "math": "Mathematics"
   },
   "common": {
     "loading": "Loading...",

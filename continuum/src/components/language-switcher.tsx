@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation'
 import { setLocale } from '@/app/actions/set-locale'
 
 const locales = [
-  { code: 'uk', flag: '🇺🇦' },
-  { code: 'en', flag: '🇬🇧' },
+  { code: 'uk', flag: 'UA' },
+  { code: 'en', flag: 'EN' },
 ] as const
 
 interface LanguageSwitcherProps {

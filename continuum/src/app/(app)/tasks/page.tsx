@@ -65,6 +65,9 @@ export default async function TasksPage({ searchParams }: Props) {
     completedTaskIds = new Set(completed?.map((r) => r.task_id) ?? [])
   }
 
+  // Count only tasks completed within the current filtered view
+  const completedInView = tasks?.filter((t) => completedTaskIds.has(t.id)).length ?? 0
+
   function tTopic(slug: string | undefined, fallback: string): string {
     if (!slug) return fallback
     try { return tTopics(slug as Parameters<typeof tTopics>[0]) }
@@ -155,13 +158,13 @@ export default async function TasksPage({ searchParams }: Props) {
         <div className="flex items-center gap-3">
           <p className="text-[12.5px] shrink-0" style={{ color: 'var(--muted-foreground)' }}>
             {tasks.length} {t('tasksUnit')}
-            {completedTaskIds.size > 0 && (
+            {completedInView > 0 && (
               <span style={{ color: 'var(--success)' }}>
-                {' '}· {completedTaskIds.size} {t('completedUnit')}
+                {' '}· {completedInView} {t('completedUnit')}
               </span>
             )}
           </p>
-          {completedTaskIds.size > 0 && (
+          {completedInView > 0 && (
             <div
               className="flex-1 max-w-[180px] h-1.5 rounded-full overflow-hidden"
               style={{ background: 'var(--muted)' }}
@@ -169,7 +172,7 @@ export default async function TasksPage({ searchParams }: Props) {
               <div
                 className="h-full rounded-full transition-all"
                 style={{
-                  width: `${Math.round((completedTaskIds.size / tasks.length) * 100)}%`,
+                  width: `${Math.round((completedInView / tasks.length) * 100)}%`,
                   background: 'var(--success)',
                 }}
               />
