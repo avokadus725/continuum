@@ -1,3 +1,5 @@
+/* next-intl request config — resolves the active locale and loads its message bundle. */
+
 import { getRequestConfig } from 'next-intl/server'
 import { cookies } from 'next/headers'
 

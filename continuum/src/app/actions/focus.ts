@@ -1,5 +1,7 @@
 'use server'
 
+/* Focus Server Actions — persist completed concentration sessions. */
+
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 

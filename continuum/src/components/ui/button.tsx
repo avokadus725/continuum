@@ -1,5 +1,7 @@
 "use client"
 
+/* Button — shared button UI primitive (shadcn/ui). */
+
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
 

@@ -1,5 +1,7 @@
 'use client'
 
+/* LanguageSwitcher — toggles the UI locale (uk / en). */
+
 import { useLocale, useTranslations } from 'next-intl'
 import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'

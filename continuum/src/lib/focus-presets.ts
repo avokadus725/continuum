@@ -1,9 +1,11 @@
+/* Focus presets — background images, sounds and default timer durations. */
+
 export type BgType = 'image' | 'video'
-export type SoundType = 'file' | 'stream' // stream = майбутня монетизація
+export type SoundType = 'file' | 'stream' // stream = future monetisation
 
 export interface BackgroundPreset {
   id: string
-  labelKey: string   // ключ для i18n
+  labelKey: string   // i18n key
   type: BgType
   src: string        // local path under /public
   thumbnail: string  // same or smaller version
@@ -14,8 +16,8 @@ export interface SoundPreset {
   labelKey: string
   icon: string
   type: SoundType
-  src: string | null // null = файл ще не додано
-  isPremium?: boolean // для майбутнього преміуму
+  src: string | null // null = file not added yet
+  isPremium?: boolean // reserved for future premium
 }
 
 // All backgrounds now served from /public/backgrounds/
@@ -83,7 +85,7 @@ export const SOUND_TO_BG: Record<string, string> = {
   whitenoise: 'whitenoise',
 }
 
-// Файли звуків
+// Sound files
 export const SOUND_PRESETS: SoundPreset[] = [
   {
     id: 'none',

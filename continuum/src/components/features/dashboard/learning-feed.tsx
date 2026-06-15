@@ -1,5 +1,7 @@
 'use client'
 
+/* Learning feed — dashboard list of recommended tasks and materials. */
+
 import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
@@ -346,7 +348,7 @@ function MaterialFeedItem({
 export function LearningFeed({ initialItems, currentUserId }: LearningFeedProps) {
   const tDash = useTranslations('dashboard')
   // Shuffle once on client mount — stable across server re-renders
-  const [items, setItems] = useState<FeedItem[]>(() => shuffle(initialItems))
+  const [items] = useState<FeedItem[]>(() => shuffle(initialItems))
   const [answered, setAnswered] = useState<Map<string, AnswerResult>>(new Map())
 
   function handleTaskAnswered(taskId: string, result: AnswerResult) {

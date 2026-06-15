@@ -1,5 +1,7 @@
 'use client'
 
+/* Material form modal — create or edit a learning material. */
+
 import { useTranslations } from 'next-intl'
 import { useRef, useState, useTransition } from 'react'
 import { createMaterial, updateMaterial } from '@/app/actions/admin'

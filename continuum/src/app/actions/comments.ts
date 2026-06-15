@@ -1,5 +1,7 @@
 'use server'
 
+/* Comment Server Actions — create and delete comments on materials, tasks and posts. */
+
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 

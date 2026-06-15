@@ -1,5 +1,7 @@
 'use server'
 
+/* Profile Server Actions — update profile fields and upload the user avatar. */
+
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 

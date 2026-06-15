@@ -1,5 +1,7 @@
 'use client'
 
+/* Post feed — renders a stream of community posts. */
+
 import { useState, useTransition, useRef, useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { Trash2, MessageCircle, Link2, Heart, Send, X } from 'lucide-react'

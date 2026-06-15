@@ -1,3 +1,5 @@
+/* Supabase server client — cookie-bound client for Server Components and Server Actions. */
+
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { Database } from '@/types/database'

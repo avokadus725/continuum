@@ -1,5 +1,7 @@
 'use client'
 
+/* Avatar — community user avatar with image fallback to initials. */
+
 import { useState } from 'react'
 
 interface Props {

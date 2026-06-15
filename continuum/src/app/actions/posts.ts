@@ -1,5 +1,7 @@
 'use server'
 
+/* Community Post Server Actions — posts, comments, reactions, saves, tag follows, mark-solved. */
+
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 

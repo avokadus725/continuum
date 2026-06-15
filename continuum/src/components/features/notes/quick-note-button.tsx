@@ -1,5 +1,7 @@
 'use client'
 
+/* Quick-note button — creates a note linked to the current material or task. */
+
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { NoteEditor } from './note-editor'

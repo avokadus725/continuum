@@ -3,8 +3,9 @@
 const NON_TAG_CHAR = /[^\p{L}\p{N}-]+/gu
 
 /** Convert a free-form string into a tag slug.
- *  "ТАУ Колоквіум" → "тау-колоквіум"
- *  "#help me!"     → "help-me" */
+ *  "Deep Work"  → "deep-work"
+ *  "#help me!"  → "help-me"
+ *  Unicode letters are preserved, so Cyrillic input is supported. */
 export function slugifyTag(input: string): string {
   return input
     .toLowerCase()

@@ -1,3 +1,5 @@
+/* Saved posts page — posts the user has bookmarked in the community. */
+
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
@@ -11,7 +13,7 @@ export default async function SavedPostsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const t = await getTranslations('community.rail')
+  const t = await getTranslations('community')
 
   /* ── Load saved posts ──────────────────────────────────── */
   const { data: savedRows } = await (supabase as any)
@@ -33,7 +35,7 @@ export default async function SavedPostsPage() {
   const postIds = ((savedRows ?? []) as any[]).map(r => r.post_id).filter(Boolean)
 
   /* ── Reactions ─────────────────────────────────────────── */
-  let likesByPost = new Map<string, { count: number; liked: boolean }>()
+  const likesByPost = new Map<string, { count: number; liked: boolean }>()
   if (postIds.length > 0) {
     const { data } = await (supabase as any).from('reactions')
       .select('type, post_id, user_id').in('post_id', postIds)
@@ -87,11 +89,11 @@ export default async function SavedPostsPage() {
           <h1 className="m-0 flex items-center gap-2 text-2xl font-bold tracking-[-0.3px]"
             style={{ color: 'var(--foreground)' }}>
             <Bookmark className="h-5 w-5" style={{ color: 'var(--primary)' }} />
-            {t('saved')}
+            {t('rail.saved')}
           </h1>
           {posts.length > 0 && (
             <p className="m-0 mt-0.5 text-[13px]" style={{ color: 'var(--muted-foreground)' }}>
-              {posts.length} {posts.length === 1 ? 'збережений пост' : posts.length < 5 ? 'збережені пости' : 'збережених постів'}
+              {t('savedPage.count', { count: posts.length })}
             </p>
           )}
         </div>
@@ -105,15 +107,15 @@ export default async function SavedPostsPage() {
         >
           <Bookmark className="h-10 w-10 opacity-20" style={{ color: 'var(--foreground)' }} />
           <p className="m-0 text-[14px]" style={{ color: 'var(--muted-foreground)' }}>
-            Збережених постів поки немає.<br />
-            Натисни <strong>Зберегти</strong> під будь-яким постом у спільноті.
+            {t('savedPage.emptyTitle')}<br />
+            {t.rich('savedPage.emptyHint', { b: (chunks) => <strong>{chunks}</strong> })}
           </p>
           <Link
             href="/community"
             className="mt-1 text-[13px] font-medium no-underline"
             style={{ color: 'var(--primary)' }}
           >
-            ← До спільноти
+            {t('savedPage.back')}
           </Link>
         </div>
       ) : (

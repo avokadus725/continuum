@@ -555,6 +555,12 @@
       "dmSoonBold": "coming soon",
       "saved": "Saved"
     },
+    "savedPage": {
+      "emptyTitle": "No saved posts yet.",
+      "emptyHint": "Tap <b>Save</b> under any post in the community.",
+      "back": "← Back to community",
+      "count": "{count, plural, one {# saved post} other {# saved posts}}"
+    },
     "hashtag": {
       "about": "About this tag",
       "posts": "posts",

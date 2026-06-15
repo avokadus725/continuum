@@ -1,3 +1,5 @@
+/* Topic icons — maps each topic slug to its Lucide icon and accent colour. */
+
 import {
   Network, Database, Globe, Calculator, Layers, BookOpen,
   Cpu, Wifi, BoxSelect, type LucideIcon,

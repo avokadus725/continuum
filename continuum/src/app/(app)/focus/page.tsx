@@ -1,3 +1,5 @@
+/* Focus page — the concentration room (Pomodoro / custom timer). */
+
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'

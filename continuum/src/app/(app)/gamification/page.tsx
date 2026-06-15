@@ -1,3 +1,5 @@
+/* Leaderboard page — XP ranking, levels and achievements. */
+
 import { createClient } from '@/lib/supabase/server'
 import { getTranslations, getLocale } from 'next-intl/server'
 import { redirect } from 'next/navigation'

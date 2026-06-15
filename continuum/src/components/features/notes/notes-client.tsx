@@ -1,5 +1,7 @@
 'use client'
 
+/* Notes client — list and manage the user's notes. */
+
 import { useTranslations } from 'next-intl'
 import { useState, useTransition } from 'react'
 import { BookMarked, Pencil, Trash2, StickyNote, Search, X, Paperclip } from 'lucide-react'

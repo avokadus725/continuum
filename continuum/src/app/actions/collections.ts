@@ -1,5 +1,7 @@
 'use server'
 
+/* Collection Server Actions — create/rename/delete collections, add or remove materials & tasks. */
+
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { CoverKey } from '@/lib/collection-covers'

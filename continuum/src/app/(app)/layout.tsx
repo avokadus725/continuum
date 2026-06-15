@@ -1,3 +1,5 @@
+/* Authenticated layout — guards protected routes and wraps them in the sidebar shell. */
+
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { SidebarLayout } from '@/components/sidebar-layout'

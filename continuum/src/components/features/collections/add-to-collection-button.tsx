@@ -1,5 +1,7 @@
 'use client'
 
+/* Add-to-collection button — opens the picker to save an item into a collection. */
+
 import { useState, useRef, useEffect, useTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslations } from 'next-intl'

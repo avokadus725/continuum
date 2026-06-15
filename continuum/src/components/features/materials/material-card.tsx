@@ -1,3 +1,5 @@
+/* Material card — preview card for a learning material. */
+
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { AddToCollectionButton } from '@/components/features/collections/add-to-collection-button'

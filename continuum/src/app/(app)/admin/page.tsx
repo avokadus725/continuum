@@ -1,3 +1,5 @@
+/* Admin page — dashboard for managing users, tasks and materials (admin role only). */
+
 import { createClient } from '@/lib/supabase/server'
 import { getTranslations } from 'next-intl/server'
 import { redirect } from 'next/navigation'

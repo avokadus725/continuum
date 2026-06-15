@@ -1,3 +1,5 @@
+/* Collections page — lists the user's saved collections. */
+
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'

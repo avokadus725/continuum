@@ -1,3 +1,5 @@
+/* Analytics page — progress stats, activity chart, streak and topic breakdown. */
+
 import { createClient } from '@/lib/supabase/server'
 import { getTranslations, getLocale } from 'next-intl/server'
 import { redirect } from 'next/navigation'

@@ -1,3 +1,5 @@
+/* Recommendations page ("For you") — personalised tasks and materials by weak topics. */
+
 import { createClient } from '@/lib/supabase/server'
 import { getTranslations } from 'next-intl/server'
 import { redirect } from 'next/navigation'

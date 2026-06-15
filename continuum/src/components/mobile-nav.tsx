@@ -1,5 +1,7 @@
 'use client'
 
+/* MobileNav — bottom navigation bar for small screens. */
+
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'

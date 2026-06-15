@@ -1,5 +1,7 @@
 'use server'
 
+/* Note Server Actions — create, update and delete personal notes. */
+
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 

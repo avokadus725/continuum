@@ -1,3 +1,5 @@
+/* Collection detail page — materials and tasks inside one collection. */
+
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { CollectionDetailClient } from '@/components/features/collections/collection-detail-client'

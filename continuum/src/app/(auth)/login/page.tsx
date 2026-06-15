@@ -1,5 +1,7 @@
 'use client'
 
+/* Login page — Google OAuth sign-in and marketing intro. */
+
 import { createClient } from '@/lib/supabase/client'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { useTranslations } from 'next-intl'
@@ -112,7 +114,7 @@ export default function LoginPage() {
             </h1>
 
             <div className="mt-10 grid max-w-[560px] grid-cols-1 gap-x-8 gap-y-5 border-t border-[#E2DFD6] pt-6 sm:grid-cols-2">
-              {(['f1', 'f2', 'f3', 'f4'] as const).map((k, i) => (
+              {(['f1', 'f2', 'f3', 'f4'] as const).map((k) => (
                 <div key={k}>
                   <div className="mb-1.5 flex items-center gap-2.5 text-[13px] font-bold text-[#0B1620]">
                     {/* <span

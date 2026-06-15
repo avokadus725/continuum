@@ -1,5 +1,7 @@
 'use client'
 
+/* Collections client — grid of the user's collections with create / rename / delete. */
+
 import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
