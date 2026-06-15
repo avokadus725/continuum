@@ -1,3 +1,5 @@
+/* Tasks page — filterable list of practice tasks with completion progress. */
+
 import { createClient } from '@/lib/supabase/server'
 import { getTranslations } from 'next-intl/server'
 import { TaskCard } from '@/components/features/tasks/task-card'

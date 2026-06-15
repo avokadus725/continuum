@@ -1,5 +1,7 @@
 'use client'
 
+/* Note editor — rich-text editor for creating and editing a note. */
+
 import { useTranslations } from 'next-intl'
 import { useRef, useState, useTransition, useEffect } from 'react'
 import { X, BookMarked, ChevronDown, Paperclip } from 'lucide-react'

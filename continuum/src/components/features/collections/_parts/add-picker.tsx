@@ -40,12 +40,16 @@ export function AddPicker({ collectionId, materials, tasks, onClose, onCreateNot
 
   function toggleMat(id: string) {
     setPickedMats(s => {
-      const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n
+      const n = new Set(s)
+      if (n.has(id)) n.delete(id); else n.add(id)
+      return n
     })
   }
   function toggleTask(id: string) {
     setPickedTasks(s => {
-      const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n
+      const n = new Set(s)
+      if (n.has(id)) n.delete(id); else n.add(id)
+      return n
     })
   }
 

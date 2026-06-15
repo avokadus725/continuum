@@ -1,3 +1,5 @@
+/* Auth layout — minimal shell for unauthenticated pages (login). */
+
 export default function AuthLayout({
   children,
 }: {

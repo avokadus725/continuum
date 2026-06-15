@@ -1,5 +1,7 @@
 'use client'
 
+/* LiveSearch — debounced search input that updates the URL query. */
+
 import { useRouter, usePathname } from 'next/navigation'
 import { useRef, useState } from 'react'
 import { Search, X } from 'lucide-react'

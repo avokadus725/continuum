@@ -1,3 +1,5 @@
+/* Hashtag page — community posts filtered by a single tag. */
+
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { HashtagClient } from '@/components/features/community/hashtag-client'

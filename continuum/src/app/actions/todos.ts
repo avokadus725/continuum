@@ -1,5 +1,7 @@
 'use server'
 
+/* Todo Server Actions — create, toggle and delete personal to-dos. */
+
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 

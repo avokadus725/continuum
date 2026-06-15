@@ -1,5 +1,7 @@
 'use client'
 
+/* Collection detail client — interactive view of one collection's items. */
+
 import { DIFF_COLOR } from '@/lib/difficulty-colors'
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'

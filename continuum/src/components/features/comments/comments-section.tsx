@@ -1,5 +1,7 @@
 'use client'
 
+/* Comments section — threaded comments with replies for a material or task. */
+
 import { useTranslations } from 'next-intl'
 import { useRef, useState, useTransition } from 'react'
 import { createComment, deleteComment } from '@/app/actions/comments'

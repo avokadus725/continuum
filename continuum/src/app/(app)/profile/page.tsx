@@ -1,3 +1,5 @@
+/* Profile page — user profile with stats and edit form. */
+
 import { createClient } from '@/lib/supabase/server'
 import { getTranslations } from 'next-intl/server'
 import { redirect } from 'next/navigation'

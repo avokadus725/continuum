@@ -1,5 +1,7 @@
 'use client'
 
+/* Reactions bar — like / helpful / fire reaction buttons with counts. */
+
 import { useTranslations } from 'next-intl'
 import { useState, useTransition } from 'react'
 import { toggleReaction } from '@/app/actions/reactions'

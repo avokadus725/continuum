@@ -1,5 +1,7 @@
 'use client'
 
+/* Algorithm modal — explains how the recommendation score (urgency, difficulty, novelty) is computed. */
+
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Info } from 'lucide-react'
 

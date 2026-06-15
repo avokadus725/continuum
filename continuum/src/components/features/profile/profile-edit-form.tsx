@@ -1,5 +1,7 @@
 'use client'
 
+/* Profile edit form — edit display name, bio and language. */
+
 import { useTranslations } from 'next-intl'
 import { useState, useTransition } from 'react'
 import { updateProfile } from '@/app/actions/profile'

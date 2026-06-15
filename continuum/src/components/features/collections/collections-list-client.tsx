@@ -1,5 +1,7 @@
 'use client'
 
+/* Collections list client — compact collection list used by the picker. */
+
 import { useState, useTransition, useMemo } from 'react'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'

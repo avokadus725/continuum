@@ -1,3 +1,5 @@
+/* Middleware (proxy) — refreshes the Supabase session and guards protected/auth routes. */
+
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 

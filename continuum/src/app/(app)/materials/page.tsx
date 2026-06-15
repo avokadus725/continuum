@@ -1,3 +1,5 @@
+/* Materials page — searchable list of learning materials by topic. */
+
 import { createClient } from '@/lib/supabase/server'
 import { getTranslations } from 'next-intl/server'
 import { MaterialCard } from '@/components/features/materials/material-card'

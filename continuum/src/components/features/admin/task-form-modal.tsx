@@ -1,5 +1,7 @@
 'use client'
 
+/* Task form modal — create or edit a task with its answer options. */
+
 import { useTranslations } from 'next-intl'
 import { useRef, useState, useTransition } from 'react'
 import { createTask, updateTask } from '@/app/actions/admin'

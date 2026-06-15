@@ -1,5 +1,7 @@
 'use client'
 
+/* Admin client — tabbed admin UI for users, tasks and materials. */
+
 import { useTranslations } from 'next-intl'
 import { useState, useTransition } from 'react'
 import { toggleUserStatus, deleteTask, deleteMaterial, adminDeleteComment } from '@/app/actions/admin'

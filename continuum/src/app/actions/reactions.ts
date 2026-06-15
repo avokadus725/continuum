@@ -1,5 +1,7 @@
 'use server'
 
+/* Reaction Server Actions — toggle like / helpful / fire reactions on materials & comments. */
+
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 

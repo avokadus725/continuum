@@ -1,3 +1,5 @@
+/* Community page — social feed with posts, filters and the right rail. */
+
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { CommunityClient } from '@/components/features/community/community-client'

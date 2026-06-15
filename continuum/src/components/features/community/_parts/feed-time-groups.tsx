@@ -1,6 +1,6 @@
 'use client'
 
-/* Time-grouped post stream — groups posts by Сьогодні / Цього тижня / Раніше. */
+/* Time-grouped post stream — groups posts by Today / This week / Earlier. */
 
 import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'

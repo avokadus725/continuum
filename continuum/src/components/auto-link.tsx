@@ -1,5 +1,7 @@
 'use client'
 
+/* AutoLink — renders plain text with URLs turned into clickable links. */
+
 import React from 'react'
 
 const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`[\]]+/g

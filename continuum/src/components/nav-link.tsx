@@ -1,5 +1,7 @@
 'use client'
 
+/* NavLink — sidebar link with active-route highlighting. */
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 

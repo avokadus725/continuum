@@ -1,3 +1,5 @@
+/* Notes page — the user's personal notes. */
+
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { NotesClient } from '@/components/features/notes/notes-client'

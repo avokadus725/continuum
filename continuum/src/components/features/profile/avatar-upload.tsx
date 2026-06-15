@@ -1,5 +1,7 @@
 'use client'
 
+/* Avatar upload — picks, previews and uploads the user's avatar. */
+
 import { useRef, useState, useTransition } from 'react'
 import { Camera } from 'lucide-react'
 import { uploadAvatar } from '@/app/actions/profile'

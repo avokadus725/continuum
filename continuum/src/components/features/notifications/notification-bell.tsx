@@ -1,5 +1,7 @@
 'use client'
 
+/* Notification bell — dropdown of the user's notifications with an unread badge. */
+
 import { useEffect, useRef, useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import Link from 'next/link'
@@ -47,7 +49,7 @@ function formatRelative(iso: string, locale: string) {
   return new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
 }
 
-export function NotificationBell({ userId, slim }: { userId: string; slim?: boolean }) {
+export function NotificationBell({ userId }: { userId: string }) {
   const t = useTranslations('notifications')
   const locale = useLocale()
   const [notifications, setNotifications] = useState<Notification[]>([])
