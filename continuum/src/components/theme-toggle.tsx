@@ -1,6 +1,6 @@
 'use client'
 
-/* ThemeToggle — switches between light and dark themes. */
+/* ThemeToggle – switches between light and dark themes. */
 
 import { useEffect, useState } from 'react'
 

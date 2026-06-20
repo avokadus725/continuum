@@ -1,6 +1,6 @@
 'use client'
 
-/* Collections client — grid of the user's collections with create / rename / delete. */
+/* Collections client – grid of the user's collections with create / rename / delete. */
 
 import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
@@ -22,6 +22,7 @@ interface CollectionsClientProps {
 
 export function CollectionsClient({ collections: initial }: CollectionsClientProps) {
   const t = useTranslations('collections')
+  const tCommon = useTranslations('common')
   const [showCreate, setShowCreate] = useState(false)
   const [newTitle, setNewTitle]     = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -115,7 +116,7 @@ export function CollectionsClient({ collections: initial }: CollectionsClientPro
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Пошук підбірок…"
+            placeholder={t('searchPlaceholder')}
             className="flex-1 bg-transparent text-sm outline-none"
             style={{ color: 'var(--foreground)' }}
           />
@@ -133,7 +134,7 @@ export function CollectionsClient({ collections: initial }: CollectionsClientPro
           {filtered.map(col => {
             const parts: string[] = []
             if (col.materialCount > 0) parts.push(`${col.materialCount} ${t('materials')}`)
-            if (col.taskCount > 0) parts.push(`${col.taskCount} завд.`)
+            if (col.taskCount > 0) parts.push(`${col.taskCount} ${t('taskShort')}`)
 
             return (
               <div
@@ -175,7 +176,7 @@ export function CollectionsClient({ collections: initial }: CollectionsClientPro
         >
           <BookMarked className="w-10 h-10 mx-auto mb-3 opacity-30" style={{ color: 'var(--muted-foreground)' }} />
           <p style={{ color: 'var(--muted-foreground)' }}>
-            {search ? 'Нічого не знайдено' : t('noCollections')}
+            {search ? tCommon('noResults') : t('noCollections')}
           </p>
         </div>
       )}

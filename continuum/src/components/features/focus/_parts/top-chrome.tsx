@@ -1,8 +1,8 @@
 'use client'
 
-/* Top chrome — minimal exit + action pills.
+/* Top chrome – minimal exit + action pills.
    Only visible inside the focus room.
-   onBack is called when the user clicks the "Home" button — the parent
+   onBack is called when the user clicks the "Home" button – the parent
    decides whether to navigate directly or show the leave-guard dialog. */
 
 import { ArrowLeft, Settings as SettingsIcon, Maximize2 } from 'lucide-react'

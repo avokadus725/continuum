@@ -1,9 +1,10 @@
 'use client'
 
-/* Single "helpful" reaction button — replaces the 3-emoji ReactionsBar
+/* Single "helpful" reaction button – replaces the 3-emoji ReactionsBar
    on material detail. Optimistic, server-synced. */
 
 import { useState, useTransition } from 'react'
+import { useTranslations } from 'next-intl'
 import { Heart } from 'lucide-react'
 import { toggleReaction } from '@/app/actions/reactions'
 
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function HelpfulButton({ materialId, count, reacted }: Props) {
+  const t = useTranslations('materials')
   const [isPending, startTransition] = useTransition()
   const [local, setLocal] = useState({ count, reacted })
 
@@ -42,7 +44,7 @@ export function HelpfulButton({ materialId, count, reacted }: Props) {
       }}
     >
       <Heart className="h-3.5 w-3.5" fill={local.reacted ? 'currentColor' : 'none'} />
-      Корисно{local.count > 0 ? ` · ${local.count}` : ''}
+      {t('helpful')}{local.count > 0 ? ` · ${local.count}` : ''}
     </button>
   )
 }

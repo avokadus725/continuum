@@ -1,4 +1,4 @@
-/* Material card — preview card for a learning material. */
+/* Material card – preview card for a learning material. */
 
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
@@ -29,6 +29,7 @@ export async function MaterialCard({
   id, title, content, url, type, topic, collections, readMinutes, hasNote, inCollection,
 }: MaterialCardProps) {
   const t = await getTranslations('materials.types')
+  const tMat = await getTranslations('materials')
 
   const excerpt = content ? content.slice(0, 130) + (content.length > 130 ? '…' : '') : null
   const accent  = topicColor(topic?.slug)
@@ -76,17 +77,17 @@ export async function MaterialCard({
           style={{ borderTop: '1px solid color-mix(in srgb, var(--border) 70%, transparent)', color: 'var(--muted-foreground)' }}
         >
           {readMinutes ? (
-            <span className="inline-flex items-center gap-1"><Clock size={11} /> {readMinutes} хв</span>
+            <span className="inline-flex items-center gap-1"><Clock size={11} /> {tMat('minutesShort', { min: readMinutes })}</span>
           ) : url && !content ? (
             <span className="truncate" style={{ color: accent }}>
               {url.replace(/^https?:\/\//, '').split('/')[0]} ↗
             </span>
           ) : null}
           {hasNote && (
-            <span className="inline-flex items-center gap-1" style={{ color: '#C2956C' }}><StickyNote size={11} /> Нотатка</span>
+            <span className="inline-flex items-center gap-1" style={{ color: '#C2956C' }}><StickyNote size={11} /> {tMat('noteBadge')}</span>
           )}
           {inCollection && (
-            <span className="inline-flex items-center gap-1"><Bookmark size={11} /> У підбірці</span>
+            <span className="inline-flex items-center gap-1"><Bookmark size={11} /> {tMat('inCollectionBadge')}</span>
           )}
         </div>
       </Link>

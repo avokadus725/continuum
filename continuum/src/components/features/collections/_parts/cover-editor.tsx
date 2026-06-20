@@ -1,9 +1,10 @@
 'use client'
 
-/* Cover editor — used for both create (in the list) and update (in detail).
+/* Cover editor – used for both create (in the list) and update (in detail).
    Self-contained: caller passes an onSave handler that performs the action. */
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { X, Trash2 } from 'lucide-react'
 import { COVERS, COVER_KEYS, EMOJI_PICKER, type CoverKey } from '@/lib/collection-covers'
 
@@ -23,31 +24,30 @@ interface Props {
 }
 
 export function CoverEditor({ mode, initial, onCancel, onSave, onDelete }: Props) {
+  const t = useTranslations('collections')
+  const tCommon = useTranslations('common')
   const [val, setVal] = useState<CoverEditorValue>(initial)
   const palette = COVERS[val.cover] ?? COVERS.default
   const canSave = val.title.trim().length > 0
 
   return (
     <div
-      className="w-[460px] rounded-2xl border"
+      className="w-[min(460px,calc(100vw-2rem))] rounded-2xl border"
       style={{
         background: 'var(--card)', borderColor: 'var(--border)',
         boxShadow: '0 30px 60px -15px rgba(11,22,32,0.22)',
       }}
     >
       <header
-        className="flex items-baseline gap-2 border-b px-5 pb-3.5 pt-[18px]"
+        className="flex items-center gap-2 border-b px-5 pb-3.5 pt-[18px]"
         style={{ borderColor: 'color-mix(in srgb, var(--border) 70%, transparent)' }}
       >
-        <span style={{
-          fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic',
-          color: 'var(--primary)', fontSize: 18,
-        }}>{mode === 'create' ? 'i.' : 'ii.'}</span>
-        <h3 className="m-0 text-base font-semibold tracking-[-0.2px]" style={{ color: 'var(--foreground)' }}>
-          {mode === 'create' ? 'Нова підбірка' : 'Налаштувати підбірку'}
+        <h3 className="m-0 flex-1 text-base font-semibold tracking-[-0.2px]" style={{ color: 'var(--foreground)' }}>
+          {mode === 'create' ? t('editorCreateTitle') : t('editorEditTitle')}
         </h3>
-        <span className="flex-1" />
-        <button onClick={onCancel} className="bg-transparent" style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }}>
+        <button onClick={onCancel}
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-lg transition-colors hover:bg-[var(--muted)]"
+          style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }}>
           <X className="h-4 w-4" />
         </button>
       </header>
@@ -61,26 +61,26 @@ export function CoverEditor({ mode, initial, onCancel, onSave, onDelete }: Props
           <span style={{ fontSize: 32 }}>{val.emoji}</span>
         </div>
 
-        <Label>Назва</Label>
+        <Label>{t('fieldName')}</Label>
         <input
           autoFocus
           value={val.title}
           onChange={e => setVal(v => ({ ...v, title: e.target.value }))}
-          placeholder="напр. Алгоритми та структури даних"
+          placeholder={t('namePlaceholderExample')}
           className="h-[38px] w-full rounded-lg border bg-[var(--background)] px-3 text-[13.5px] outline-none"
           style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
         />
 
-        <Label>Опис · необов&apos;язково</Label>
+        <Label>{t('fieldDescriptionOptional')}</Label>
         <input
           value={val.description}
           onChange={e => setVal(v => ({ ...v, description: e.target.value }))}
-          placeholder="Підготовка до колоквіуму, кінець семестру…"
+          placeholder={t('descriptionPlaceholder')}
           className="h-[38px] w-full rounded-lg border bg-[var(--background)] px-3 text-[13.5px] outline-none"
           style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
         />
 
-        <Label>Емодзі</Label>
+        <Label>{t('fieldEmoji')}</Label>
         <div className="mt-1.5 flex flex-wrap gap-1.5">
           {EMOJI_PICKER.map(e => {
             const active = e === val.emoji
@@ -102,7 +102,7 @@ export function CoverEditor({ mode, initial, onCancel, onSave, onDelete }: Props
           })}
         </div>
 
-        <Label>Колір обкладинки</Label>
+        <Label>{t('fieldCover')}</Label>
         <div className="mt-1.5 flex gap-2">
           {COVER_KEYS.map(k => {
             const v = COVERS[k]
@@ -137,11 +137,11 @@ export function CoverEditor({ mode, initial, onCancel, onSave, onDelete }: Props
         {mode === 'edit' && onDelete && (
           <button
             onClick={onDelete}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-transparent px-3.5 text-[12.5px] font-semibold"
+            className="inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-transparent px-2.5 text-[12.5px] font-semibold"
             style={{ color: 'var(--destructive)' }}
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Видалити підбірку
+            {t('deleteCollectionTitle')}
           </button>
         )}
         <span className="flex-1" />
@@ -150,7 +150,7 @@ export function CoverEditor({ mode, initial, onCancel, onSave, onDelete }: Props
           className="h-9 rounded-lg border bg-transparent px-3.5 text-[12.5px]"
           style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
         >
-          Скасувати
+          {tCommon('cancel')}
         </button>
         <button
           onClick={() => canSave && onSave({ ...val, title: val.title.trim(), description: val.description.trim() })}
@@ -158,7 +158,7 @@ export function CoverEditor({ mode, initial, onCancel, onSave, onDelete }: Props
           className="h-9 rounded-lg border-0 px-4 text-[12.5px] font-semibold text-white disabled:opacity-50"
           style={{ background: 'var(--primary)' }}
         >
-          {mode === 'create' ? 'Створити' : 'Зберегти'}
+          {mode === 'create' ? tCommon('create') : tCommon('save')}
         </button>
       </footer>
     </div>

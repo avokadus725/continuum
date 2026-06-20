@@ -1,4 +1,4 @@
-/* Community page — social feed with posts, filters and the right rail. */
+/* Community page – social feed with posts, filters and the right rail. */
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
@@ -166,8 +166,8 @@ async function loadRightRailData(
     posts: { id: string; title: string | null; content: string; kind: string; profiles: { full_name: string | null } | null } | null
   }>).map(r => ({
     id: r.post_id,
-    label: r.posts?.title || r.posts?.content?.slice(0, 90) || '—',
-    author: r.posts?.profiles?.full_name ?? '—',
+    label: r.posts?.title || r.posts?.content?.slice(0, 90) || '–',
+    author: r.posts?.profiles?.full_name ?? '–',
     when: r.saved_at,
   }))
 
@@ -175,7 +175,7 @@ async function loadRightRailData(
     trending,
     newMembers: (newMembers ?? []).map(m => ({
       id: m.id,
-      name: m.full_name ?? '—',
+      name: m.full_name ?? '–',
       avatarUrl: m.avatar_url,
       createdAt: m.created_at,
     })),

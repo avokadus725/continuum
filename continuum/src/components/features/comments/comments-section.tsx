@@ -1,6 +1,6 @@
 'use client'
 
-/* Comments section — threaded comments with replies for a material or task. */
+/* Comments section – threaded comments with replies for a material or task. */
 
 import { useTranslations } from 'next-intl'
 import { useRef, useState, useTransition } from 'react'
@@ -70,7 +70,7 @@ export function CommentsSection({ comments, materialId, taskId, currentUserId }:
   }
 
   function CommentItem({ comment, isReply = false }: { comment: Comment; isReply?: boolean }) {
-    const name = comment.profiles?.full_name ?? '—'
+    const name = comment.profiles?.full_name ?? '–'
     const commentReplies = replies.get(comment.id) ?? []
     return (
       <div className={isReply ? 'ml-8' : ''}>
@@ -142,19 +142,19 @@ export function CommentsSection({ comments, materialId, taskId, currentUserId }:
             <button type="button" onClick={() => setReplyTo(null)} className="ml-auto">×</button>
           </div>
         )}
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <textarea
             name="content"
             required
             rows={2}
             placeholder={t('placeholder')}
-            className="flex-1 rounded-xl border px-3 py-2 text-sm resize-none outline-none"
+            className="w-full flex-1 rounded-xl border px-3 py-2 text-sm resize-none outline-none"
             style={{ background: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
           />
           <button
             type="submit"
             disabled={isPending}
-            className="px-4 py-2 rounded-xl text-sm font-semibold self-end transition-opacity disabled:opacity-50"
+            className="w-full rounded-xl px-4 py-2 text-sm font-semibold transition-opacity disabled:opacity-50 sm:w-auto sm:self-end"
             style={{ background: 'var(--primary)', color: 'var(--primary-foreground)' }}
           >
             {t('submit')}

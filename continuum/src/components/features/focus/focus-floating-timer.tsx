@@ -1,6 +1,6 @@
 'use client'
 
-/* Floating focus-timer pill — appears on all non-focus pages while
+/* Floating focus-timer pill – appears on all non-focus pages while
    a session is minimized (user clicked "Browse & return later").
    Polls localStorage once per second and counts down in real time.
    Clicking the pill navigates back to /focus, where the session is restored. */
@@ -30,7 +30,7 @@ export function FocusFloatingTimer() {
 
       const sLeft = computeSecondsLeft(l)
 
-      // Phase ended while browsing away — advance to next phase automatically
+      // Phase ended while browsing away – advance to next phase automatically
       if (l.isRunning && sLeft <= 0) {
         let next: FocusLive
         if (l.phase === 'work') {
@@ -38,7 +38,7 @@ export function FocusFloatingTimer() {
           // Credit all remaining work seconds to the accumulator
           const newFocusSeconds = l.focusSeconds + l.secondsLeft
           if (nextPomos >= l.targetSessions) {
-            // All sessions done — stop the session
+            // All sessions done – stop the session
             next = { ...l, isRunning: false, secondsLeft: 0, focusSeconds: newFocusSeconds, updatedAt: Date.now() }
           } else {
             // Work done → start break
@@ -127,7 +127,7 @@ export function FocusFloatingTimer() {
         </div>
       </div>
 
-      {/* Intention text — shown on wider screens */}
+      {/* Intention text – shown on wider screens */}
       {live.intention && (
         <div
           className="ml-0.5 hidden max-w-[130px] truncate text-[12px] sm:block"

@@ -1,6 +1,6 @@
 'use client'
 
-/* Avatar — community user avatar with image fallback to initials. */
+/* Avatar – community user avatar with image fallback to initials. */
 
 import { useState } from 'react'
 
@@ -28,10 +28,12 @@ export function Avatar({ name, url, size = 36 }: Props) {
   }
   return (
     <div
-      className="flex flex-none items-center justify-center rounded-full border"
+      className="flex flex-none items-center justify-center rounded-full"
       style={{
         width: dim, height: dim,
-        background: 'var(--muted)', color: 'var(--foreground)', borderColor: 'var(--border)',
+        background: 'color-mix(in srgb, var(--primary) 14%, var(--muted))',
+        color: 'var(--primary)',
+        border: '1.5px solid color-mix(in srgb, var(--primary) 25%, var(--border))',
         fontSize: Math.round(size * 0.38), fontWeight: 700,
       }}
     >

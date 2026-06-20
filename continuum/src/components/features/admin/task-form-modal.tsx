@@ -1,6 +1,6 @@
 'use client'
 
-/* Task form modal — create or edit a task with its answer options. */
+/* Task form modal – create or edit a task with its answer options. */
 
 import { useTranslations } from 'next-intl'
 import { useRef, useState, useTransition } from 'react'
@@ -73,10 +73,10 @@ export function TaskFormModal({ topics, task, onClose }: TaskFormModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.5)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div className="w-full max-w-2xl rounded-2xl border shadow-xl my-4"
+      <div className="w-full max-w-2xl rounded-2xl border shadow-xl max-h-[90dvh] overflow-y-auto"
         style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
 
         {/* Header */}
@@ -84,7 +84,9 @@ export function TaskFormModal({ topics, task, onClose }: TaskFormModalProps) {
           <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
             {task ? tAdmin('editTask') : tAdmin('createTask')}
           </h2>
-          <button onClick={onClose} style={{ color: 'var(--muted-foreground)' }}>×</button>
+          <button onClick={onClose}
+            className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-lg transition-colors hover:bg-[var(--muted)]"
+            style={{ color: 'var(--muted-foreground)' }}>×</button>
         </div>
 
         <form ref={formRef} action={handleSubmit} className="p-6 space-y-4">
@@ -107,7 +109,7 @@ export function TaskFormModal({ topics, task, onClose }: TaskFormModalProps) {
           </div>
 
           {/* Row: type + difficulty + xp */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
               <label className="text-xs font-medium block mb-1" style={{ color: 'var(--muted-foreground)' }}>{tAdmin('taskType')}</label>
               <select name="type" defaultValue={task?.type ?? 'single_choice'}
@@ -140,7 +142,7 @@ export function TaskFormModal({ topics, task, onClose }: TaskFormModalProps) {
               <select name="topic_id" defaultValue={task?.topic_id ?? ''}
                 className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
                 style={{ background: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-                <option value="">—</option>
+                <option value="">–</option>
                 {topics.map(tp => <option key={tp.id} value={tp.id}>{tp.icon} {tp.title}</option>)}
               </select>
             </div>
@@ -166,7 +168,7 @@ export function TaskFormModal({ topics, task, onClose }: TaskFormModalProps) {
           {needsOptions && (
             <div className="space-y-2">
               <label className="text-xs font-medium block" style={{ color: 'var(--muted-foreground)' }}>
-                {tAdmin('options')} {type === 'single_choice' ? '(одна правильна)' : '(декілька правильних)'}
+                {tAdmin('options')} {type === 'single_choice' ? tAdmin('optionsSingleHint') : tAdmin('optionsMultiHint')}
               </label>
               {options.map((opt, i) => (
                 <div key={i} className="flex items-center gap-2">

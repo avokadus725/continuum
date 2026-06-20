@@ -53,7 +53,7 @@ export function FeedFilterBar({ kind, sort, counts, basePath = '/community' }: P
   return (
     <div className="mb-3 flex flex-wrap items-center gap-2.5 pt-1">
       <div
-        className="inline-flex gap-1 rounded-[10px] border p-[3px]"
+        className="inline-flex max-w-full gap-1 overflow-x-auto rounded-[10px] border p-[3px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
       >
         <TypeTab icon={null}                                  label={t('all')}         n={counts.all}        active={kind === 'all'}        onClick={() => setKind('all')} />
@@ -114,7 +114,7 @@ function TypeTab({
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-md border-0 px-2.5 py-[5px] text-[12.5px] font-semibold"
+      className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border-0 px-2.5 py-[5px] text-[12.5px] font-semibold"
       style={{
         background: active
           ? (accent ? `color-mix(in srgb, ${accent} 14%, transparent)` : 'color-mix(in srgb, var(--primary) 10%, transparent)')

@@ -1,6 +1,6 @@
 'use client'
 
-/* Materials search — client search / filter controls for the materials list. */
+/* Materials search – client search / filter controls for the materials list. */
 
 import { useRouter, usePathname } from 'next/navigation'
 import { useRef } from 'react'

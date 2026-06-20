@@ -1,4 +1,4 @@
-/* Shared community types — used across page, composer, post card, etc.
+/* Shared community types – used across page, composer, post card, etc.
    Mirror DB enums; keep in sync with migration.sql. */
 
 export type PostKind = 'discussion' | 'question' | 'share'

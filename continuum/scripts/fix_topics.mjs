@@ -1,4 +1,4 @@
-// fix_topics.mjs — merges duplicate topics, then we update translations
+// fix_topics.mjs – merges duplicate topics, then we update translations
 import { createClient } from '@supabase/supabase-js'
 import { readFileSync } from 'fs'
 import { fileURLToPath } from 'url'

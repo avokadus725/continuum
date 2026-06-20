@@ -1,6 +1,6 @@
 'use client'
 
-/* Controls — Start (idle) or Pause+Skip (running). */
+/* Controls – Start (idle) or Pause+Skip (running). */
 
 import { Play, Pause, SkipForward } from 'lucide-react'
 import { useTranslations } from 'next-intl'

@@ -19,7 +19,7 @@ export function TimerArc({ time, progress, phase, subtitle }: Props) {
   const running = phase !== 'idle'
   return (
     <div className="relative" style={{ width: 380, height: 380 }}>
-      {/* breathing pulse — slow, only when active */}
+      {/* breathing pulse – slow, only when active */}
       <div
         className="absolute rounded-full border"
         style={{

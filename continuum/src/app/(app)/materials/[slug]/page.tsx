@@ -1,4 +1,4 @@
-/* Material detail — reading view + sidebar with single "helpful" reaction,
+/* Material detail – reading view + sidebar with single "helpful" reaction,
    your note, related tasks. */
 
 import { createClient } from '@/lib/supabase/server'
@@ -122,7 +122,7 @@ export default async function MaterialDetailPage({ params }: Props) {
               )}
               {rm && (
                 <span className="inline-flex items-center gap-1.5 text-[12.5px]" style={{ color: 'var(--muted-foreground)' }}>
-                  <Clock size={13} /> {rm} хв читання
+                  <Clock size={13} /> {t('readMinutes', { min: rm })}
                 </span>
               )}
             </div>
@@ -158,13 +158,11 @@ export default async function MaterialDetailPage({ params }: Props) {
                 <a href={material.url} target="_blank" rel="noopener noreferrer"
                   className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-[10px] text-[13.5px] font-semibold text-white no-underline"
                   style={{ background: 'var(--primary)' }}>
-                  <ExternalLink size={15} /> Читати оригінал
+                  <ExternalLink size={15} /> {t('readOriginal')}
                 </a>
               )}
-              <div className="flex gap-2">
-                <div className="flex-1"><AddToCollectionButton itemId={materialId} itemType="material" collections={collectionsData} /></div>
-                <div className="flex-1"><QuickNoteButton materialId={materialId} materialTitle={material.title} collections={collectionsData.map(c => ({ id: c.id, title: c.title }))} /></div>
-              </div>
+              <AddToCollectionButton itemId={materialId} itemType="material" collections={collectionsData} />
+              <QuickNoteButton materialId={materialId} materialTitle={material.title} collections={collectionsData.map(c => ({ id: c.id, title: c.title }))} />
               <HelpfulButton materialId={materialId} count={helpfulCount} reacted={helpfulReacted} />
             </div>
           )}
@@ -172,7 +170,7 @@ export default async function MaterialDetailPage({ params }: Props) {
           {/* Your note */}
           {yourNote && yourNote.content && (
             <div className="rounded-xl border p-3.5" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
-              <h3 className="m-0 mb-2 text-[12.5px] font-semibold" style={{ color: 'var(--foreground)' }}>Твоя нотатка</h3>
+              <h3 className="m-0 mb-2 text-[12.5px] font-semibold" style={{ color: 'var(--foreground)' }}>{t('yourNote')}</h3>
               <div className="rounded-[10px] p-3 text-[12.5px] leading-[1.55]" style={{ background: topicTint(rawTopic?.slug), color: 'var(--foreground)' }}>
                 {yourNote.content.slice(0, 160)}{yourNote.content.length > 160 ? '…' : ''}
               </div>
@@ -182,7 +180,7 @@ export default async function MaterialDetailPage({ params }: Props) {
           {/* Related tasks */}
           {relatedTasks.length > 0 && (
             <div className="rounded-xl border p-3.5" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
-              <h3 className="m-0 mb-2 text-[12.5px] font-semibold" style={{ color: 'var(--foreground)' }}>Завдання на цю тему</h3>
+              <h3 className="m-0 mb-2 text-[12.5px] font-semibold" style={{ color: 'var(--foreground)' }}>{t('relatedTasks')}</h3>
               {relatedTasks.map((task, i) => (
                 <Link key={task.id} href={`/tasks/${task.id}`}
                   className="flex items-start gap-2.5 py-2 no-underline"

@@ -1,10 +1,10 @@
 'use client'
 
-/* Right rail — trending tags + new members + saved posts. */
+/* Right rail – trending tags + new members + saved posts. */
 
 import Link from 'next/link'
 import { useLocale, useTranslations } from 'next-intl'
-import { MessageCircle } from 'lucide-react'
+import { Bookmark, MessageCircle } from 'lucide-react'
 import { Avatar } from './avatar'
 
 export interface RailTag { slug: string; posts: number; trend: number }
@@ -34,31 +34,28 @@ function TrendingTags({ items }: { items: RailTag[] }) {
   if (items.length === 0) return null
   return (
     <RailCard title={t('trending')}>
-      <ul className="m-0 list-none p-0">
-        {items.map((t, i) => (
-          <li
-            key={t.slug}
-            className="flex items-center gap-2.5 py-[7px]"
-            style={{ borderTop: i ? '1px solid color-mix(in srgb, var(--border) 60%, transparent)' : 'none' }}
+      <div className="flex flex-wrap gap-1.5">
+        {items.map(tag => (
+          <Link
+            key={tag.slug}
+            href={`/community/tag/${tag.slug}`}
+            className="inline-flex items-center gap-1 rounded-full border px-2.5 py-[3px] text-[12px] font-semibold no-underline transition-colors"
+            style={{
+              borderColor: 'color-mix(in srgb, var(--primary) 28%, var(--border))',
+              background: 'color-mix(in srgb, var(--primary) 7%, transparent)',
+              color: 'var(--primary)',
+            }}
           >
-            <Link
-              href={`/community/tag/${t.slug}`}
-              className="flex-1 text-[12.5px] font-semibold no-underline"
-              style={{ color: 'var(--primary)' }}
+            #{tag.slug}
+            <span
+              className="text-[10px] font-normal tabular-nums"
+              style={{ color: 'color-mix(in srgb, var(--primary) 60%, var(--muted-foreground))' }}
             >
-              #{t.slug}
-            </Link>
-            <span className="text-[11px]" style={{ color: 'color-mix(in srgb, var(--muted-foreground) 80%, transparent)' }}>
-              {t.posts}
+              {tag.posts}
             </span>
-            {t.trend > 0 && (
-              <span className="w-[26px] text-right text-[11px] font-semibold" style={{ color: 'var(--success)' }}>
-                +{t.trend}
-              </span>
-            )}
-          </li>
+          </Link>
         ))}
-      </ul>
+      </div>
     </RailCard>
   )
 }
@@ -119,7 +116,12 @@ function NewMembers({ items }: { items: RailMember[] }) {
 function Saved({ items }: { items: RailSaved[] }) {
   const t = useTranslations('community.rail')
   return (
-    <RailCard title={t('saved')} actionHref="/community/saved" actionLabel={t('all')}>
+    <RailCard
+      title={t('saved')}
+      titleIcon={<Bookmark className="h-[14px] w-[14px]" style={{ color: 'var(--primary)' }} />}
+      actionHref="/community/saved"
+      actionLabel={t('all')}
+    >
       <div className="flex flex-col gap-2.5">
         {items.map((s, i) => (
           <Link
@@ -146,14 +148,15 @@ function Saved({ items }: { items: RailSaved[] }) {
 /* ─── shared shell ─── */
 
 function RailCard({
-  title, actionHref, actionLabel, children,
-}: { title: string; actionHref?: string; actionLabel?: string; children: React.ReactNode }) {
+  title, titleIcon, actionHref, actionLabel, children,
+}: { title: string; titleIcon?: React.ReactNode; actionHref?: string; actionLabel?: string; children: React.ReactNode }) {
   return (
     <section
       className="rounded-xl border p-4"
       style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
     >
-      <header className="mb-3 flex items-center">
+      <header className="mb-3 flex items-center gap-1.5">
+        {titleIcon}
         <h3 className="m-0 text-[13px] font-semibold tracking-[-0.1px]" style={{ color: 'var(--foreground)' }}>
           {title}
         </h3>

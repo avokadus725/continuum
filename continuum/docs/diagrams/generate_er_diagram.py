@@ -274,7 +274,7 @@ def diagram_er():
     hv(p, mid, by, bx, by)
 
     # materials → notes (A right → C left via waypoint)
-    # skip for clarity — noted in FK column in notes table
+    # skip for clarity – noted in FK column in notes table
 
     # ── B → C connections ──────────────────
     # profiles → collections

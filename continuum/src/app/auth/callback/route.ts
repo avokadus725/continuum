@@ -1,4 +1,4 @@
-/* OAuth callback route — exchanges the Google auth code for a session, then redirects. */
+/* OAuth callback route – exchanges the Google auth code for a session, then redirects. */
 
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'

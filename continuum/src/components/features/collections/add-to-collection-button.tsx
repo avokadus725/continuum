@@ -1,6 +1,6 @@
 'use client'
 
-/* Add-to-collection button — opens the picker to save an item into a collection. */
+/* Add-to-collection button – opens the picker to save an item into a collection. */
 
 import { useState, useRef, useEffect, useTransition } from 'react'
 import { createPortal } from 'react-dom'
@@ -191,11 +191,11 @@ export function AddToCollectionButton({ itemId, itemType, collections: initial, 
   ) : null
 
   return (
-    <div className="relative">
+    <div className={compact ? 'relative' : 'relative w-full'}>
       <button
         ref={triggerRef}
         onClick={open ? () => setOpen(false) : openDropdown}
-        className={`flex items-center gap-1.5 border font-medium transition-all rounded-xl ${compact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'}`}
+        className={`flex items-center justify-center gap-1.5 border font-medium transition-all rounded-xl whitespace-nowrap ${compact ? 'px-3 py-1.5 text-xs' : 'w-full px-4 py-2 text-sm'}`}
         style={{
           background:   anyAdded ? 'color-mix(in srgb, var(--primary) 12%, transparent)' : 'var(--card)',
           borderColor:  anyAdded ? 'var(--primary)' : 'var(--border)',

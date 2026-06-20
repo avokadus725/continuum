@@ -1,6 +1,6 @@
 'use server'
 
-/* Admin Server Actions — task & material CRUD, user status toggle, comment moderation. */
+/* Admin Server Actions – task & material CRUD, user status toggle, comment moderation. */
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'

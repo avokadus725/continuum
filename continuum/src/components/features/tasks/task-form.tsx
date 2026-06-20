@@ -1,6 +1,6 @@
 'use client'
 
-/* Task form — answer input for the four task types; submits and shows the result. */
+/* Task form – answer input for the four task types; submits and shows the result. */
 
 import { useTranslations } from 'next-intl'
 import { useRef, useState, useTransition } from 'react'

@@ -1,6 +1,6 @@
 'use client'
 
-/* Pomodoro round indicator — N dots, current one elongated, completed muted. */
+/* Pomodoro round indicator – N dots, current one elongated, completed muted. */
 
 import { useTranslations } from 'next-intl'
 

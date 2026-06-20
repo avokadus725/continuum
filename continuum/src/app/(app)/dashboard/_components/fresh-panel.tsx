@@ -1,4 +1,4 @@
-/* Fresh panel — delta feed of items created since the user's last visit.
+/* Fresh panel – delta feed of items created since the user's last visit.
    Server component. */
 
 import Link from 'next/link'

@@ -1,6 +1,6 @@
 'use client'
 
-/* Post feed — renders a stream of community posts. */
+/* Post feed – renders a stream of community posts. */
 
 import { useState, useTransition, useRef, useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
@@ -245,7 +245,7 @@ export function PostItem({ post, currentUserId }: { post: Post; currentUserId: s
   if (deletingPost) return null
 
   const author     = post.profiles
-  const authorName = author?.full_name ?? '—'
+  const authorName = author?.full_name ?? '–'
   const domain     = post.url ? new URL(post.url.startsWith('http') ? post.url : `https://${post.url}`).hostname.replace('www.', '') : null
 
   return (
@@ -377,7 +377,7 @@ export function PostItem({ post, currentUserId }: { post: Post; currentUserId: s
                         style={{ background: 'var(--muted)' }}
                       >
                         <span className="text-[12px] font-semibold" style={{ color: 'var(--foreground)' }}>
-                          {c.profiles?.full_name ?? '—'}
+                          {c.profiles?.full_name ?? '–'}
                         </span>
                         <p className="mt-0.5 text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--foreground)' }}>
                           <AutoLink text={c.content} />
@@ -388,7 +388,7 @@ export function PostItem({ post, currentUserId }: { post: Post; currentUserId: s
                           {formatRelative(c.created_at, locale)}
                         </span>
                         <button
-                          onClick={() => { setReplyTo({ id: c.id, name: c.profiles?.full_name ?? '—' }); commentInputRef.current?.focus() }}
+                          onClick={() => { setReplyTo({ id: c.id, name: c.profiles?.full_name ?? '–' }); commentInputRef.current?.focus() }}
                           className="text-[11px] font-medium transition-colors"
                           style={{ color: 'var(--muted-foreground)' }}
                         >
@@ -408,7 +408,7 @@ export function PostItem({ post, currentUserId }: { post: Post; currentUserId: s
                           style={{ background: 'var(--muted)' }}
                         >
                           <span className="text-[11.5px] font-semibold" style={{ color: 'var(--foreground)' }}>
-                            {r.profiles?.full_name ?? '—'}
+                            {r.profiles?.full_name ?? '–'}
                           </span>
                           <p className="mt-0.5 text-[12.5px] leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--foreground)' }}>
                             <AutoLink text={r.content} />

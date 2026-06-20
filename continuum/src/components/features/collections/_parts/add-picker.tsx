@@ -1,10 +1,11 @@
 'use client'
 
-/* Add picker overlay — search + tab + batch-select, then add many items at once.
+/* Add picker overlay – search + tab + batch-select, then add many items at once.
    Caller provides material/task lists already excluded of items already in
    the collection (so we don't show duplicates). */
 
 import { useMemo, useState, useTransition } from 'react'
+import { useTranslations } from 'next-intl'
 import { Search, X, FileText, CheckSquare, Plus, Check } from 'lucide-react'
 import { addItemsToCollection } from '@/app/actions/collections'
 
@@ -22,6 +23,8 @@ interface Props {
 type Tab = 'mat' | 'task'
 
 export function AddPicker({ collectionId, materials, tasks, onClose, onCreateNote }: Props) {
+  const t = useTranslations('collections')
+  const tCommon = useTranslations('common')
   const [tab, setTab] = useState<Tab>('mat')
   const [search, setSearch] = useState('')
   const [pickedMats,  setPickedMats]  = useState<Set<string>>(new Set())
@@ -67,7 +70,7 @@ export function AddPicker({ collectionId, materials, tasks, onClose, onCreateNot
 
   return (
     <div
-      className="w-[520px] overflow-hidden rounded-2xl border"
+      className="w-[min(520px,calc(100vw-2rem))] overflow-hidden rounded-2xl border"
       style={{
         background: 'var(--card)', borderColor: 'var(--border)',
         boxShadow: '0 30px 60px -15px rgba(11,22,32,0.22)',
@@ -77,44 +80,41 @@ export function AddPicker({ collectionId, materials, tasks, onClose, onCreateNot
         className="border-b px-5 pb-3.5 pt-[18px]"
         style={{ borderColor: 'color-mix(in srgb, var(--border) 70%, transparent)' }}
       >
-        <div className="flex items-baseline gap-2">
-          <span style={{
-            fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic',
-            color: 'var(--primary)', fontSize: 18,
-          }}>i.</span>
-          <h3 className="m-0 text-base font-semibold tracking-[-0.2px]" style={{ color: 'var(--foreground)' }}>
-            Додати в підбірку
+        <div className="flex items-center gap-2">
+          <h3 className="m-0 flex-1 text-base font-semibold tracking-[-0.2px]" style={{ color: 'var(--foreground)' }}>
+            {t('pickerTitle')}
           </h3>
-          <span className="flex-1" />
-          <button onClick={onClose} className="bg-transparent" style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }}>
+          <button onClick={onClose}
+            className="grid h-7 w-7 shrink-0 place-items-center rounded-lg transition-colors hover:bg-[var(--muted)]"
+            style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }}>
             <X className="h-4 w-4" />
           </button>
         </div>
         <p className="mt-1.5 text-[12.5px]" style={{ color: 'var(--muted-foreground)' }}>
-          Знайди серед твоїх матеріалів і завдань, або створи нотатку прямо тут.
+          {t('pickerSubtitle')}
         </p>
       </header>
 
       <div className="px-5 py-3.5">
         {/* Tabs */}
         <div
-          className="inline-flex gap-1 rounded-lg border p-[3px]"
+          className="inline-flex max-w-full gap-1 overflow-x-auto rounded-lg border p-[3px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           style={{ background: 'var(--muted)', borderColor: 'var(--border)' }}
         >
           <TabBtn active={tab === 'mat'} onClick={() => setTab('mat')}>
-            <FileText className="h-3.5 w-3.5" /> Матеріали
+            <FileText className="h-3.5 w-3.5" /> {t('tabMaterials')}
             <span style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)', fontSize: 10.5 }}>{materials.length}</span>
           </TabBtn>
           <TabBtn active={tab === 'task'} onClick={() => setTab('task')}>
-            <CheckSquare className="h-3.5 w-3.5" /> Завдання
+            <CheckSquare className="h-3.5 w-3.5" /> {t('tabTasks')}
             <span style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)', fontSize: 10.5 }}>{tasks.length}</span>
           </TabBtn>
           <button
             onClick={onCreateNote}
-            className="inline-flex items-center gap-1.5 rounded-md border-0 bg-transparent px-2.5 py-[5px] text-[12px] font-semibold"
+            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border-0 bg-transparent px-2.5 py-[5px] text-[12px] font-semibold"
             style={{ color: 'var(--muted-foreground)' }}
           >
-            <Plus className="h-3.5 w-3.5" /> Нотатка
+            <Plus className="h-3.5 w-3.5" /> {t('itemKindNote')}
           </button>
         </div>
 
@@ -127,7 +127,7 @@ export function AddPicker({ collectionId, materials, tasks, onClose, onCreateNot
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder={tab === 'mat' ? 'Шукати у матеріалах…' : 'Шукати у завданнях…'}
+            placeholder={tab === 'mat' ? t('searchInMaterials') : t('searchInTasks')}
             className="flex-1 bg-transparent text-[13px] outline-none"
             style={{ color: 'var(--foreground)' }}
           />
@@ -137,7 +137,7 @@ export function AddPicker({ collectionId, materials, tasks, onClose, onCreateNot
         <div className="mt-3 max-h-[280px] overflow-y-auto">
           {list.length === 0 ? (
             <div className="py-8 text-center text-[13px]" style={{ color: 'var(--muted-foreground)' }}>
-              Нічого не знайдено
+              {tCommon('noResults')}
             </div>
           ) : tab === 'mat' ? (
             list.map(m => {
@@ -146,17 +146,17 @@ export function AddPicker({ collectionId, materials, tasks, onClose, onCreateNot
                 picked={picked} onToggle={() => toggleMat((m as PickerMaterial).id)}
                 icon={<FileText className="h-3.5 w-3.5" />}
                 title={(m as PickerMaterial).title}
-                sub={(m as PickerMaterial).topic ?? 'Матеріал'}
+                sub={(m as PickerMaterial).topic ?? t('itemKindMaterial')}
               />
             })
           ) : (
-            list.map(t => {
-              const picked = pickedTasks.has((t as PickerTask).id)
-              return <ResultRow key={(t as PickerTask).id}
-                picked={picked} onToggle={() => toggleTask((t as PickerTask).id)}
+            list.map(item => {
+              const picked = pickedTasks.has((item as PickerTask).id)
+              return <ResultRow key={(item as PickerTask).id}
+                picked={picked} onToggle={() => toggleTask((item as PickerTask).id)}
                 icon={<CheckSquare className="h-3.5 w-3.5" />}
-                title={(t as PickerTask).title}
-                sub={(t as PickerTask).topic ?? 'Завдання'}
+                title={(item as PickerTask).title}
+                sub={(item as PickerTask).topic ?? t('itemKindTask')}
               />
             })
           )}
@@ -168,7 +168,7 @@ export function AddPicker({ collectionId, materials, tasks, onClose, onCreateNot
         style={{ borderColor: 'color-mix(in srgb, var(--border) 70%, transparent)' }}
       >
         <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
-          <strong className="font-semibold" style={{ color: 'var(--foreground)' }}>{pickedCount}</strong> вибрано
+          <strong className="font-semibold" style={{ color: 'var(--foreground)' }}>{pickedCount}</strong> {t('selectedCount')}
         </span>
         <span className="flex-1" />
         <button
@@ -176,7 +176,7 @@ export function AddPicker({ collectionId, materials, tasks, onClose, onCreateNot
           className="h-[34px] rounded-lg border bg-transparent px-3.5 text-[12.5px]"
           style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
         >
-          Скасувати
+          {t('cancelAction')}
         </button>
         <button
           onClick={handleAdd}
@@ -184,7 +184,7 @@ export function AddPicker({ collectionId, materials, tasks, onClose, onCreateNot
           className="h-[34px] rounded-lg border-0 px-4 text-[12.5px] font-semibold text-white disabled:opacity-50"
           style={{ background: 'var(--primary)' }}
         >
-          Додати{pickedCount > 0 ? ` ${pickedCount}` : ''}
+          {t('addAction')}{pickedCount > 0 ? ` ${pickedCount}` : ''}
         </button>
       </footer>
     </div>
@@ -195,7 +195,7 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-md border-0 px-2.5 py-[5px] text-[12px] font-semibold"
+      className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border-0 px-2.5 py-[5px] text-[12px] font-semibold"
       style={{
         background: active ? 'var(--card)' : 'transparent',
         color: active ? 'var(--foreground)' : 'var(--muted-foreground)',

@@ -1,6 +1,6 @@
 'use client'
 
-/* AutoLink — renders plain text with URLs turned into clickable links. */
+/* AutoLink – renders plain text with URLs turned into clickable links. */
 
 import React from 'react'
 

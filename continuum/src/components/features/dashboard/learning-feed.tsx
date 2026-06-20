@@ -1,6 +1,6 @@
 'use client'
 
-/* Learning feed — dashboard list of recommended tasks and materials. */
+/* Learning feed – dashboard list of recommended tasks and materials. */
 
 import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
@@ -195,7 +195,7 @@ function TaskFeedItem({ task, answeredResult, onAnswered }: TaskFeedItemProps) {
           </div>
         )}
 
-        {/* Options — shown unless completed */}
+        {/* Options – shown unless completed */}
         {!isCompleted && interactive ? (
           <div className="space-y-2">
             {task.task_options.map(opt => {
@@ -309,7 +309,7 @@ function MaterialFeedItem({
         )}
       </div>
 
-      {/* Reactions — optimistic updates inside ReactionsBar */}
+      {/* Reactions – optimistic updates inside ReactionsBar */}
       <div className="px-5 pb-4">
         <ReactionsBar reactions={material.reactions} materialId={material.id} />
       </div>
@@ -347,7 +347,7 @@ function MaterialFeedItem({
 
 export function LearningFeed({ initialItems, currentUserId }: LearningFeedProps) {
   const tDash = useTranslations('dashboard')
-  // Shuffle once on client mount — stable across server re-renders
+  // Shuffle once on client mount – stable across server re-renders
   const [items] = useState<FeedItem[]>(() => shuffle(initialItems))
   const [answered, setAnswered] = useState<Map<string, AnswerResult>>(new Map())
 

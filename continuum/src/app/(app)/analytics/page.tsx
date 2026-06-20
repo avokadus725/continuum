@@ -1,4 +1,4 @@
-/* Analytics page — progress stats, activity chart, streak and topic breakdown. */
+/* Analytics page – progress stats, activity chart, streak and topic breakdown. */
 
 import { createClient } from '@/lib/supabase/server'
 import { getTranslations, getLocale } from 'next-intl/server'
@@ -63,7 +63,7 @@ export default async function AnalyticsPage({ searchParams }: Props) {
       .select('started_at, focus_seconds')
       .gte('started_at', since)
       .order('started_at', { ascending: true }),
-    // ALL-TIME progress dates — used only for streak, must not be period-filtered
+    // ALL-TIME progress dates – used only for streak, must not be period-filtered
     supabase
       .from('student_progress')
       .select('completed_at')
@@ -188,14 +188,14 @@ export default async function AnalyticsPage({ searchParams }: Props) {
         {(
           [
             { label: t('tasksCompleted'), value: total },
-            { label: t('correctRate'),    value: total > 0 ? `${correctPct}%` : '—' },
-            { label: t('totalXp'),        value: total > 0 ? `+${totalXp} XP` : '—' },
+            { label: t('correctRate'),    value: total > 0 ? `${correctPct}%` : '–' },
+            { label: t('totalXp'),        value: total > 0 ? `+${totalXp} XP` : '–' },
             {
               label: t('streak'),
               value: streak > 0
                 /* eslint-disable-next-line @next/next/no-img-element */
                 ? <span className="inline-flex items-center gap-1.5"><img src="/icons/fire.png" alt="" width={22} height={22} className="dark:invert" style={{ display: 'inline-block', verticalAlign: '-0.18em' }} />{streak}d</span>
-                : '—',
+                : '–',
             },
             { label: t('focusTime'),      value: focusLabel },
           ] as { label: string; value: ReactNode }[]

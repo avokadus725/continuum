@@ -1,6 +1,6 @@
 'use client'
 
-/* Reusable cover band — emoji on a tinted background.
+/* Reusable cover band – emoji on a tinted background.
    Used in the list card and the detail hero. */
 
 import { COVERS, type CoverKey } from '@/lib/collection-covers'

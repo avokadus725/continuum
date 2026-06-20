@@ -1,6 +1,6 @@
 /**
  * Recommendation scoring utilities.
- * Pure functions — no Supabase imports, works in any server component.
+ * Pure functions – no Supabase imports, works in any server component.
  */
 
 export type ProgressRow = {

@@ -1,4 +1,4 @@
-/* Topic color helper — single source of truth for the accent color
+/* Topic color helper – single source of truth for the accent color
    used by material/task/note cards and detail pages.
    Mirrors the colors already defined in topic-icons.tsx so cards,
    notes and badges all share one palette keyed by topic slug. */

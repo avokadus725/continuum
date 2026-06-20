@@ -1,4 +1,4 @@
-/* Supabase server client — cookie-bound client for Server Components and Server Actions. */
+/* Supabase server client – cookie-bound client for Server Components and Server Actions. */
 
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
@@ -21,7 +21,7 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // Server Component — cookies can only be set in middleware
+            // Server Component – cookies can only be set in middleware
           }
         },
       },

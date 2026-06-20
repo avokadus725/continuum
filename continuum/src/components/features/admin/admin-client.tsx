@@ -1,6 +1,6 @@
 'use client'
 
-/* Admin client — tabbed admin UI for users, tasks and materials. */
+/* Admin client – tabbed admin UI for users, tasks and materials. */
 
 import { useTranslations } from 'next-intl'
 import { useState, useTransition } from 'react'
@@ -149,10 +149,10 @@ export function AdminClient({ currentUserId, users, tasks, materials, topics, to
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b" style={{ borderColor: 'var(--border)' }}>
+      <div className="flex gap-1 overflow-x-auto border-b [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" style={{ borderColor: 'var(--border)' }}>
         {tabs.map(({ key, label }) => (
           <button key={key} onClick={() => setTab(key)}
-            className="px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px"
+            className="shrink-0 whitespace-nowrap px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px"
             style={{
               borderColor: tab === key ? 'var(--primary)' : 'transparent',
               color: tab === key ? 'var(--primary)' : 'var(--muted-foreground)',
@@ -177,7 +177,7 @@ export function AdminClient({ currentUserId, users, tasks, materials, topics, to
               {users.map(u => (
                 <tr key={u.id} className="border-b last:border-b-0" style={{ borderColor: 'var(--border)' }}>
                   <td className="px-4 py-2.5" style={{ color: 'var(--foreground)' }}>
-                    {u.full_name ?? <span style={{ color: 'var(--muted-foreground)' }}>—</span>}
+                    {u.full_name ?? <span style={{ color: 'var(--muted-foreground)' }}>–</span>}
                     {u.id === currentUserId && <span className="ml-1 text-xs" style={{ color: 'var(--primary)' }}>{t('you')}</span>}
                   </td>
                   <td className="px-4 py-2.5">
@@ -256,7 +256,7 @@ export function AdminClient({ currentUserId, users, tasks, materials, topics, to
                           background: task.is_published ? 'color-mix(in srgb, var(--success) 20%, transparent)' : 'var(--muted)',
                           color: task.is_published ? 'var(--success)' : 'var(--muted-foreground)',
                         }}>
-                        {task.is_published ? '✓' : '—'}
+                        {task.is_published ? '✓' : '–'}
                       </span>
                     </td>
                     <td className="px-4 py-2.5">
@@ -312,7 +312,7 @@ export function AdminClient({ currentUserId, users, tasks, materials, topics, to
                           background: mat.is_published ? 'color-mix(in srgb, var(--success) 20%, transparent)' : 'var(--muted)',
                           color: mat.is_published ? 'var(--success)' : 'var(--muted-foreground)',
                         }}>
-                        {mat.is_published ? '✓' : '—'}
+                        {mat.is_published ? '✓' : '–'}
                       </span>
                     </td>
                     <td className="px-4 py-2.5">
@@ -351,16 +351,16 @@ export function AdminClient({ currentUserId, users, tasks, materials, topics, to
             </thead>
             <tbody>
               {comments.length === 0 && (
-                <tr><td colSpan={4} className="px-4 py-6 text-center text-sm" style={{ color: 'var(--muted-foreground)' }}>—</td></tr>
+                <tr><td colSpan={4} className="px-4 py-6 text-center text-sm" style={{ color: 'var(--muted-foreground)' }}>–</td></tr>
               )}
               {comments.map(c => (
                 <tr key={c.id} className="border-b last:border-b-0" style={{ borderColor: 'var(--border)' }}>
                   <td className="px-4 py-2.5 shrink-0" style={{ color: 'var(--foreground)' }}>
-                    {c.user_name ?? <span style={{ color: 'var(--muted-foreground)' }}>—</span>}
+                    {c.user_name ?? <span style={{ color: 'var(--muted-foreground)' }}>–</span>}
                   </td>
                   <td className="px-4 py-2.5 max-w-xs truncate" style={{ color: 'var(--foreground)' }}>{c.content}</td>
                   <td className="px-4 py-2.5 text-xs" style={{ color: 'var(--muted-foreground)' }}>
-                    {c.material_title ?? c.task_title ?? '—'}
+                    {c.material_title ?? c.task_title ?? '–'}
                   </td>
                   <td className="px-4 py-2.5">
                     <button onClick={() => handleDeleteComment(c.id)}

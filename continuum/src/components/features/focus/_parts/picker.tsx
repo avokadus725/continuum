@@ -1,6 +1,6 @@
 'use client'
 
-/* Picker popover — used for sound or scene selection from the dock. */
+/* Picker popover – used for sound or scene selection from the dock. */
 
 import { Check } from 'lucide-react'
 
@@ -26,7 +26,7 @@ export function Picker({ title, options, active, onPick, layout = 'list' }: Prop
     <div
       className="rounded-2xl border p-2 backdrop-blur-xl"
       style={{
-        width: layout === 'grid' ? 340 : 280,
+        width: layout === 'grid' ? 'min(340px, calc(100vw - 2rem))' : 'min(280px, calc(100vw - 2rem))',
         background: 'rgba(12, 18, 14, 0.85)',
         borderColor: 'rgba(255,255,255,0.12)',
         boxShadow: '0 20px 50px -10px rgba(0,0,0,0.6)',
@@ -39,14 +39,6 @@ export function Picker({ title, options, active, onPick, layout = 'list' }: Prop
         >
           {title}
         </span>
-        <span
-          className="text-[14px]"
-          style={{
-            fontFamily: '"Instrument Serif", Georgia, serif',
-            fontStyle: 'italic',
-            color: '#7AB6EE',
-          }}
-        >i.</span>
       </div>
 
       {layout === 'list' && (

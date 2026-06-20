@@ -1,6 +1,6 @@
 'use client'
 
-/* Login page — Google OAuth sign-in and marketing intro. */
+/* Login page – Google OAuth sign-in and marketing intro. */
 
 import { createClient } from '@/lib/supabase/client'
 import { LanguageSwitcher } from '@/components/language-switcher'
@@ -83,7 +83,7 @@ export default function LoginPage() {
 
         {/* Hero */}
         <main className="mx-auto grid w-full max-w-[1440px] flex-1 grid-cols-1 items-center gap-10 py-12 lg:grid-cols-[1.15fr_1fr] lg:gap-24 lg:py-20">
-          {/* Left — story */}
+          {/* Left – story */}
           <section>
             <div className="mb-6 inline-flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[1.6px] text-[#005CAB]">
               <span className="h-px w-7 bg-[#005CAB]" />
@@ -138,7 +138,7 @@ export default function LoginPage() {
             </div>
           </section>
 
-          {/* Right — login card */}
+          {/* Right – login card */}
           <section className="flex justify-center">
             <div
               className="relative w-full max-w-[440px] rounded-[22px] border border-[#E2DFD6] bg-white p-9"

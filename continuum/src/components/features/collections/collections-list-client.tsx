@@ -1,6 +1,6 @@
 'use client'
 
-/* Collections list client — compact collection list used by the picker. */
+/* Collections list client – compact collection list used by the picker. */
 
 import { useState, useTransition, useMemo } from 'react'
 import Link from 'next/link'
@@ -57,8 +57,8 @@ export function CollectionsListClient({ collections: initial }: Props) {
   return (
     <div>
       {/* Page header */}
-      <header className="flex items-baseline">
-        <div>
+      <header className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
           <h1
             className="m-0 text-[30px] font-semibold tracking-[-0.6px]"
             style={{ color: 'var(--foreground)' }}
@@ -77,10 +77,9 @@ export function CollectionsListClient({ collections: initial }: Props) {
             }}>{t('subtitleItalic')}</span>
           </p>
         </div>
-        <span className="flex-1" />
         <button
           onClick={() => setCreatingOpen(true)}
-          className="inline-flex h-9 items-center gap-[7px] rounded-[10px] border-0 px-3.5 text-[13px] font-semibold text-white"
+          className="inline-flex h-9 shrink-0 items-center gap-[7px] whitespace-nowrap rounded-[10px] border-0 px-3.5 text-[13px] font-semibold text-white"
           style={{ background: 'var(--primary)' }}
         >
           <Plus className="h-4 w-4" />
@@ -90,9 +89,9 @@ export function CollectionsListClient({ collections: initial }: Props) {
 
       {/* Search + sort */}
       {initial.length > 0 && (
-        <div className="mt-[22px] mb-[22px] flex items-center gap-2.5">
+        <div className="mt-[22px] mb-[22px] flex flex-col gap-2.5 sm:flex-row sm:items-center">
           <div
-            className="flex h-[38px] flex-1 items-center gap-2.5 rounded-[10px] border px-3.5"
+            className="flex h-[38px] w-full min-w-0 items-center gap-2.5 rounded-[10px] border px-3.5 sm:flex-1"
             style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
           >
             <Search className="h-4 w-4 shrink-0" style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }} />
@@ -101,7 +100,7 @@ export function CollectionsListClient({ collections: initial }: Props) {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder={t('searchPlaceholder')}
-              className="flex-1 bg-transparent text-[13.5px] outline-none"
+              className="min-w-0 flex-1 bg-transparent text-[13.5px] outline-none"
               style={{ color: 'var(--foreground)' }}
             />
             <span className="text-xs" style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }}>
@@ -114,7 +113,7 @@ export function CollectionsListClient({ collections: initial }: Props) {
             )}
           </div>
           <button
-            className="inline-flex h-[38px] items-center gap-[7px] rounded-[10px] border px-3.5 text-[13px]"
+            className="inline-flex h-[38px] shrink-0 items-center gap-[7px] whitespace-nowrap rounded-[10px] border px-3.5 text-[13px]"
             style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
           >
             <ArrowUpDown className="h-3.5 w-3.5" />
@@ -173,7 +172,7 @@ export function CollectionsListClient({ collections: initial }: Props) {
       {confirmDeleteId && (
         <Overlay onClose={() => setConfirmDeleteId(null)}>
           <div
-            className="w-[360px] rounded-2xl border p-6"
+            className="w-[min(360px,calc(100vw-2rem))] rounded-2xl border p-6"
             style={{
               background: 'var(--card)', borderColor: 'var(--border)',
               boxShadow: '0 30px 60px -15px rgba(11,22,32,0.22)',

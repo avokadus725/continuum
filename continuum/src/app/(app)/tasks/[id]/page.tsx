@@ -1,4 +1,4 @@
-/* Task detail — unified card + comments locked until answered + "what's next"
+/* Task detail – unified card + comments locked until answered + "what's next"
    + related materials. */
 
 import { createClient } from '@/lib/supabase/server'
@@ -124,9 +124,12 @@ export default async function TaskDetailPage({ params }: Props) {
                   style={{ background: `color-mix(in srgb, ${diffColor} 18%, transparent)`, color: diffColor }}>
                   {t(`difficulty.${task.difficulty}`)}
                 </span>
-                <span className="ml-auto text-[12.5px] font-bold"
-                  style={{ color: alreadyCorrect ? 'var(--success)' : 'var(--primary)' }}>
-                  {alreadyCorrect ? `+${task.xp_reward} XP отримано` : `+${task.xp_reward} XP`}
+                <span className="ml-auto shrink-0 rounded-full px-2.5 py-0.5 text-[11.5px] font-bold"
+                  style={{
+                    background: `color-mix(in srgb, ${alreadyCorrect ? 'var(--success)' : 'var(--primary)'} 16%, transparent)`,
+                    color: alreadyCorrect ? 'var(--success)' : 'var(--primary)',
+                  }}>
+                  {alreadyCorrect ? t('xpEarned', { xp: task.xp_reward as number }) : t('xpReward', { xp: task.xp_reward as number })}
                 </span>
               </div>
               <h1 className="text-[22px] font-bold tracking-[-0.3px]" style={{ color: 'var(--foreground)' }}>{task.title}</h1>
@@ -155,14 +158,14 @@ export default async function TaskDetailPage({ params }: Props) {
               <span className="grid h-10 w-10 flex-none place-items-center rounded-[10px]"
                 style={{ background: 'color-mix(in srgb, var(--primary) 12%, transparent)', color: 'var(--primary)' }}>✓</span>
               <div className="flex-1">
-                <div className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-foreground)' }}>Наступне завдання</div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-foreground)' }}>{t('nextTask')}</div>
                 <div className="text-[14.5px] font-semibold mt-0.5" style={{ color: 'var(--foreground)' }}>{nextTask.title}</div>
               </div>
               <ArrowRight size={18} style={{ color: 'var(--primary)' }} />
             </Link>
           )}
 
-          {/* Comments — locked until attempted */}
+          {/* Comments – locked until attempted */}
           {user && (
             <div className="mt-3.5 rounded-2xl border p-6" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
               {showComments ? (
@@ -171,7 +174,7 @@ export default async function TaskDetailPage({ params }: Props) {
                 <div className="flex flex-col items-center gap-2 py-6 text-center rounded-xl" style={{ background: 'var(--muted)' }}>
                   <Lock size={20} style={{ color: 'var(--muted-foreground)' }} />
                   <p className="text-[13px] m-0" style={{ color: 'var(--muted-foreground)' }}>
-                    Обговорення відкриється після твоєї спроби
+                    {t('discussionLocked')}
                   </p>
                 </div>
               )}
@@ -189,7 +192,7 @@ export default async function TaskDetailPage({ params }: Props) {
 
             {relatedMaterials.length > 0 && (
               <div className="rounded-xl border p-3.5" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
-                <h3 className="m-0 mb-2 text-[12.5px] font-semibold" style={{ color: 'var(--foreground)' }}>Підготуйся матеріалами</h3>
+                <h3 className="m-0 mb-2 text-[12.5px] font-semibold" style={{ color: 'var(--foreground)' }}>{t('prepareWithMaterials')}</h3>
                 {relatedMaterials.map((m, i) => (
                   <Link key={m.id} href={`/materials/${m.id}`} className="flex items-start gap-2.5 py-2 no-underline"
                     style={{ borderTop: i ? '1px solid color-mix(in srgb, var(--border) 70%, transparent)' : 'none' }}>
@@ -203,7 +206,7 @@ export default async function TaskDetailPage({ params }: Props) {
 
             {topicTotal > 0 && (
               <div className="rounded-xl p-3.5 text-center" style={{ background: topicTint(rawTopic?.slug) }}>
-                <div className="text-[13px] font-semibold" style={{ color: accent }}>{topicDone} з {topicTotal} завдань теми</div>
+                <div className="text-[13px] font-semibold" style={{ color: accent }}>{t('topicProgress', { done: topicDone, total: topicTotal })}</div>
                 <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.15)' }}>
                   <div className="h-full rounded-full" style={{ width: `${Math.round((topicDone / topicTotal) * 100)}%`, background: accent }} />
                 </div>

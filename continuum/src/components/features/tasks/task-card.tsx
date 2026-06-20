@@ -1,4 +1,4 @@
-/* Task card — preview card for a practice task. */
+/* Task card – preview card for a practice task. */
 
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'

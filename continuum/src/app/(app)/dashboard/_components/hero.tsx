@@ -1,5 +1,5 @@
 /* Personalized greeting with inline stats strip.
-   Server component — receives data as props. */
+   Server component – receives data as props. */
 
 import type { ReactNode } from 'react'
 import { getTranslations } from 'next-intl/server'
@@ -27,7 +27,7 @@ export async function Hero({
 
   const focusH = Math.floor(focusMinutesToday / 60)
   const focusM = focusMinutesToday % 60
-  const focusValue = focusH > 0 ? `${focusH}г ${focusM}` : `${focusM}`
+  const focusValue = focusH > 0 ? `${focusH}${t('hoursShort')} ${focusM}` : `${focusM}`
 
   const stats: { label: string; value: ReactNode; sub: string }[] = [
     {
@@ -43,13 +43,13 @@ export async function Hero({
   ]
 
   return (
-    <section className="mb-7 flex items-center gap-8">
+    <section className="mb-7 flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8">
       <div className="flex-1">
         <div className="mb-1.5 text-xs tracking-wide" style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }}>
           {dateLabel}
         </div>
         <h1
-          className="m-0 text-[38px] font-semibold leading-[1.1] tracking-[-0.8px]"
+          className="m-0 text-[30px] font-semibold leading-[1.1] tracking-[-0.8px] sm:text-[38px]"
           style={{ color: 'var(--foreground)' }}
         >
           {t('greetingPrefix')}{' '}
@@ -75,13 +75,13 @@ export async function Hero({
       </div>
 
       <ul
-        className="flex items-stretch overflow-hidden rounded-xl border"
+        className="flex w-full items-stretch overflow-hidden rounded-xl border sm:w-auto"
         style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
       >
         {stats.map((s, i) => (
           <li
             key={s.label}
-            className="flex min-w-[92px] flex-col justify-center px-[18px] py-3"
+            className="flex flex-1 flex-col justify-center px-[18px] py-3 sm:min-w-[92px] sm:flex-none"
             style={{
               borderRight: i < stats.length - 1 ? '1px solid var(--border)' : 'none',
             }}

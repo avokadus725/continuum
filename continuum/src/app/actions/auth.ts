@@ -1,6 +1,6 @@
 'use server'
 
-/* Auth Server Actions — sign-out and session teardown. */
+/* Auth Server Actions – sign-out and session teardown. */
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'

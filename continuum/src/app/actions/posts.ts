@@ -1,8 +1,9 @@
 'use server'
 
-/* Community Post Server Actions — posts, comments, reactions, saves, tag follows, mark-solved. */
+/* Community Post Server Actions – posts, comments, reactions, saves, tag follows, mark-solved. */
 
 import { createClient } from '@/lib/supabase/server'
+import { getTranslations } from 'next-intl/server'
 import { revalidatePath } from 'next/cache'
 
 type PostKind = 'discussion' | 'question' | 'share'
@@ -25,7 +26,7 @@ export async function createPost(formData: FormData) {
   const url      = (formData.get('url')   as string | null)?.trim() || null
   const urlTitle = (formData.get('url_title') as string | null)?.trim() || null
 
-  // tags[] — array of slugs already normalised on client (lowercase, kebab-case)
+  // tags[] – array of slugs already normalised on client (lowercase, kebab-case)
   const tags = (formData.getAll('tags[]') as string[])
     .map(t => t.trim().toLowerCase().replace(/^#/, ''))
     .filter(Boolean)
@@ -101,11 +102,12 @@ export async function togglePostReaction(formData: FormData) {
       if (post && post.user_id !== user.id) {
         const { data: reactor } = await supabase
           .from('profiles').select('full_name').eq('id', user.id).single()
-        const name = reactor?.full_name ?? 'Хтось'
+        const tn = await getTranslations('notifications')
+        const name = reactor?.full_name ?? tn('someone')
         await (supabase as any).from('notifications').insert({
           user_id: post.user_id,
           type: 'post_reaction',
-          title: `${name} лайкнув ваш пост`,
+          title: tn('titleReaction', { name }),
           body: (post.content as string).slice(0, 80),
           meta: { post_id: postId },
         })
@@ -139,7 +141,8 @@ export async function createPostComment(formData: FormData) {
 
   const { data: commenter } = await supabase
     .from('profiles').select('full_name').eq('id', user.id).single()
-  const name = commenter?.full_name ?? 'Хтось'
+  const tn = await getTranslations('notifications')
+  const name = commenter?.full_name ?? tn('someone')
 
   if (parentId) {
     const { data: parent } = await (supabase as any).from('comments')
@@ -147,7 +150,7 @@ export async function createPostComment(formData: FormData) {
     if (parent && parent.user_id !== user.id) {
       await (supabase as any).from('notifications').insert({
         user_id: parent.user_id, type: 'comment_reply',
-        title: `${name} відповів на ваш коментар`,
+        title: tn('titleReply', { name }),
         body: content.slice(0, 80),
         meta: { post_id: postId, comment_id: comment.id },
       })
@@ -158,7 +161,7 @@ export async function createPostComment(formData: FormData) {
     if (post && post.user_id !== user.id) {
       await (supabase as any).from('notifications').insert({
         user_id: post.user_id, type: 'post_comment',
-        title: `${name} прокоментував ваш пост`,
+        title: tn('titleComment', { name }),
         body: (post.content as string).slice(0, 80),
         meta: { post_id: postId, comment_id: comment.id },
       })
