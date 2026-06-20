@@ -1,4 +1,4 @@
-/* Dashboard page — personalised home: progress, recommendations, streak, recent tasks. */
+/* Dashboard page – personalised home: progress, recommendations, streak, recent tasks. */
 
 import { createClient } from '@/lib/supabase/server'
 import { getTranslations, getLocale } from 'next-intl/server'
@@ -160,7 +160,7 @@ export default async function DashboardPage() {
   const yourRow = ranked.find(r => r.id === user.id)
   const topThree = ranked.slice(0, 3).map(r => ({
     rank: r.rank,
-    name: r.full_name ?? '—',
+    name: r.full_name ?? '–',
     xp: r.xp ?? 0,
     avatarUrl: r.avatar_url,
   }))
@@ -193,7 +193,7 @@ export default async function DashboardPage() {
   startOfTodayUTC.setUTCHours(0, 0, 0, 0)
 
   const [{ data: progressRaw }, { data: allMaterials }, focusTodayRes] = await Promise.all([
-    // All-time progress — used for recommendations AND streak
+    // All-time progress – used for recommendations AND streak
     supabase
       .from('student_progress')
       .select('task_id, is_correct, completed_at, tasks(topic_id)')

@@ -1,4 +1,4 @@
-/* Focus presets — background images, sounds and default timer durations. */
+/* Focus presets – background images, sounds and default timer durations. */
 
 export type BgType = 'image' | 'video'
 export type SoundType = 'file' | 'stream' // stream = future monetisation

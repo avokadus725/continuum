@@ -1,4 +1,4 @@
-/* Saved posts page — posts the user has bookmarked in the community. */
+/* Saved posts page – posts the user has bookmarked in the community. */
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'

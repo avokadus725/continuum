@@ -1,4 +1,4 @@
-/* Personalized recommendations — small list of suggested next things. */
+/* Personalized recommendations – small list of suggested next things. */
 
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'

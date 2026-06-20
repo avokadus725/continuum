@@ -7,7 +7,7 @@ export const FOCUS_LIVE_KEY = 'cl_focus_live'
 export interface FocusLive {
   phase: 'work' | 'break'
   secondsLeft: number
-  /** Date.now() at the time of last write — used to interpolate elapsed time. */
+  /** Date.now() at the time of last write – used to interpolate elapsed time. */
   updatedAt: number
   isRunning: boolean
   /** true = user deliberately minimized (browsed away); session should be restorable. */

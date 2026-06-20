@@ -1,6 +1,6 @@
 'use client'
 
-/* Reactions bar — like / helpful / fire reaction buttons with counts. */
+/* Reactions bar – like / helpful / fire reaction buttons with counts. */
 
 import { useTranslations } from 'next-intl'
 import { useState, useTransition } from 'react'
@@ -23,7 +23,7 @@ export function ReactionsBar({ reactions, materialId }: ReactionsBarProps) {
   const t = useTranslations('reactions')
   const [isPending, startTransition] = useTransition()
 
-  // Optimistic local state — updates instantly, no server re-render needed
+  // Optimistic local state – updates instantly, no server re-render needed
   const [local, setLocal] = useState<ReactionCount[]>(reactions)
 
   function handle(type: ReactionType) {

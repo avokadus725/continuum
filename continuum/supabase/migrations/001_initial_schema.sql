@@ -1,5 +1,5 @@
 -- ============================================================
--- Continuum — Initial Schema
+-- Continuum – Initial Schema
 -- ============================================================
 
 -- Enable UUID extension
@@ -202,7 +202,7 @@ create table reactions (
   )
 );
 
--- Unique: один юзер — одна реакція одного типу на матеріал або коментар
+-- Unique: один юзер – одна реакція одного типу на матеріал або коментар
 create unique index reactions_material_unique
   on reactions(user_id, material_id, type)
   where material_id is not null;

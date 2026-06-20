@@ -1,6 +1,6 @@
 'use client'
 
-/* Community client — orchestrates the feed, composer, filters and right rail. */
+/* Community client – orchestrates the feed, composer, filters and right rail. */
 
 import { useTranslations } from 'next-intl'
 import { PostComposer }    from './_parts/post-composer'

@@ -1,6 +1,6 @@
 'use client'
 
-/* UserAvatar — avatar image with initials fallback. */
+/* UserAvatar – avatar image with initials fallback. */
 
 import { useState } from 'react'
 

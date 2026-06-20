@@ -1,4 +1,4 @@
-/* Badge — small label / pill UI primitive. */
+/* Badge – small label / pill UI primitive. */
 
 import { mergeProps } from "@base-ui/react/merge-props"
 import { useRender } from "@base-ui/react/use-render"

@@ -1,6 +1,6 @@
 'use client'
 
-/* Intention — either pinned italic line during active session,
+/* Intention – either pinned italic line during active session,
    or an inline input when idle. */
 
 import { Pencil } from 'lucide-react'
@@ -32,15 +32,14 @@ export function IntentionInput({ value, onChange, onSubmit }: InputProps) {
   const t = useTranslations('focus')
   return (
     <div
-      className="inline-flex items-center gap-3 rounded-full border px-5 py-3 backdrop-blur-md"
+      className="inline-flex w-[min(460px,calc(100vw-2rem))] items-center gap-3 rounded-full border px-5 py-3 backdrop-blur-md"
       style={{
         background:  'rgba(15, 22, 18, 0.55)',
         borderColor: 'rgba(255,255,255,0.12)',
-        minWidth:    460,
       }}
     >
-      <Pencil className="h-4 w-4" style={{ color: 'rgba(255,255,255,0.48)' }} />
-      <span className="text-[13px]" style={{ color: 'rgba(255,255,255,0.48)' }}>
+      <Pencil className="h-4 w-4 shrink-0" style={{ color: 'rgba(255,255,255,0.48)' }} />
+      <span className="shrink-0 text-[13px]" style={{ color: 'rgba(255,255,255,0.48)' }}>
         {t('intentionLabel')}
       </span>
       <input
@@ -48,7 +47,7 @@ export function IntentionInput({ value, onChange, onSubmit }: InputProps) {
         onChange={e => onChange(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') onSubmit?.() }}
         placeholder={t('intentionHint')}
-        className="flex-1 bg-transparent text-[13px] outline-none placeholder:[color:rgba(255,255,255,0.32)]"
+        className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:[color:rgba(255,255,255,0.32)]"
         style={{ color: '#FFFFFF' }}
       />
       <span

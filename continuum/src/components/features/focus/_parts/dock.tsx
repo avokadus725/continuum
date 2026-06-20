@@ -1,6 +1,6 @@
 'use client'
 
-/* Bottom dock — single pill bar with Scene · Sound · Volume · Notification. */
+/* Bottom dock – single pill bar with Scene · Sound · Volume · Notification. */
 
 import { ChevronDown, Volume2, Bell, BellOff } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -27,7 +27,7 @@ export function Dock({
 
   return (
     <div
-      className="inline-flex items-center gap-0.5 rounded-full border p-1 backdrop-blur-xl"
+      className="inline-flex max-w-[calc(100vw-1.5rem)] items-center gap-0.5 overflow-x-auto rounded-full border p-1 backdrop-blur-xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       style={{
         background: 'rgba(12, 18, 14, 0.78)',
         borderColor: 'rgba(255,255,255,0.12)',
@@ -52,7 +52,7 @@ export function Dock({
 
       <Divider />
 
-      {/* Notification toggle — BellOff + strikethrough when disabled */}
+      {/* Notification toggle – BellOff + strikethrough when disabled */}
       <button
         onClick={onToggleBell}
         className={dockBtn}
@@ -76,22 +76,23 @@ export function Dock({
   )
 }
 
-const dockBtn = 'inline-flex items-center rounded-full border-0 bg-transparent px-3.5 py-2 text-[12.5px] font-medium text-[rgba(255,255,255,0.72)] hover:bg-[rgba(255,255,255,0.06)]'
+const dockBtn = 'inline-flex shrink-0 items-center whitespace-nowrap rounded-full border-0 bg-transparent px-3.5 py-2 text-[12.5px] font-medium text-[rgba(255,255,255,0.72)] hover:bg-[rgba(255,255,255,0.06)]'
 
 function Divider() {
-  return <span className="mx-1 h-4 w-px" style={{ background: 'rgba(255,255,255,0.12)' }} aria-hidden />
+  return <span className="mx-1 h-4 w-px shrink-0" style={{ background: 'rgba(255,255,255,0.12)' }} aria-hidden />
 }
 
 function VolumeStrip({ value, onChange, disabled }: { value: number; onChange: (v: number) => void; disabled?: boolean }) {
+  const t = useTranslations('focus')
   return (
-    <div className="inline-flex items-center gap-2 px-3 py-2" style={{ opacity: disabled ? 0.4 : 1 }}>
+    <div className="inline-flex shrink-0 items-center gap-2 px-3 py-2" style={{ opacity: disabled ? 0.4 : 1 }}>
       <Volume2 className="h-3.5 w-3.5" style={{ color: 'rgba(255,255,255,0.5)' }} />
       <input
         type="range" min={0} max={1} step={0.05} value={value}
         onChange={e => onChange(Number(e.target.value))}
         disabled={disabled}
         className="cont-volume w-16 cursor-pointer"
-        aria-label="Volume"
+        aria-label={t('volume')}
       />
       <style>{`
         .cont-volume {

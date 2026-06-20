@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { getTranslations, getLocale } from 'next-intl/server'
 
 interface Props {
-  /** Minutes per weekday — index 0 = Monday … 6 = Sunday. Length 7. */
+  /** Minutes per weekday – index 0 = Monday … 6 = Sunday. Length 7. */
   perDay: number[]
   /** Index 0..6 of the day to highlight (usually today). */
   todayIndex?: number
@@ -12,7 +12,7 @@ interface Props {
 
 /** Returns 7 short weekday labels starting on Monday, localised. */
 function weekdayLabels(locale: string): string[] {
-  // January 1, 2024 = Monday — safe anchor date
+  // January 1, 2024 = Monday – safe anchor date
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(2024, 0, 1 + i)
     return new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(d)
@@ -51,7 +51,7 @@ export async function WeeklyChartCard({ perDay, todayIndex }: Props) {
         {totalLabel}
       </div>
 
-      {/* Bar chart — pixel heights so bars render correctly in flex layout */}
+      {/* Bar chart – pixel heights so bars render correctly in flex layout */}
       <div className="mt-3.5 flex items-end gap-1.5">
         {perDay.map((val, i) => (
           <div key={i} className="flex flex-1 flex-col items-center gap-1.5">

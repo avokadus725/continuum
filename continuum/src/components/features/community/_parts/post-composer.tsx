@@ -163,7 +163,7 @@ export function PostComposer({ avatarUrl, name, initialKind = 'discussion' }: Pr
               style={{ color: 'var(--foreground)' }}
             />
 
-            {/* URL input — appears either via button or auto when share kind */}
+            {/* URL input – appears either via button or auto when share kind */}
             {(showUrlInput || kind === 'share') && (
               <div
                 className="mt-2 flex items-center gap-2 rounded-xl border px-3 py-2"
@@ -203,7 +203,7 @@ export function PostComposer({ avatarUrl, name, initialKind = 'discussion' }: Pr
                 background: 'color-mix(in srgb, var(--primary) 10%, transparent)',
                 borderColor: 'var(--primary)', color: 'var(--primary)',
               }}
-              title="Прибрати тег"
+              title={tc('compose.removeTag')}
             >
               #{slug}<X className="h-2.5 w-2.5 opacity-70" />
             </button>

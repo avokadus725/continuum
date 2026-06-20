@@ -1,4 +1,4 @@
-/* Hashtag utilities — normalise user input, build slugs. */
+/* Hashtag utilities – normalise user input, build slugs. */
 
 const NON_TAG_CHAR = /[^\p{L}\p{N}-]+/gu
 
@@ -31,7 +31,7 @@ export function extractHashtags(text: string): string[] {
   return [...tags]
 }
 
-/** Suggested tags by post kind — shown above the composer footer. */
+/** Suggested tags by post kind – shown above the composer footer. */
 export const SUGGESTED_TAGS: Record<'discussion' | 'question' | 'share', string[]> = {
   question:   ['допомога', 'питання'],
   share:      ['ресурси', 'корисне'],

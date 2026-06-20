@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generate Architecture Diagrams (SVG) for Continuum platform thesis.
 
-diagram_deployment.svg  — UML Component/Deployment diagram (Рисунок 3.2)
-diagram_layers.svg      — Layered Architecture concentric circles (Рисунок 3.3)
+diagram_deployment.svg  – UML Component/Deployment diagram (Рисунок 3.2)
+diagram_layers.svg      – Layered Architecture concentric circles (Рисунок 3.3)
 """
 
 import os

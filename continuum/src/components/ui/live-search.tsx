@@ -1,6 +1,6 @@
 'use client'
 
-/* LiveSearch — debounced search input that updates the URL query. */
+/* LiveSearch – debounced search input that updates the URL query. */
 
 import { useRouter, usePathname } from 'next/navigation'
 import { useRef, useState } from 'react'
@@ -12,7 +12,7 @@ interface LiveSearchProps {
   /** Extra params to preserve (e.g. topic, difficulty) */
   extraParams?: Record<string, string | undefined>
   placeholder: string
-  /** Debounce ms — default 300 */
+  /** Debounce ms – default 300 */
   debounce?: number
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-/* Focus accent band — live-aware client component.
+/* Focus accent band – live-aware client component.
    Reads localStorage every second.
    - Minimized session active → shows live countdown, progress bar, "Return to room"
    - Idle                     → shows static 25:00 with "Start session" */
@@ -17,7 +17,7 @@ function fmt(s: number)  { return `${pad(Math.floor(s / 60))}:${pad(s % 60)}` }
 export function FocusBand() {
   const t = useTranslations('dashboard')
 
-  // Start null so first (server) render is always idle — no hydration mismatch.
+  // Start null so first (server) render is always idle – no hydration mismatch.
   const [live, setLive]           = useState<FocusLive | null>(null)
   const [displaySecs, setDisplay] = useState(0)
 
@@ -62,7 +62,7 @@ export function FocusBand() {
   return (
     <Link
       href="/focus"
-      className="relative mb-7 flex items-center gap-6 overflow-hidden rounded-2xl border px-6 py-4 pl-[26px] no-underline transition-colors hover:border-[color-mix(in_srgb,var(--primary)_30%,var(--border))]"
+      className="relative mb-7 flex flex-col items-start gap-4 overflow-hidden rounded-2xl border px-6 py-4 pl-[26px] no-underline transition-colors hover:border-[color-mix(in_srgb,var(--primary)_30%,var(--border))] sm:flex-row sm:items-center sm:gap-6"
       style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
     >
       {/* left accent strip */}
@@ -73,7 +73,7 @@ export function FocusBand() {
       />
 
       {/* eyebrow + status */}
-      <div className="flex min-w-[220px] flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 sm:min-w-[220px]">
         <div
           className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[1.4px]"
           style={{ color: 'var(--primary)' }}
@@ -97,7 +97,7 @@ export function FocusBand() {
       </div>
 
       {/* big live timer */}
-      <div className="flex flex-1 flex-col items-center">
+      <div className="flex w-full flex-1 flex-col items-center sm:w-auto">
         <div
           className="text-[38px] font-semibold leading-none tracking-[-1.4px] tabular-nums"
           style={{ color: 'var(--foreground)' }}
@@ -105,7 +105,7 @@ export function FocusBand() {
           {cfg.time}
         </div>
         <div
-          className="mt-2.5 h-[3px] w-[220px] overflow-hidden rounded-full"
+          className="mt-2.5 h-[3px] w-full max-w-[220px] overflow-hidden rounded-full"
           style={{ background: 'var(--muted)' }}
         >
           <div

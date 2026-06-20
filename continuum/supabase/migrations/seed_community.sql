@@ -1,6 +1,6 @@
 -- ─── Community v2 · Seed data ──────────────────────────────────
 -- Run once in Supabase SQL Editor to populate demo content.
--- Uses your real profile IDs — safe to run on any environment.
+-- Uses your real profile IDs – safe to run on any environment.
 
 DO $$
 DECLARE
@@ -30,7 +30,7 @@ BEGIN
 
   -- ── Tags ───────────────────────────────────────────────────────
   INSERT INTO tags (slug, display_name) VALUES
-    ('тау',          'ТАУ — теорія автоматичного управління'),
+    ('тау',          'ТАУ – теорія автоматичного управління'),
     ('математика',   'Математичний аналіз та лінійна алгебра'),
     ('програмування','Алгоритми, структури даних, кодування'),
     ('фізика',       'Загальна та технічна фізика'),
@@ -44,67 +44,67 @@ BEGIN
 
   -- ── Posts ──────────────────────────────────────────────────────
 
-  -- 1) Discussion — today
+  -- 1) Discussion – today
   INSERT INTO posts (id, user_id, kind, content, created_at)
   VALUES (p1, u1, 'discussion',
     'Всім привіт! Хто вже розібрався з передаточними функціями в ТАУ? Мені здається, що графічні методи (наприклад діаграми Боде) набагато інтуїтивніші ніж алгебраїчний розрахунок. Поділіться своїм досвідом 👇',
     now() - interval '2 hours');
 
-  -- 2) Question — today, unsolved
+  -- 2) Question – today, unsolved
   INSERT INTO posts (id, user_id, kind, title, content, created_at, is_solved)
   VALUES (p2, u2, 'question',
     'Як побудувати діаграму Боде для системи другого порядку?',
     'Маю передаточну функцію W(s) = 4 / (s² + 2s + 4). Намагаюсь побудувати діаграму Боде, але не розумію як правильно визначити кутову частоту зрізу і запас по фазі. Що я роблю не так?',
     now() - interval '5 hours', false);
 
-  -- 3) Share — yesterday
+  -- 3) Share – yesterday
   INSERT INTO posts (id, user_id, kind, content, url, url_title, created_at)
   VALUES (p3, u3, 'share',
-    'Знайшла чудовий інтерактивний симулятор для ТАУ — можна в реальному часі змінювати параметри ПІД-регулятора і бачити відгук системи. Дуже допомагає зрозуміти як кожен коефіцієнт впливає на стійкість.',
+    'Знайшла чудовий інтерактивний симулятор для ТАУ – можна в реальному часі змінювати параметри ПІД-регулятора і бачити відгук системи. Дуже допомагає зрозуміти як кожен коефіцієнт впливає на стійкість.',
     'https://ctms.engin.umich.edu/CTMS/index.php?example=Introduction&section=ControlPID',
-    'Control Tutorials for MATLAB and Simulink — PID Control',
+    'Control Tutorials for MATLAB and Simulink – PID Control',
     now() - interval '1 day');
 
-  -- 4) Question — yesterday, SOLVED
+  -- 4) Question – yesterday, SOLVED
   INSERT INTO posts (id, user_id, kind, title, content, created_at, is_solved)
   VALUES (p4, u1, 'question',
     'Чи можна використовувати метод Ньютона для розв''язання нелінійних систем?',
     'Маю систему з 3 нелінійних рівнянь. Викладач казав що метод Ньютона збігається квадратично, але не пояснив як обрати початкове наближення щоб уникнути розбіжності.',
     now() - interval '1 day' - interval '3 hours', true);
 
-  -- 5) Discussion — 3 days ago
+  -- 5) Discussion – 3 days ago
   INSERT INTO posts (id, user_id, kind, content, created_at)
   VALUES (p5, u2, 'discussion',
-    'Цікаво, що хтось ще використовує Julia для чисельних методів? Спробував після Python — різниця в швидкості відчутна. Особливо для великих матриць.',
+    'Цікаво, що хтось ще використовує Julia для чисельних методів? Спробував після Python – різниця в швидкості відчутна. Особливо для великих матриць.',
     now() - interval '3 days');
 
-  -- 6) Share — 4 days ago
+  -- 6) Share – 4 days ago
   INSERT INTO posts (id, user_id, kind, content, url, url_title, created_at)
   VALUES (p6, u3, 'share',
-    '3Blue1Brown зробив серію про лінійну алгебру — "Essence of linear algebra". Якщо ти досі не розумієш чому детермінант це площа/об''єм — обов''язково подивись. Змінило моє розуміння повністю.',
+    '3Blue1Brown зробив серію про лінійну алгебру – "Essence of linear algebra". Якщо ти досі не розумієш чому детермінант це площа/об''єм – обов''язково подивись. Змінило моє розуміння повністю.',
     'https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab',
-    'Essence of linear algebra — 3Blue1Brown',
+    'Essence of linear algebra – 3Blue1Brown',
     now() - interval '4 days');
 
-  -- 7) Discussion — 5 days ago
+  -- 7) Discussion – 5 days ago
   INSERT INTO posts (id, user_id, kind, content, created_at)
   VALUES (p7, u1, 'discussion',
     'Готуюся до заліку з фізики, повторюю електродинаміку. Хтось має гарні конспекти або задачники по темі "Рівняння Максвелла"? Університетський підручник занадто сухий 😅',
     now() - interval '5 days');
 
-  -- 8) Question — 8 days ago, unsolved
+  -- 8) Question – 8 days ago, unsolved
   INSERT INTO posts (id, user_id, kind, title, content, created_at, is_solved)
   VALUES (p8, u2, 'question',
     'Різниця між stack і heap у C++?',
-    'Розумію теоретично, але на практиці не завжди розумію коли що використовувати. Наприклад — якщо я створюю великий вектор у функції, чи краще повертати його по значенню чи передавати посилання?',
+    'Розумію теоретично, але на практиці не завжди розумію коли що використовувати. Наприклад – якщо я створюю великий вектор у функції, чи краще повертати його по значенню чи передавати посилання?',
     now() - interval '8 days', false);
 
-  -- 9) Share — 10 days ago
+  -- 9) Share – 10 days ago
   INSERT INTO posts (id, user_id, kind, content, url, url_title, created_at)
   VALUES (p9, u3, 'share',
-    'Для тих хто вчить алгоритми — Visualgo дозволяє покроково переглядати як працюють сортування, дерева, графи. Набагато краще ніж читати псевдокод.',
+    'Для тих хто вчить алгоритми – Visualgo дозволяє покроково переглядати як працюють сортування, дерева, графи. Набагато краще ніж читати псевдокод.',
     'https://visualgo.net/en',
-    'VisuAlgo — Visualising data structures and algorithms',
+    'VisuAlgo – Visualising data structures and algorithms',
     now() - interval '10 days');
 
   -- ── Post tags ──────────────────────────────────────────────────
@@ -141,24 +141,24 @@ BEGIN
      'Погоджуюся! Діаграми Боде інтуїтивні для аналізу стійкості. Особливо корисно що можна одразу бачити запас по фазі і по амплітуді.',
      now() - interval '1 hour'),
     (gen_random_uuid(), u3, p1,
-     'Я ще додав би метод кореневого годографа — він дає розуміння як полюси переміщуються при зміні коефіцієнта підсилення.',
+     'Я ще додав би метод кореневого годографа – він дає розуміння як полюси переміщуються при зміні коефіцієнта підсилення.',
      now() - interval '30 minutes');
 
   -- on p2 (question about Bode 2nd order)
   INSERT INTO comments (id, user_id, post_id, content, created_at)
   VALUES
     (gen_random_uuid(), u1, p2,
-     'Для системи 2-го порядку ω₀ = √(k/m) = √4 = 2 рад/с. Запас по фазі = 180° + φ(ω_зр), де φ — аргумент W(jω) при частоті зрізу амплітуди.',
+     'Для системи 2-го порядку ω₀ = √(k/m) = √4 = 2 рад/с. Запас по фазі = 180° + φ(ω_зр), де φ – аргумент W(jω) при частоті зрізу амплітуди.',
      now() - interval '4 hours'),
     (gen_random_uuid(), u3, p2,
-     'Скористайся MATLAB: `margin(tf([4],[1 2 4]))` — він одразу намалює і покаже Gm та Pm.',
+     'Скористайся MATLAB: `margin(tf([4],[1 2 4]))` – він одразу намалює і покаже Gm та Pm.',
      now() - interval '2 hours');
 
   -- on p4 (solved question about Newton)
   INSERT INTO comments (id, user_id, post_id, content, created_at)
   VALUES
     (gen_random_uuid(), u3, p4,
-     'Метод Ньютона дуже чутливий до початкового наближення. Хороша стратегія — спочатку запустити кілька ітерацій методу простої ітерації або бісекції щоб потрапити в область квадратичної збіжності.',
+     'Метод Ньютона дуже чутливий до початкового наближення. Хороша стратегія – спочатку запустити кілька ітерацій методу простої ітерації або бісекції щоб потрапити в область квадратичної збіжності.',
      now() - interval '22 hours');
 
   -- ── Saved posts ───────────────────────────────────────────────

@@ -1,17 +1,20 @@
 'use client'
 
-/* Avatar upload — picks, previews and uploads the user's avatar. */
+/* Avatar upload – picks, previews and uploads the user's avatar. */
 
 import { useRef, useState, useTransition } from 'react'
+import { useTranslations } from 'next-intl'
 import { Camera } from 'lucide-react'
 import { uploadAvatar } from '@/app/actions/profile'
 
 interface AvatarUploadProps {
   currentUrl: string | null
   displayName: string | null
+  readOnly?: boolean
 }
 
-export function AvatarUpload({ currentUrl, displayName }: AvatarUploadProps) {
+export function AvatarUpload({ currentUrl, displayName, readOnly }: AvatarUploadProps) {
+  const t = useTranslations('profile')
   const [preview, setPreview] = useState<string | null>(currentUrl)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -61,28 +64,32 @@ export function AvatarUpload({ currentUrl, displayName }: AvatarUploadProps) {
       </div>
 
       {/* Camera button overlay */}
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        disabled={isPending}
-        className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-colors hover:scale-110"
-        style={{
-          background: 'var(--primary)',
-          borderColor: 'var(--card)',
-          color: 'var(--primary-foreground)',
-        }}
-        title="Змінити аватарку"
-      >
-        <Camera className="w-3.5 h-3.5" />
-      </button>
+      {!readOnly && (
+        <>
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={isPending}
+            className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-colors hover:scale-110"
+            style={{
+              background: 'var(--primary)',
+              borderColor: 'var(--card)',
+              color: 'var(--primary-foreground)',
+            }}
+            title={t('changeAvatar')}
+          >
+            <Camera className="w-3.5 h-3.5" />
+          </button>
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleFileChange}
-      />
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </>
+      )}
 
       {error && (
         <p className="absolute top-full mt-1 left-0 text-xs whitespace-nowrap"

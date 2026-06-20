@@ -1,6 +1,6 @@
 'use client'
 
-/* Today panel — interactive checklist of what to close before evening.
+/* Today panel – interactive checklist of what to close before evening.
    Quiz tasks are read-only (completed on the task detail page).
    Personal to-dos are created, toggled, and deleted inline. */
 

@@ -1,4 +1,4 @@
-/* Leaderboard page — XP ranking, levels and achievements. */
+/* Leaderboard page – XP ranking, levels and achievements. */
 
 import { createClient } from '@/lib/supabase/server'
 import { getTranslations, getLocale } from 'next-intl/server'
@@ -39,12 +39,12 @@ export default async function LeaderboardPage() {
       .select('is_correct, completed_at')
       .eq('user_id', user.id)
       .gte('completed_at', weekStart),
-    // All-time progress dates — for streak (must not be period-filtered)
+    // All-time progress dates – for streak (must not be period-filtered)
     supabase
       .from('student_progress')
       .select('completed_at')
       .eq('user_id', user.id),
-    // All users' weekly scores — for "hot this week" mini-leaderboard
+    // All users' weekly scores – for "hot this week" mini-leaderboard
     (supabase as any)
       .from('student_progress')
       .select('user_id, score')
@@ -138,7 +138,7 @@ export default async function LeaderboardPage() {
       {/* ── Two-column ──────────────────────────── */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_264px]">
 
-        {/* LEFT — podium + list */}
+        {/* LEFT – podium + list */}
         <div className="space-y-4">
 
           {/* Podium */}
@@ -216,7 +216,7 @@ export default async function LeaderboardPage() {
                       className="flex-1 truncate text-[13px] font-medium"
                       style={{ color: isMe ? 'var(--primary)' : 'var(--foreground)' }}
                     >
-                      {p.full_name ?? '—'}
+                      {p.full_name ?? '–'}
                       {isMe && (
                         <span className="ml-2 text-[11px]" style={{ color: 'var(--muted-foreground)' }}>
                           {youLabel}
@@ -245,7 +245,7 @@ export default async function LeaderboardPage() {
 
           {ranked.length === 0 && (
             <p className="py-12 text-center text-[13px]" style={{ color: 'var(--muted-foreground)' }}>
-              —
+              –
             </p>
           )}
 
@@ -279,7 +279,7 @@ export default async function LeaderboardPage() {
                         className="flex-1 truncate text-[13px] font-medium"
                         style={{ color: isMe ? 'var(--primary)' : 'var(--foreground)' }}
                       >
-                        {p.full_name ?? '—'}
+                        {p.full_name ?? '–'}
                         {isMe && (
                           <span className="ml-2 text-[11px]" style={{ color: 'var(--muted-foreground)' }}>
                             {youLabel}
@@ -480,7 +480,7 @@ export default async function LeaderboardPage() {
                     <UserAvatar url={rivalAbove.avatar_url} name={rivalAbove.full_name} size={28} />
                     <div className="flex-1 min-w-0">
                       <p className="truncate text-[12px] font-medium" style={{ color: 'var(--foreground)' }}>
-                        {rivalAbove.full_name ?? '—'}
+                        {rivalAbove.full_name ?? '–'}
                       </p>
                       <p className="text-[10px]" style={{ color: 'var(--muted-foreground)' }}>{t('rivalsAhead')}</p>
                     </div>
@@ -497,7 +497,7 @@ export default async function LeaderboardPage() {
                     <UserAvatar url={rivalBelow.avatar_url} name={rivalBelow.full_name} size={28} />
                     <div className="flex-1 min-w-0">
                       <p className="truncate text-[12px] font-medium" style={{ color: 'var(--foreground)' }}>
-                        {rivalBelow.full_name ?? '—'}
+                        {rivalBelow.full_name ?? '–'}
                       </p>
                       <p className="text-[10px]" style={{ color: 'var(--muted-foreground)' }}>{t('rivalsBelow')}</p>
                     </div>
@@ -527,7 +527,7 @@ function PodiumCol({
   row: { full_name: string | null; avatar_url: string | null; xp: number; level: number; rank: number }
   isMe: boolean; youLabel: string; baseH: number; medal: string; first?: boolean
 }) {
-  const name = row.full_name ?? '—'
+  const name = row.full_name ?? '–'
   return (
     <div className={`flex flex-col items-center ${first ? 'flex-[1.15]' : 'flex-1'}`}>
       {/* medal */}

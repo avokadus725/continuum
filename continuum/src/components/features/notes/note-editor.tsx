@@ -1,6 +1,6 @@
 'use client'
 
-/* Note editor — rich-text editor for creating and editing a note. */
+/* Note editor – rich-text editor for creating and editing a note. */
 
 import { useTranslations } from 'next-intl'
 import { useRef, useState, useTransition, useEffect } from 'react'
@@ -64,7 +64,7 @@ export function NoteEditor({
 
   async function handleSubmit(formData: FormData) {
     setError(null)
-    // Inject the controlled collection value — not from a native <select>
+    // Inject the controlled collection value – not from a native <select>
     formData.set('collection_id', selectedCollection)
     startTransition(async () => {
       const res = note ? await updateNote(formData) : await createNote(formData)
@@ -72,7 +72,7 @@ export function NoteEditor({
         setError(res.error)
         toast.error(res.error)
       } else {
-        toast.success(note ? 'Нотатку оновлено' : 'Нотатку збережено')
+        toast.success(note ? t('toastUpdated') : t('toastSaved'))
         onClose()
       }
     })

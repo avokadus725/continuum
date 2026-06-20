@@ -1,10 +1,11 @@
 'use client'
 
-/* MobileNav — bottom navigation bar for small screens. */
+/* MobileNav – bottom navigation bar for small screens. */
 
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 interface NavItem {
   href: string
@@ -16,6 +17,7 @@ interface MobileNavProps {
 }
 
 export function MobileNav({ items }: MobileNavProps) {
+  const t = useTranslations('nav')
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
@@ -24,7 +26,7 @@ export function MobileNav({ items }: MobileNavProps) {
       {/* Hamburger */}
       <button
         onClick={() => setOpen(true)}
-        aria-label="Open menu"
+        aria-label={t('menu')}
         className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg"
         style={{ color: 'var(--muted-foreground)' }}
       >

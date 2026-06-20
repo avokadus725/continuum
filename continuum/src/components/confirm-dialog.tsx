@@ -1,6 +1,6 @@
 'use client'
 
-/* ConfirmDialog — reusable confirmation modal for destructive actions. */
+/* ConfirmDialog – reusable confirmation modal for destructive actions. */
 
 import { useEffect } from 'react'
 

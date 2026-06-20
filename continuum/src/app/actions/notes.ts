@@ -1,6 +1,6 @@
 'use server'
 
-/* Note Server Actions — create, update and delete personal notes. */
+/* Note Server Actions – create, update and delete personal notes. */
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
@@ -19,7 +19,7 @@ export async function createNote(formData: FormData) {
 
   if (!title) return { error: 'Title is required' }
 
-  // collection_id not in generated types yet — cast to any
+  // collection_id not in generated types yet – cast to any
   const { data, error } = await (supabase.from('notes') as any)
     .insert({
       user_id: user.id,

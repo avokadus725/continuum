@@ -1,6 +1,6 @@
 'use client'
 
-/* Notification bell — dropdown of the user's notifications with an unread badge. */
+/* Notification bell – dropdown of the user's notifications with an unread badge. */
 
 import { useEffect, useRef, useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'

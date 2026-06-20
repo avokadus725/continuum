@@ -1,6 +1,6 @@
 'use client'
 
-/* Quick-note button — creates a note linked to the current material or task. */
+/* Quick-note button – creates a note linked to the current material or task. */
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
@@ -22,7 +22,7 @@ export function QuickNoteButton({ materialId, materialTitle, taskId, taskTitle, 
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+        className="inline-flex w-full items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border whitespace-nowrap transition-colors hover:bg-black/5 dark:hover:bg-white/5"
         style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -1,6 +1,6 @@
 'use client'
 
-/* Hashtag detail — hero with tag header + sticky compose + feed + right rail
+/* Hashtag detail – hero with tag header + sticky compose + feed + right rail
    (which shows "About this tag" + active members instead of trending). */
 
 import { useTransition } from 'react'
@@ -37,7 +37,9 @@ export function HashtagClient({
       const fd = new FormData(); fd.set('tag', tag.slug)
       const r = await toggleTagFollow(fd)
       if (!r?.error) {
-        toast.success(r?.following ? `Стежиш за #${tag.slug}` : `Відписався від #${tag.slug}`)
+        toast.success(r?.following
+          ? t('hashtag.followingToast', { tag: tag.slug })
+          : t('hashtag.unfollowedToast', { tag: tag.slug }))
         router.refresh()
       }
     })

@@ -2,7 +2,7 @@
 -- Required for: leaderboard, community post authors, comment authors,
 --               avatar display throughout the app.
 -- The profiles table contains only public information: full_name, avatar_url,
--- xp, level, bio, language — no email or sensitive auth data.
+-- xp, level, bio, language – no email or sensitive auth data.
 
 DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
 

@@ -1,6 +1,6 @@
 'use client'
 
-/* PostCard — one post item with kind-aware styling, link preview,
+/* PostCard – one post item with kind-aware styling, link preview,
    hashtags, like + comment + save actions, comment thread. */
 
 import { useRef, useState, useTransition } from 'react'
@@ -152,7 +152,7 @@ export function PostCard({ post, currentUserId }: Props) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <span className="truncate text-[13.5px] font-semibold" style={{ color: 'var(--foreground)' }}>
-              {author?.full_name ?? '—'}
+              {author?.full_name ?? '–'}
             </span>
             {kindBadge}
           </div>
@@ -254,7 +254,7 @@ export function PostCard({ post, currentUserId }: Props) {
             disabled={!isOwn}
             className="ml-auto inline-flex items-center gap-1 text-[11.5px] font-medium"
             style={{ color: solved ? 'var(--success)' : 'var(--warning)' }}
-            title={isOwn ? 'Позначити' : ''}
+            title={isOwn ? tc('markSolved') : ''}
           >
             {solved
               ? <Check className="h-3.5 w-3.5" />
@@ -283,7 +283,7 @@ export function PostCard({ post, currentUserId }: Props) {
           {topLvl.map(c => (
             <CommentItem
               key={c.id} comment={c} replies={replies.get(c.id) ?? []}
-              onReply={() => { setReply({ id: c.id, name: c.profiles?.full_name ?? '—' }); taRef.current?.focus() }}
+              onReply={() => { setReply({ id: c.id, name: c.profiles?.full_name ?? '–' }); taRef.current?.focus() }}
               locale={locale}
             />
           ))}
@@ -296,7 +296,9 @@ export function PostCard({ post, currentUserId }: Props) {
                 style={{ background: 'color-mix(in srgb, var(--primary) 8%, transparent)', color: 'var(--muted-foreground)' }}
               >
                 <span>{tc('replyingTo')} <strong style={{ color: 'var(--foreground)' }}>{reply.name}</strong></span>
-                <button onClick={() => setReply(null)} className="ml-auto" aria-label="Скасувати">
+                <button onClick={() => setReply(null)}
+                  className="ml-auto grid h-5 w-5 shrink-0 place-items-center"
+                  aria-label={tc('cancelReply')}>
                   <X size={12} />
                 </button>
               </div>
@@ -304,7 +306,7 @@ export function PostCard({ post, currentUserId }: Props) {
             <div className="flex gap-2.5">
               <Avatar name={null} url={null} size={28} />
               <div
-                className="flex flex-1 items-end gap-2 rounded-2xl rounded-tl-sm border px-3 py-2"
+                className="flex flex-1 items-center gap-2 rounded-2xl rounded-tl-sm border px-3 py-2"
                 style={{ background: 'var(--muted)', borderColor: 'transparent' }}
               >
                 <textarea
@@ -313,13 +315,13 @@ export function PostCard({ post, currentUserId }: Props) {
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment() } }}
                   rows={1}
                   placeholder={tComments('placeholder')}
-                  className="flex-1 resize-none bg-transparent text-[13px] outline-none"
+                  className="flex-1 resize-none bg-transparent text-[13px] leading-relaxed outline-none self-center"
                   style={{ color: 'var(--foreground)' }}
                 />
                 <button
                   onClick={handleComment}
                   disabled={!text.trim() || isPending}
-                  className="rounded-full p-1.5 disabled:opacity-30"
+                  className="shrink-0 self-end rounded-full p-1.5 disabled:opacity-30"
                   style={{
                     background: text.trim() ? 'var(--primary)' : 'transparent',
                     color: text.trim() ? '#fff' : 'var(--muted-foreground)',
@@ -378,7 +380,7 @@ function CommentItem({
         <div className="min-w-0 flex-1">
           <div className="rounded-2xl rounded-tl-sm px-3 py-2.5" style={{ background: 'var(--muted)' }}>
             <span className="text-[12px] font-semibold" style={{ color: 'var(--foreground)' }}>
-              {comment.profiles?.full_name ?? '—'}
+              {comment.profiles?.full_name ?? '–'}
             </span>
             <p className="mt-0.5 whitespace-pre-wrap text-[13px] leading-relaxed" style={{ color: 'var(--foreground)' }}>
               <AutoLink text={comment.content} />
@@ -400,7 +402,7 @@ function CommentItem({
           <div className="min-w-0 flex-1">
             <div className="rounded-2xl rounded-tl-sm px-3 py-2" style={{ background: 'var(--muted)' }}>
               <span className="text-[11.5px] font-semibold" style={{ color: 'var(--foreground)' }}>
-                {r.profiles?.full_name ?? '—'}
+                {r.profiles?.full_name ?? '–'}
               </span>
               <p className="mt-0.5 whitespace-pre-wrap text-[12.5px] leading-relaxed" style={{ color: 'var(--foreground)' }}>
                 <AutoLink text={r.content} />

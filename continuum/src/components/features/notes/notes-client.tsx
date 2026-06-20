@@ -1,8 +1,8 @@
 'use client'
 
-/* Notes client — list and manage the user's notes. */
+/* Notes client – list and manage the user's notes. */
 
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { useState, useTransition } from 'react'
 import { BookMarked, Pencil, Trash2, StickyNote, Search, X, Paperclip } from 'lucide-react'
 import { topicColor } from '@/lib/topic-colors'
@@ -32,8 +32,8 @@ interface NotesClientProps {
 }
 
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, {
+function formatDate(iso: string, locale: string) {
+  return new Date(iso).toLocaleDateString(locale, {
     day: 'numeric', month: 'short', year: 'numeric',
   })
 }
@@ -41,6 +41,7 @@ function formatDate(iso: string) {
 export function NotesClient({ notes: initialNotes, collections }: NotesClientProps) {
   const t       = useTranslations('notes')
   const tCommon = useTranslations('common')
+  const locale  = useLocale()
 
   const [showCreate,      setShowCreate]      = useState(false)
   const [editNote,        setEditNote]        = useState<Note | null>(null)
@@ -78,9 +79,9 @@ export function NotesClient({ notes: initialNotes, collections }: NotesClientPro
   return (
     <>
       {/* ── Header ───────────────────────────────── */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
         <h1
-          className="text-2xl font-bold tracking-[-0.3px] mr-auto"
+          className="text-2xl font-bold tracking-[-0.3px] sm:mr-auto"
           style={{ color: 'var(--foreground)' }}
         >
           {t('title')}
@@ -88,8 +89,8 @@ export function NotesClient({ notes: initialNotes, collections }: NotesClientPro
 
         {/* Search */}
         <div
-          className="flex items-center gap-2 rounded-xl border px-3 py-[7px]"
-          style={{ background: 'var(--card)', borderColor: 'var(--border)', width: 200 }}
+          className="flex w-full items-center gap-2 rounded-xl border px-3 py-[7px] sm:w-[200px]"
+          style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
         >
           <Search size={13} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
           <input
@@ -108,7 +109,7 @@ export function NotesClient({ notes: initialNotes, collections }: NotesClientPro
 
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
+          className="flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90 sm:w-auto"
           style={{ background: 'var(--primary)', color: 'var(--primary-foreground)' }}
         >
           <span className="text-base leading-none">+</span>
@@ -249,7 +250,7 @@ export function NotesClient({ notes: initialNotes, collections }: NotesClientPro
                       className="text-[11px] shrink-0 tabular-nums"
                       style={{ color: 'var(--muted-foreground)' }}
                     >
-                      {formatDate(note.updated_at)}
+                      {formatDate(note.updated_at, locale)}
                     </span>
                   </div>
                 </div>

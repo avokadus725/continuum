@@ -1,4 +1,4 @@
-/* Root layout — fonts, theme, locale provider and global metadata for the whole app. */
+/* Root layout – fonts, theme, locale provider and global metadata for the whole app. */
 
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: {
       default: t('title'),
-      template: `%s — ${t('title')}`,
+      template: `%s – ${t('title')}`,
     },
     description: t('description'),
     icons: {

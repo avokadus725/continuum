@@ -1,4 +1,4 @@
-/* "Needs you" panel — comments/reactions/replies on the current user's content.
+/* "Needs you" panel – comments/reactions/replies on the current user's content.
    Server component. */
 
 import Link from 'next/link'

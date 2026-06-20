@@ -1,6 +1,6 @@
 'use server'
 
-/* Locale Server Action — persist the UI language choice in a cookie. */
+/* Locale Server Action – persist the UI language choice in a cookie. */
 
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'

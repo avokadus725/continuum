@@ -1,6 +1,6 @@
 'use client'
 
-/* Activity chart — bar chart of daily task activity. */
+/* Activity chart – bar chart of daily task activity. */
 
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip,

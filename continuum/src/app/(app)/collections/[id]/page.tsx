@@ -1,4 +1,4 @@
-/* Collection detail page — materials and tasks inside one collection. */
+/* Collection detail page – materials and tasks inside one collection. */
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'

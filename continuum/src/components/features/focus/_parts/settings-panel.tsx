@@ -48,7 +48,7 @@ export function SettingsPanel({ value, onChange, onCancel, onApply }: Props) {
     }
   }
 
-  /* ── Apply — persist custom settings ── */
+  /* ── Apply – persist custom settings ── */
   function handleApply() {
     if (value.mode === 'custom') {
       try {
@@ -64,19 +64,14 @@ export function SettingsPanel({ value, onChange, onCancel, onApply }: Props) {
 
   return (
     <div
-      className="rounded-[20px] border p-7 backdrop-blur-2xl"
+      className="w-[min(420px,calc(100vw-2rem))] rounded-[20px] border p-7 backdrop-blur-2xl"
       style={{
-        width: 420,
         background: 'rgba(12, 18, 14, 0.85)',
         borderColor: 'rgba(255,255,255,0.12)',
         boxShadow: '0 30px 80px -10px rgba(0,0,0,0.6)',
       }}
     >
       <div className="mb-5 flex items-baseline gap-2.5">
-        <span
-          className="text-[18px]"
-          style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', color: '#7AB6EE' }}
-        >i.</span>
         <h2
           className="m-0 text-[20px] font-semibold tracking-tight"
           style={{ color: '#FFFFFF' }}

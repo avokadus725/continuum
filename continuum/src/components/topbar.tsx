@@ -34,7 +34,7 @@ export function Topbar({ user, avatarUrl, displayName, level, onMobileMenu }: To
         onClick={onMobileMenu}
         className="rounded-lg p-2 md:hidden"
         style={{ color: 'var(--muted-foreground)' }}
-        aria-label="Меню"
+        aria-label={t('menu')}
       >
         <Menu className="h-5 w-5" />
       </button>

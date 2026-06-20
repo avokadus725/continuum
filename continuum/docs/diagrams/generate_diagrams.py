@@ -94,7 +94,7 @@ def top_d(cy, hh): return cy - hh
 
 
 # ════════════════════════════════════════════════════════════════
-# Diagram 1 — Автентифікація
+# Diagram 1 – Автентифікація
 # ════════════════════════════════════════════════════════════════
 def diagram_auth():
     W, H = 560, 870
@@ -186,7 +186,7 @@ def diagram_auth():
 
 
 # ════════════════════════════════════════════════════════════════
-# Diagram 2 — Виконання завдання
+# Diagram 2 – Виконання завдання
 # ════════════════════════════════════════════════════════════════
 def diagram_task():
     W, H = 590, 900
@@ -219,7 +219,7 @@ def diagram_task():
     p += [arr(RX, bot(DONE_Y), RX, END1_Y - 13)]
     p += [end_node(RX, END1_Y)]
 
-    # НІ ↓ — read, enter, send, check
+    # НІ ↓ – read, enter, send, check
     A2Y = bot_d(D1Y, HH1) + GAP + AH // 2
     p += [arr(MX, bot_d(D1Y, HH1), MX, top(A2Y), "Ні", MX + 4, bot_d(D1Y, HH1) + 12)]
     p += [act(MX, A2Y, 220, AH, ["Ознайомлення з умовою", "завдання"])]
@@ -256,7 +256,7 @@ def diagram_task():
     p += [arr(LX, A3Y, MX - 110, A3Y)]
     p += [lbl(LX + 2, A3Y - 7, "Callback", size=10)]
 
-    # ТАК ↓ — XP
+    # ТАК ↓ – XP
     A6Y = bot_d(D2Y, HH2) + GAP + AH // 2
     p += [arr(MX, bot_d(D2Y, HH2), MX, top(A6Y), "Так", MX + 4, bot_d(D2Y, HH2) + 12)]
     p += [act(MX, A6Y, 220, AH, ["Нарахування XP балів", "та оновлення прогресу"])]
@@ -266,7 +266,7 @@ def diagram_task():
     p += [arr(MX, bot(A6Y), MX, top_d(D3Y, HH3))]
     p += [dec(MX, D3Y, HW3, HH3, ["Є пояснення?"])]
 
-    # ТАК ↓ — show explanation
+    # ТАК ↓ – show explanation
     A7Y = bot_d(D3Y, HH3) + GAP + AH // 2
     p += [arr(MX, bot_d(D3Y, HH3), MX, top(A7Y), "Так", MX + 4, bot_d(D3Y, HH3) + 12)]
     p += [act(MX, A7Y, 220, AH, ["Відображення пояснення", "до завдання"])]
@@ -291,7 +291,7 @@ def diagram_task():
 
 
 # ════════════════════════════════════════════════════════════════
-# Diagram 3 — Фокус-сесія
+# Diagram 3 – Фокус-сесія
 # ════════════════════════════════════════════════════════════════
 def diagram_focus():
     W, H = 570, 895
@@ -364,7 +364,7 @@ def diagram_focus():
     p += [arr(LX, A3Y, MX - 110, A3Y)]
     p += [lbl(LX + 2, A3Y - 7, "Return", size=10)]
 
-    # ТАК ↓ — save
+    # ТАК ↓ – save
     A4Y = bot_d(D2Y, HH2) + GAP + AH // 2
     p += [arr(MX, bot_d(D2Y, HH2), MX, top(A4Y), "Так", MX + 4, bot_d(D2Y, HH2) + 12)]
     p += [act(MX, A4Y, 220, AH, ["Збереження статистики", "фокус-сесії"])]

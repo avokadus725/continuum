@@ -1,4 +1,4 @@
-/* Hashtag page — community posts filtered by a single tag. */
+/* Hashtag page – community posts filtered by a single tag. */
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
@@ -90,7 +90,7 @@ export default async function HashtagPage({ params }: PageProps) {
   const { data: followRow } = await (supabase as any).from('tag_subscriptions')
     .select('tag_slug').eq('user_id', user.id).eq('tag_slug', slug).maybeSingle()
 
-  // Active members under this tag — top 4 by post count.
+  // Active members under this tag – top 4 by post count.
   let activeRowsResult: { data: unknown } = { data: null }
   try { activeRowsResult = await (supabase as any).rpc('community_active_in_tag', { tag: slug, limit_n: 4 }) } catch {}
   const { data: activeRows } = activeRowsResult

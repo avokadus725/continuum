@@ -1,6 +1,6 @@
 'use client'
 
-/* Time-grouped post stream — groups posts by Today / This week / Earlier. */
+/* Time-grouped post stream – groups posts by Today / This week / Earlier. */
 
 import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
@@ -61,7 +61,7 @@ export function FeedTimeGroups({ posts, currentUserId }: Props) {
       {groups.map((g, gi) => (
         <section key={g.label}>
           <header className="mb-2 flex items-center gap-2.5" style={{ paddingTop: gi === 0 ? 0 : 14 }}>
-            <span style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', color: 'var(--primary)', fontSize: 16 }}>—</span>
+            <span style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', color: 'var(--primary)', fontSize: 16 }}>–</span>
             <span
               className="text-[11.5px] font-semibold uppercase"
               style={{ letterSpacing: '1.2px', color: 'var(--muted-foreground)' }}

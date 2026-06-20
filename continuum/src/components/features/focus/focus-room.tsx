@@ -1,14 +1,14 @@
 'use client'
 
-/* Continuum Focus Room — main orchestrator.
+/* Continuum Focus Room – main orchestrator.
    State machine: idle → work → break → … → reflection (after last session).
 
    Leave-guard flow:
    - Clicking "Home" while a session is active shows a confirm dialog with 3 options:
-       • Keep focusing  — dismiss, stay
-       • Browse & return later  — writes session to localStorage (isMinimized:true), navigates away;
+       • Keep focusing  – dismiss, stay
+       • Browse & return later  – writes session to localStorage (isMinimized:true), navigates away;
                                   the FocusFloatingTimer pill appears on all other pages
-       • End session  — persists as interrupted, navigates to /dashboard
+       • End session  – persists as interrupted, navigates to /dashboard
 
    Session restoration:
    - On mount, if localStorage contains an isMinimized session, state is restored
@@ -85,7 +85,7 @@ export function FocusRoom() {
 
   const containerRef   = useRef<HTMLDivElement>(null)
   const audioRef       = useRef<HTMLAudioElement | null>(null)
-  // Ref — not state — so the sync effect reads the latest value without
+  // Ref – not state – so the sync effect reads the latest value without
   // triggering an extra re-render that could race with the write.
   const isMinimizedRef = useRef(false)
   // Mirror endChime setting into a ref so playChime() never goes stale
@@ -123,7 +123,7 @@ export function FocusRoom() {
       breakMin: live.breakMin,
       targetSessions: live.targetSessions,
     }))
-    // clearFocusLive() — intentionally NOT called here;
+    // clearFocusLive() – intentionally NOT called here;
     // the sync effect below will overwrite it with isMinimized:false on the next render.
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -182,8 +182,8 @@ export function FocusRoom() {
       const ctx = new AudioContext()
       // Two harmonics → bell-like tone; 'work' phase done = higher pitch, 'break' done = lower
       const pairs: [number, number][] = type === 'work'
-        ? [[880, 0.30], [1320, 0.15]]   // A5 + E6 — bright "break time" ding
-        : [[660, 0.30], [990,  0.15]]   // E5 + B5 — mellower "back to work" ding
+        ? [[880, 0.30], [1320, 0.15]]   // A5 + E6 – bright "break time" ding
+        : [[660, 0.30], [990,  0.15]]   // E5 + B5 – mellower "back to work" ding
       pairs.forEach(([freq, vol]) => {
         const osc  = ctx.createOscillator()
         const gain = ctx.createGain()
@@ -198,7 +198,7 @@ export function FocusRoom() {
         osc.stop(now + 2.2)
       })
       setTimeout(() => ctx.close(), 3000)
-    } catch { /* AudioContext blocked (e.g. no user gesture) — silently ignore */ }
+    } catch { /* AudioContext blocked (e.g. no user gesture) – silently ignore */ }
   }
 
   function pickSound(id: string) {
@@ -215,7 +215,7 @@ export function FocusRoom() {
     }
   }
   function showNotification(title: string, body: string) {
-    toast.info(`${title} — ${body}`, { duration: 4000 })
+    toast.info(`${title} – ${body}`, { duration: 4000 })
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       new Notification(title, { body, icon: '/favicon.ico' })
     }
@@ -253,7 +253,7 @@ export function FocusRoom() {
       if (secondsLeftRef.current <= 1) {
         // Transition must be called OUTSIDE a setState updater.
         // React 18 Strict Mode double-invokes updater functions to detect
-        // side effects — calling showNotification() inside one fires it twice.
+        // side effects – calling showNotification() inside one fires it twice.
         setSecondsLeft(0)
         if (phase === 'work')  { setFocusSeconds(s => s + 1); transitionToBreak() }
         else                   { setBreakSeconds(s => s + 1); transitionToWork()  }
@@ -414,7 +414,7 @@ export function FocusRoom() {
         />
 
         {/* Center */}
-        <div className="flex flex-1 flex-col items-center justify-center gap-7 py-4">
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 py-4 sm:gap-7">
           <PomodoroDots
             current={currentRound}
             total={settings.targetSessions}
@@ -428,10 +428,12 @@ export function FocusRoom() {
               : <div style={{ height: 30 }} />
           }
 
-          <TimerArc
-            time={timeStr} progress={progress} phase={phase}
-            subtitle={phase === 'idle' ? t('ready') : undefined}
-          />
+          <div className="origin-center max-[420px]:scale-[0.8]">
+            <TimerArc
+              time={timeStr} progress={progress} phase={phase}
+              subtitle={phase === 'idle' ? t('ready') : undefined}
+            />
+          </div>
 
           <FocusControls
             phase={phase} isRunning={isRunning}
@@ -547,7 +549,7 @@ export function FocusRoom() {
             </p>
 
             <div className="mt-7 flex flex-col gap-2.5">
-              {/* Primary — keep focusing */}
+              {/* Primary – keep focusing */}
               <button
                 onClick={() => setShowLeaveConfirm(false)}
                 className="h-11 w-full rounded-xl text-sm font-bold transition-opacity hover:opacity-90"
@@ -556,7 +558,7 @@ export function FocusRoom() {
                 {t('leaveKeep')}
               </button>
 
-              {/* Secondary — minimize (browse & return) */}
+              {/* Secondary – minimize (browse & return) */}
               <button
                 onClick={handleMinimizeAndLeave}
                 className="h-11 w-full rounded-xl border text-sm font-semibold transition-colors hover:bg-white/[0.06]"
@@ -568,7 +570,7 @@ export function FocusRoom() {
                 {t('leaveMinimize')}
               </button>
 
-              {/* Tertiary — end session */}
+              {/* Tertiary – end session */}
               <button
                 onClick={handleLeaveAndEnd}
                 className="h-9 w-full text-sm font-medium transition-colors hover:text-white/80"

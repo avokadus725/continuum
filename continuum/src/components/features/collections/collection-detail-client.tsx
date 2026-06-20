@@ -1,6 +1,6 @@
 'use client'
 
-/* Collection detail client — interactive view of one collection's items. */
+/* Collection detail client – interactive view of one collection's items. */
 
 import { DIFF_COLOR } from '@/lib/difficulty-colors'
 import { useMemo, useState, useTransition } from 'react'
@@ -57,15 +57,12 @@ interface Props {
 
 type Tab = 'all' | 'mat' | 'task' | 'note'
 
-const DIFF_LABEL: Record<string, string> = {
-  beginner: 'Початковий', intermediate: 'Середній', advanced: 'Складний',
-}
-
 export function CollectionDetailClient({
   collection, materials, tasks, notes, pickerMaterials, pickerTasks,
 }: Props) {
-  const t      = useTranslations('collections')
-  const router = useRouter()
+  const t       = useTranslations('collections')
+  const tCommon = useTranslations('common')
+  const router  = useRouter()
   const [tab, setTab] = useState<Tab>('all')
   const [search, setSearch] = useState('')
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -95,34 +92,34 @@ export function CollectionDetailClient({
       fd.set('cover', v.cover)
       await updateCollectionMeta(fd)
       setEditorOpen(false)
-      toast.success('Підбірку оновлено')
+      toast.success(t('toastUpdated'))
     })
   }
 
   function handleDeleteCollection() {
-    toast('Видалити підбірку?', {
-      description: 'Цю дію не можна скасувати.',
+    toast(t('deleteDialogTitle'), {
+      description: t('deleteIrreversible'),
       action: {
-        label: 'Видалити',
+        label: t('deleteItem'),
         onClick: () => {
           startTransition(async () => {
             const fd = new FormData()
             fd.set('id', collection.id)
             await deleteCollection(fd)
-            toast.success('Підбірку видалено')
+            toast.success(t('toastDeleted'))
             router.push('/collections')
           })
         },
       },
-      cancel: { label: 'Скасувати', onClick: () => {} },
+      cancel: { label: t('cancelAction'), onClick: () => {} },
     })
   }
 
   function handleRemoveMaterial(id: string, title: string) {
-    toast(`Прибрати «${title}»?`, {
-      description: 'Матеріал буде видалено з підбірки.',
+    toast(t('removeItemConfirm', { title }), {
+      description: t('removeMaterialDesc'),
       action: {
-        label: 'Прибрати',
+        label: t('removeAction'),
         onClick: () => {
           startTransition(async () => {
             const fd = new FormData()
@@ -130,19 +127,19 @@ export function CollectionDetailClient({
             fd.set('material_id', id)
             fd.set('action', 'remove')
             await toggleMaterialInCollection(fd)
-            toast.success('Матеріал прибрано з підбірки')
+            toast.success(t('toastMaterialRemoved'))
           })
         },
       },
-      cancel: { label: 'Скасувати', onClick: () => {} },
+      cancel: { label: t('cancelAction'), onClick: () => {} },
     })
   }
 
   function handleRemoveTask(id: string, title: string) {
-    toast(`Прибрати «${title}»?`, {
-      description: 'Завдання буде видалено з підбірки.',
+    toast(t('removeItemConfirm', { title }), {
+      description: t('removeTaskDesc'),
       action: {
-        label: 'Прибрати',
+        label: t('removeAction'),
         onClick: () => {
           startTransition(async () => {
             const fd = new FormData()
@@ -150,11 +147,11 @@ export function CollectionDetailClient({
             fd.set('task_id', id)
             fd.set('action', 'remove')
             await toggleTaskInCollection(fd)
-            toast.success('Завдання прибрано з підбірки')
+            toast.success(t('toastTaskRemoved'))
           })
         },
       },
-      cancel: { label: 'Скасувати', onClick: () => {} },
+      cancel: { label: t('cancelAction'), onClick: () => {} },
     })
   }
 
@@ -163,7 +160,7 @@ export function CollectionDetailClient({
       {/* Hero */}
       <div className="overflow-hidden rounded-[18px] border" style={{ borderColor: 'var(--border)' }}>
         <CollectionCover emoji={collection.emoji} cover={collection.cover}>
-          {/* Frosted buttons — always dark text so they're visible on any cover */}
+          {/* Frosted buttons – always dark text so they're visible on any cover */}
           <div className="flex gap-2">
             <Link
               href="/collections"
@@ -171,21 +168,21 @@ export function CollectionDetailClient({
               style={{ background: 'rgba(255,255,255,0.88)', color: '#18181b' }}
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              До підбірок
+              {t('backToCollections')}
             </Link>
             <button
               onClick={() => setEditorOpen(true)}
               className="grid h-[30px] w-[30px] place-items-center rounded-lg border-0"
               style={{ background: 'rgba(255,255,255,0.88)', color: '#18181b' }}
-              aria-label="Редагувати"
+              aria-label={tCommon('edit')}
             >
               <Pencil className="h-3.5 w-3.5" />
             </button>
           </div>
         </CollectionCover>
 
-        <div className="relative px-7 pb-6 pt-5" style={{ background: 'var(--card)' }}>
-          <div className="flex items-end gap-6">
+        <div className="relative px-5 pb-5 pt-4 sm:px-7 sm:pb-6 sm:pt-5" style={{ background: 'var(--card)' }}>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:gap-6">
             <div className="flex-1">
               <h1
                 className="m-0 text-[30px] font-semibold tracking-[-0.6px]"
@@ -201,27 +198,27 @@ export function CollectionDetailClient({
               <div className="mt-3 flex flex-wrap items-center gap-3.5 text-[12.5px]"
                 style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }}
               >
-                <Count icon={<FileText className="h-3.5 w-3.5" />} n={materials.length} label="матеріалів" tone="var(--primary)" />
-                <Count icon={<CheckSquare className="h-3.5 w-3.5" />} n={tasks.length} label="завдань" tone="var(--success)" />
-                <Count icon={<Sticker className="h-3.5 w-3.5" />} n={notes.length} label="нотаток" tone="#C2956C" />
+                <Count icon={<FileText className="h-3.5 w-3.5" />} n={materials.length} label={t('materialMany')} tone="var(--primary)" />
+                <Count icon={<CheckSquare className="h-3.5 w-3.5" />} n={tasks.length} label={t('taskMany')} tone="var(--success)" />
+                <Count icon={<Sticker className="h-3.5 w-3.5" />} n={notes.length} label={t('noteMany')} tone="#C2956C" />
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-none">
+            <div className="flex items-center gap-2 sm:flex-none">
               <button
                 onClick={handleDeleteCollection}
-                className="grid h-9 w-9 place-items-center rounded-[10px] border transition-colors hover:bg-red-50 dark:hover:bg-red-950/30"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border transition-colors hover:bg-red-50 dark:hover:bg-red-950/30 sm:h-9 sm:w-9"
                 style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
-                title="Видалити підбірку"
+                title={t('deleteCollectionTitle')}
               >
                 <Trash2 className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setPickerOpen(true)}
-                className="inline-flex h-10 items-center gap-2 rounded-[10px] border-0 px-4 text-[13.5px] font-semibold text-white"
+                className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-[10px] border-0 px-4 text-[13.5px] font-semibold text-white sm:flex-initial"
                 style={{ background: 'var(--primary)' }}
               >
                 <Plus className="h-4 w-4" />
-                Додати
+                {t('addAction')}
               </button>
             </div>
           </div>
@@ -229,23 +226,23 @@ export function CollectionDetailClient({
       </div>
 
       {/* Tabs + search */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Tabs
           tab={tab}
           onTab={setTab}
           counts={{ all: total, mat: materials.length, task: tasks.length, note: notes.length }}
         />
-        <span className="flex-1" />
+        <span className="hidden sm:block sm:flex-1" />
         {total > 0 && (
           <div
-            className="flex h-9 w-[240px] items-center gap-2 rounded-lg border px-3"
+            className="flex h-9 w-full min-w-0 items-center gap-2 rounded-lg border px-3 sm:w-[240px]"
             style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
           >
             <Search className="h-3.5 w-3.5" style={{ color: 'color-mix(in srgb, var(--muted-foreground) 70%, transparent)' }} />
             <input
               value={search} onChange={e => setSearch(e.target.value)}
               placeholder={t('detailSearchPlaceholder')}
-              className="flex-1 bg-transparent text-[13px] outline-none"
+              className="min-w-0 flex-1 bg-transparent text-[13px] outline-none"
               style={{ color: 'var(--foreground)' }}
             />
             {search && (
@@ -285,13 +282,13 @@ export function CollectionDetailClient({
             className="mt-2 rounded-2xl border p-9 text-center text-sm"
             style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
           >
-            <p className="m-0">У підбірці поки порожньо.</p>
+            <p className="m-0">{t('detailEmpty')}</p>
             <button
               onClick={() => setPickerOpen(true)}
               className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold"
               style={{ color: 'var(--primary)' }}
             >
-              <Plus className="h-4 w-4" /> Додати перший елемент
+              <Plus className="h-4 w-4" /> {t('addFirstItem')}
             </button>
           </div>
         )}
@@ -339,10 +336,11 @@ export function CollectionDetailClient({
 function Tabs({
   tab, onTab, counts,
 }: { tab: Tab; onTab: (t: Tab) => void; counts: Record<Tab, number> }) {
-  const items: [Tab, string][] = [['all', 'Усе'], ['mat', 'Матеріали'], ['task', 'Завдання'], ['note', 'Нотатки']]
+  const t = useTranslations('collections')
+  const items: [Tab, string][] = [['all', t('tabAll')], ['mat', t('tabMaterials')], ['task', t('tabTasks')], ['note', t('tabNotes')]]
   return (
     <div
-      className="inline-flex items-center gap-1 rounded-[10px] border p-1"
+      className="inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-[10px] border p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       style={{ background: 'var(--muted)', borderColor: 'var(--border)' }}
     >
       {items.map(([k, label]) => {
@@ -351,7 +349,7 @@ function Tabs({
           <button
             key={k}
             onClick={() => onTab(k)}
-            className="inline-flex items-center gap-1.5 rounded-md border-0 px-3 py-1.5 text-[12.5px] font-semibold"
+            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border-0 px-3 py-1.5 text-[12.5px] font-semibold"
             style={{
               background: active ? 'var(--card)' : 'transparent',
               color: active ? 'var(--foreground)' : 'var(--muted-foreground)',
@@ -380,11 +378,12 @@ function Count({ icon, n, label, tone }: { icon: React.ReactNode; n: number; lab
 }
 
 function MaterialRow({ m, last, onRemove }: { m: Material; last: boolean; onRemove: () => void }) {
+  const tTypes = useTranslations('materials.types')
   const Icon =
     m.type === 'video'  ? Video
     : m.type === 'link' ? LinkIcon
     : FileText
-  const labelKind = m.type === 'video' ? 'Відео' : m.type === 'link' ? 'Посилання' : 'Стаття'
+  const labelKind = m.type === 'video' ? tTypes('video') : m.type === 'link' ? tTypes('link') : tTypes('article')
   const excerpt = m.content?.slice(0, 140) ?? (m.url ? m.url.replace(/^https?:\/\//, '') : null)
   return (
     <Row
@@ -401,13 +400,17 @@ function MaterialRow({ m, last, onRemove }: { m: Material; last: boolean; onRemo
 }
 
 function TaskRow({ t, last, onRemove }: { t: Task; last: boolean; onRemove: () => void }) {
+  const tc = useTranslations('collections')
+  const tDiff = useTranslations('tasks.difficulty')
   const tone = DIFF_COLOR[t.difficulty as keyof typeof DIFF_COLOR] ?? 'var(--muted-foreground)'
-  const label = DIFF_LABEL[t.difficulty] ?? t.difficulty
+  const label = (['beginner', 'intermediate', 'advanced'].includes(t.difficulty)
+    ? tDiff(t.difficulty as 'beginner' | 'intermediate' | 'advanced')
+    : t.difficulty)
   return (
     <Row
       icon={<CheckSquare className="h-3.5 w-3.5" />}
       iconTone="var(--success)"
-      kind="Завдання"
+      kind={tc('itemKindTask')}
       badge={<><span className="h-1.5 w-1.5 rounded-full" style={{ background: tone }}/> {label}</>}
       badgeColor={tone}
       title={<Link href={`/tasks/${t.id}`} className="no-underline" style={{ color: 'var(--foreground)' }}>{t.title}</Link>}
@@ -424,14 +427,15 @@ function TaskRow({ t, last, onRemove }: { t: Task; last: boolean; onRemove: () =
 }
 
 function NoteRow({ n, last }: { n: Note; last: boolean }) {
+  const tc = useTranslations('collections')
   return (
     <Row
       icon={<Sticker className="h-3.5 w-3.5" />}
       iconTone="#C2956C"
-      kind="Нотатка"
+      kind={tc('itemKindNote')}
       title={<Link href={`/notes#${n.id}`} className="no-underline" style={{ color: 'var(--foreground)' }}>{n.title}</Link>}
       desc={n.content}
-      meta={`Оновлено ${new Date(n.updated_at).toLocaleDateString('uk-UA')}`}
+      meta={tc('updatedAt', { date: new Date(n.updated_at).toLocaleDateString('uk-UA') })}
       last={last}
     />
   )
@@ -452,6 +456,7 @@ function Row({
   onRemove?: () => void
   last?: boolean
 }) {
+  const tc = useTranslations('collections')
   return (
     <div
       className="group flex items-start gap-3.5 py-3.5"
@@ -487,7 +492,7 @@ function Row({
             onClick={onRemove}
             className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent opacity-0 transition-opacity group-hover:opacity-100"
             style={{ color: 'var(--muted-foreground)' }}
-            title="Прибрати з підбірки"
+            title={tc('removeFromCollection')}
           >
             <X className="h-3.5 w-3.5" />
           </button>

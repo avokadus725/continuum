@@ -1,6 +1,6 @@
 'use client'
 
-/* Material form modal — create or edit a learning material. */
+/* Material form modal – create or edit a learning material. */
 
 import { useTranslations } from 'next-intl'
 import { useRef, useState, useTransition } from 'react'
@@ -42,17 +42,19 @@ export function MaterialFormModal({ topics, material, onClose }: MaterialFormMod
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.5)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div className="w-full max-w-xl rounded-2xl border shadow-xl my-4"
+      <div className="w-full max-w-xl rounded-2xl border shadow-xl max-h-[90dvh] overflow-y-auto"
         style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
 
         <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
           <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
             {material ? tAdmin('editMaterial') : tAdmin('createMaterial')}
           </h2>
-          <button onClick={onClose} style={{ color: 'var(--muted-foreground)' }}>×</button>
+          <button onClick={onClose}
+            className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-lg transition-colors hover:bg-[var(--muted)]"
+            style={{ color: 'var(--muted-foreground)' }}>×</button>
         </div>
 
         <form ref={formRef} action={handleSubmit} className="p-6 space-y-4">
@@ -79,7 +81,7 @@ export function MaterialFormModal({ topics, material, onClose }: MaterialFormMod
               <select name="topic_id" defaultValue={material?.topic_id ?? ''}
                 className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
                 style={{ background: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-                <option value="">—</option>
+                <option value="">–</option>
                 {topics.map(tp => <option key={tp.id} value={tp.id}>{tp.icon} {tp.title}</option>)}
               </select>
             </div>

@@ -1,6 +1,6 @@
 'use client'
 
-/* Sidebar layout — v3 + full-bleed routes hide all chrome.
+/* Sidebar layout – v3 + full-bleed routes hide all chrome.
    Replaces src/components/sidebar-layout.tsx.
 
    What changed vs the dashboard-v3 version:
@@ -41,7 +41,7 @@ const GROUP_LABEL: Record<NavItem['group'], string | null> = {
   progress: 'progressGroup',
 }
 
-/** Routes that fully own the viewport — no sidebar, no topbar. */
+/** Routes that fully own the viewport – no sidebar, no topbar. */
 const FULL_BLEED = new Set(['/focus'])
 
 interface SidebarLayoutProps {
@@ -96,9 +96,13 @@ export function SidebarLayout({
             style={{ background: 'var(--card)' }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between">
-              <Logo />
-              <button onClick={() => setMobileOpen(false)} className="p-1" style={{ color: 'var(--muted-foreground)' }}>
+            <div className="mb-6 flex items-center justify-between">
+              <Logo noMargin />
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="grid h-7 w-7 shrink-0 place-items-center rounded-lg transition-colors hover:bg-[var(--muted)]"
+                style={{ color: 'var(--muted-foreground)' }}
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -117,10 +121,10 @@ export function SidebarLayout({
           level={profileLevel ?? undefined}
           onMobileMenu={() => setMobileOpen(true)}
         />
-        <main className="mx-auto w-full max-w-[1240px] flex-1 px-8 py-8">{children}</main>
+        <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 py-6 sm:px-6 md:px-8 md:py-8">{children}</main>
       </div>
 
-      {/* Floating timer pill — appears when a focus session is minimized */}
+      {/* Floating timer pill – appears when a focus session is minimized */}
       <FocusFloatingTimer />
     </div>
   )
@@ -128,9 +132,9 @@ export function SidebarLayout({
 
 /* ─────────── pieces ─────────── */
 
-function Logo() {
+function Logo({ noMargin }: { noMargin?: boolean }) {
   return (
-    <Link href="/dashboard" className="mb-6 flex items-center gap-2.5 px-2 no-underline">
+    <Link href="/dashboard" className={`${noMargin ? '' : 'mb-6 '}flex items-center gap-2.5 px-2 no-underline`}>
       <svg width="24" height="24" viewBox="0 0 44 44" aria-hidden>
         <path d="M30 11 A12 12 0 1 0 30 33" stroke="var(--foreground)" strokeWidth="3" strokeLinecap="round" fill="none" />
         <circle cx="32" cy="22" r="2.4" fill="var(--primary)" />

@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS tag_subscriptions (
   PRIMARY KEY (user_id, tag_slug)
 );
 
--- 5) RLS — owners can manage own rows; everyone can read
+-- 5) RLS – owners can manage own rows; everyone can read
 ALTER TABLE tags              ENABLE ROW LEVEL SECURITY;
 ALTER TABLE post_tags         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE saved_posts       ENABLE ROW LEVEL SECURITY;
